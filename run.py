@@ -23,12 +23,12 @@ def main():
     seed_main()
 
     # Start server
-    print("\nStarting server at http://localhost:8000")
-    print("API docs at http://localhost:8000/docs")
+    print("\nStarting server at http://localhost:8080")
+    print("API docs at http://localhost:8080/docs")
     print("Press Ctrl+C to stop\n")
 
     import uvicorn
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8080, reload=True)
 
 
 if __name__ == "__main__":
