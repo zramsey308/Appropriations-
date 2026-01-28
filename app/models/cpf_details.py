@@ -1,9 +1,8 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Text, DateTime, Enum as SQLEnum
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Text, DateTime
 from sqlalchemy.orm import relationship
 
 from app.db import Base
-from app.models.enums import EntityType
 
 
 class CPFDetails(Base):
@@ -20,7 +19,7 @@ class CPFDetails(Base):
     tx11_nexus_explanation = Column(Text, nullable=True)
 
     # Entity type
-    entity_type = Column(SQLEnum(EntityType), nullable=True)
+    entity_type = Column(String(50), nullable=True)
     entity_name = Column(String(500), nullable=True)
     entity_address = Column(Text, nullable=True)
 

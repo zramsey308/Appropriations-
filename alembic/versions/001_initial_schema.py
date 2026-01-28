@@ -17,47 +17,11 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # Create enum types
-    request_type_enum = sa.Enum('cpf', 'programmatic', 'language', name='requesttype')
-    request_type_enum.create(op.get_bind(), checkfirst=True)
-
-    subcommittee_enum = sa.Enum(
-        'agriculture', 'commerce_justice_science', 'defense', 'energy_water',
-        'financial_services_general_government', 'homeland_security', 'interior_environment',
-        'labor_hhs_education', 'legislative_branch', 'milcon_va', 'state_foreign_operations',
-        'transportation_hud',
-        name='subcommittee'
-    )
-    subcommittee_enum.create(op.get_bind(), checkfirst=True)
-
-    request_status_enum = sa.Enum('draft', 'submitted', 'under_review', 'approved', 'rejected', 'selected', name='requeststatus')
-    request_status_enum.create(op.get_bind(), checkfirst=True)
-
-    entity_type_enum = sa.Enum(
-        'state_government', 'local_government', 'tribal_government',
-        'nonprofit', 'public_higher_education', 'special_district',
-        name='entitytype'
-    )
-    entity_type_enum.create(op.get_bind(), checkfirst=True)
-
-    attachment_type_enum = sa.Enum(
-        'cpf_support_letter', 'budget_document', 'project_description',
-        'authorization_citation', 'other',
-        name='attachmenttype'
-    )
-    attachment_type_enum.create(op.get_bind(), checkfirst=True)
-
     # Create eligible_accounts table
     op.create_table(
         'eligible_accounts',
         sa.Column('id', sa.Integer(), nullable=False),
-        sa.Column('subcommittee', sa.Enum(
-            'agriculture', 'commerce_justice_science', 'defense', 'energy_water',
-            'financial_services_general_government', 'homeland_security', 'interior_environment',
-            'labor_hhs_education', 'legislative_branch', 'milcon_va', 'state_foreign_operations',
-            'transportation_hud',
-            name='subcommittee', create_type=False
-        ), nullable=False),
+        sa.Column('subcommittee', sa.String(length=100), nullable=False),
         sa.Column('subcategory', sa.String(length=255), nullable=True),
         sa.Column('agency', sa.String(length=255), nullable=False),
         sa.Column('account_name', sa.String(length=500), nullable=False),
@@ -74,15 +38,9 @@ def upgrade() -> None:
         'requests',
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column('fiscal_year', sa.Integer(), nullable=False, default=2027),
-        sa.Column('request_type', sa.Enum('cpf', 'programmatic', 'language', name='requesttype', create_type=False), nullable=False),
-        sa.Column('subcommittee', sa.Enum(
-            'agriculture', 'commerce_justice_science', 'defense', 'energy_water',
-            'financial_services_general_government', 'homeland_security', 'interior_environment',
-            'labor_hhs_education', 'legislative_branch', 'milcon_va', 'state_foreign_operations',
-            'transportation_hud',
-            name='subcommittee', create_type=False
-        ), nullable=False),
-        sa.Column('status', sa.Enum('draft', 'submitted', 'under_review', 'approved', 'rejected', 'selected', name='requeststatus', create_type=False), nullable=False, default='draft'),
+        sa.Column('request_type', sa.String(length=50), nullable=False),
+        sa.Column('subcommittee', sa.String(length=100), nullable=False),
+        sa.Column('status', sa.String(length=50), nullable=False, default='draft'),
         sa.Column('title', sa.String(length=500), nullable=False),
         sa.Column('description', sa.Text(), nullable=True),
         sa.Column('requester_name', sa.String(length=255), nullable=True),
@@ -115,11 +73,7 @@ def upgrade() -> None:
         sa.Column('cpf_account_id', sa.Integer(), nullable=True),
         sa.Column('tx11_nexus', sa.Boolean(), nullable=False, default=False),
         sa.Column('tx11_nexus_explanation', sa.Text(), nullable=True),
-        sa.Column('entity_type', sa.Enum(
-            'state_government', 'local_government', 'tribal_government',
-            'nonprofit', 'public_higher_education', 'special_district',
-            name='entitytype', create_type=False
-        ), nullable=True),
+        sa.Column('entity_type', sa.String(length=50), nullable=True),
         sa.Column('entity_name', sa.String(length=500), nullable=True),
         sa.Column('entity_address', sa.Text(), nullable=True),
         sa.Column('project_name', sa.String(length=500), nullable=True),
@@ -172,11 +126,7 @@ def upgrade() -> None:
         sa.Column('file_path', sa.String(length=1000), nullable=False),
         sa.Column('file_size', sa.Integer(), nullable=True),
         sa.Column('content_type', sa.String(length=255), nullable=True),
-        sa.Column('attachment_type', sa.Enum(
-            'cpf_support_letter', 'budget_document', 'project_description',
-            'authorization_citation', 'other',
-            name='attachmenttype', create_type=False
-        ), nullable=False, default='other'),
+        sa.Column('attachment_type', sa.String(length=50), nullable=False, default='other'),
         sa.Column('created_at', sa.DateTime(), nullable=False),
         sa.ForeignKeyConstraint(['request_id'], ['requests.id'], ondelete='CASCADE'),
         sa.PrimaryKeyConstraint('id')
@@ -203,10 +153,3 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_eligible_accounts_subcommittee'), table_name='eligible_accounts')
     op.drop_index(op.f('ix_eligible_accounts_id'), table_name='eligible_accounts')
     op.drop_table('eligible_accounts')
-
-    # Drop enum types
-    sa.Enum(name='attachmenttype').drop(op.get_bind(), checkfirst=True)
-    sa.Enum(name='entitytype').drop(op.get_bind(), checkfirst=True)
-    sa.Enum(name='requeststatus').drop(op.get_bind(), checkfirst=True)
-    sa.Enum(name='subcommittee').drop(op.get_bind(), checkfirst=True)
-    sa.Enum(name='requesttype').drop(op.get_bind(), checkfirst=True)

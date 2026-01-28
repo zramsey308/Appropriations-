@@ -3,8 +3,16 @@ from typing import Optional, List
 from sqlalchemy.orm import Session
 
 from app.models import Request, CPFDetails, EligibleAccount
-from app.models.enums import RequestType, ALLOWED_ENTITY_TYPES
 from app.schemas.cpf_details import CPFDetailsCreate, CPFDetailsUpdate, CPFValidationItem, CPFValidationResult
+
+ALLOWED_ENTITY_TYPES = [
+    "state_government",
+    "local_government",
+    "tribal_government",
+    "nonprofit",
+    "public_higher_education",
+    "special_district",
+]
 
 
 class CPFService:
@@ -21,7 +29,7 @@ class CPFService:
         if not request:
             return None
 
-        if request.request_type != RequestType.cpf:
+        if request.request_type != "cpf":
             raise ValueError("Request must be of type 'cpf' to have CPF details")
 
         cpf_details = self.get_by_request(request_id)
@@ -70,7 +78,8 @@ class CPFService:
             missing.append("TX-11 nexus must be confirmed (set tx11_nexus to true)")
 
         # 2. Entity type must be allowed
-        entity_passed = cpf_details.entity_type in ALLOWED_ENTITY_TYPES
+        entity_type_value = cpf_details.entity_type.value if hasattr(cpf_details.entity_type, 'value') else cpf_details.entity_type
+        entity_passed = entity_type_value in ALLOWED_ENTITY_TYPES
         items.append(CPFValidationItem(
             field="entity_type",
             requirement="Entity type must be one of: state_government, local_government, tribal_government, nonprofit, public_higher_education, special_district",
@@ -95,7 +104,7 @@ class CPFService:
                     else:
                         account_message = "CPF account is not active"
                 else:
-                    account_message = f"CPF account subcommittee ({account.subcommittee.value}) does not match request subcommittee ({request.subcommittee.value})"
+                    account_message = f"CPF account subcommittee ({account.subcommittee}) does not match request subcommittee ({request.subcommittee})"
             else:
                 account_message = "CPF account not found"
 
@@ -189,8 +198,7 @@ class CPFService:
         # Update request status
         request = self.db.query(Request).filter(Request.id == request_id).first()
         if request:
-            from app.models.enums import RequestStatus
-            request.status = RequestStatus.selected
+            request.status = "selected"
 
         self.db.commit()
         self.db.refresh(cpf_details)

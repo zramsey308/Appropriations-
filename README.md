@@ -1,6 +1,6 @@
 # FY27 Appropriations Tracker
 
-A Tier Two appropriations tracking system built with FastAPI, PostgreSQL, Alembic, and Docker Compose.
+A Tier Two appropriations tracking system built with FastAPI, SQLite, and Alembic.
 
 ## Features
 
@@ -11,29 +11,54 @@ A Tier Two appropriations tracking system built with FastAPI, PostgreSQL, Alembi
 - **File Attachments**: Support letters and document uploads with local storage
 - **Dashboard Summary**: Statistics by type, subcommittee, and status
 
-## Quick Start
+## Quick Start (Python only - no Docker required)
 
 ### Prerequisites
 
-- Docker and Docker Compose
+- Python 3.10+
 
 ### Run the Application
 
-```bash
-# Start the services
-docker-compose up -d
+```powershell
+# Create virtual environment
+python -m venv venv
 
-# The API will be available at http://localhost:8000
-# API documentation at http://localhost:8000/docs
+# Activate (Windows PowerShell)
+.\venv\Scripts\Activate.ps1
+
+# Or activate (Windows CMD)
+venv\Scripts\activate.bat
+
+# Or activate (Linux/Mac)
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the app (creates DB, runs migrations, seeds data, starts server)
+python run.py
 ```
+
+The API will be available at:
+- **http://localhost:8000** - API root
+- **http://localhost:8000/docs** - Interactive API documentation (Swagger UI)
 
 ### Stop the Application
 
-```bash
-docker-compose down
+Press `Ctrl+C` in the terminal.
 
-# To also remove the database volume:
-docker-compose down -v
+### Reset Database
+
+Delete `data/appropriations.db` and restart.
+
+---
+
+## Alternative: Docker Compose
+
+If you have Docker available:
+
+```bash
+docker compose up -d
 ```
 
 ## API Endpoints

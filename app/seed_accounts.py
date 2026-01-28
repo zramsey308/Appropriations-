@@ -6,7 +6,6 @@ from sqlalchemy.orm import Session
 
 from app.db import SessionLocal
 from app.models import EligibleAccount
-from app.models.enums import Subcommittee
 
 
 def load_eligible_accounts(db: Session, json_path: str) -> int:
@@ -21,7 +20,7 @@ def load_eligible_accounts(db: Session, json_path: str) -> int:
     for account_data in accounts:
         # Check if account already exists
         existing = db.query(EligibleAccount).filter(
-            EligibleAccount.subcommittee == Subcommittee(account_data["subcommittee"]),
+            EligibleAccount.subcommittee == account_data["subcommittee"],
             EligibleAccount.agency == account_data["agency"],
             EligibleAccount.account_name == account_data["account_name"],
         ).first()
@@ -30,7 +29,7 @@ def load_eligible_accounts(db: Session, json_path: str) -> int:
             continue
 
         account = EligibleAccount(
-            subcommittee=Subcommittee(account_data["subcommittee"]),
+            subcommittee=account_data["subcommittee"],
             subcategory=account_data.get("subcategory"),
             agency=account_data["agency"],
             account_name=account_data["account_name"],

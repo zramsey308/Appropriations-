@@ -1,9 +1,8 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, DateTime, Text, Enum as SQLEnum
+from sqlalchemy import Column, Integer, String, DateTime, Text
 from sqlalchemy.orm import relationship
 
 from app.db import Base
-from app.models.enums import RequestType, Subcommittee, RequestStatus
 
 
 class Request(Base):
@@ -11,9 +10,9 @@ class Request(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     fiscal_year = Column(Integer, nullable=False, default=2027, index=True)
-    request_type = Column(SQLEnum(RequestType), nullable=False, index=True)
-    subcommittee = Column(SQLEnum(Subcommittee), nullable=False, index=True)
-    status = Column(SQLEnum(RequestStatus), default=RequestStatus.draft, nullable=False, index=True)
+    request_type = Column(String(50), nullable=False, index=True)
+    subcommittee = Column(String(100), nullable=False, index=True)
+    status = Column(String(50), default="draft", nullable=False, index=True)
 
     # General intake fields
     title = Column(String(500), nullable=False)
