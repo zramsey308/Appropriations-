@@ -1,0 +1,596 @@
+{
+  "accounts": [
+    {
+      "subcommittee": "agriculture",
+      "subcategory": "Rural Development",
+      "agency": "Rural Development",
+      "account_name": "Community Facilities Grants",
+      "is_new": false,
+      "notes": "Essential community facilities in rural areas"
+    },
+    {
+      "subcommittee": "agriculture",
+      "subcategory": "Rural Development",
+      "agency": "Rural Development",
+      "account_name": "Distance Learning and Telemedicine",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "agriculture",
+      "subcategory": "Rural Development",
+      "agency": "Rural Development",
+      "account_name": "Water and Waste Disposal Program",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "agriculture",
+      "subcategory": "Natural Resources Conservation Service",
+      "agency": "Natural Resources Conservation Service",
+      "account_name": "Watershed and Flood Prevention Operations",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "commerce_justice_science",
+      "subcategory": "Department of Commerce",
+      "agency": "Economic Development Administration",
+      "account_name": "Economic Development Assistance Programs",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "commerce_justice_science",
+      "subcategory": "Department of Commerce",
+      "agency": "National Institute of Standards and Technology",
+      "account_name": "Scientific and Technical Research and Services",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "commerce_justice_science",
+      "subcategory": "Department of Commerce",
+      "agency": "National Oceanic and Atmospheric Administration",
+      "account_name": "Operations, Research, and Facilities",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "commerce_justice_science",
+      "subcategory": "Department of Justice",
+      "agency": "Office of Justice Programs",
+      "account_name": "State and Local Law Enforcement Assistance",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "commerce_justice_science",
+      "subcategory": "Department of Justice",
+      "agency": "Community Oriented Policing Services",
+      "account_name": "Community Oriented Policing Services Programs",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "commerce_justice_science",
+      "subcategory": "National Aeronautics and Space Administration",
+      "agency": "NASA",
+      "account_name": "Science",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "commerce_justice_science",
+      "subcategory": "National Aeronautics and Space Administration",
+      "agency": "NASA",
+      "account_name": "Exploration",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "defense",
+      "subcategory": "Research, Development, Test and Evaluation",
+      "agency": "Department of Defense",
+      "account_name": "Research, Development, Test and Evaluation, Army",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "defense",
+      "subcategory": "Research, Development, Test and Evaluation",
+      "agency": "Department of Defense",
+      "account_name": "Research, Development, Test and Evaluation, Navy",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "defense",
+      "subcategory": "Research, Development, Test and Evaluation",
+      "agency": "Department of Defense",
+      "account_name": "Research, Development, Test and Evaluation, Air Force",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "defense",
+      "subcategory": "Research, Development, Test and Evaluation",
+      "agency": "Department of Defense",
+      "account_name": "Research, Development, Test and Evaluation, Defense-Wide",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "defense",
+      "subcategory": "Procurement",
+      "agency": "Department of Defense",
+      "account_name": "Aircraft Procurement, Army",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "defense",
+      "subcategory": "Procurement",
+      "agency": "Department of Defense",
+      "account_name": "Other Procurement, Army",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "energy_water",
+      "subcategory": "Corps of Engineers",
+      "agency": "Army Corps of Engineers",
+      "account_name": "Construction",
+      "is_new": false,
+      "notes": "Civil works construction projects"
+    },
+    {
+      "subcommittee": "energy_water",
+      "subcategory": "Corps of Engineers",
+      "agency": "Army Corps of Engineers",
+      "account_name": "Operation and Maintenance",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "energy_water",
+      "subcategory": "Corps of Engineers",
+      "agency": "Army Corps of Engineers",
+      "account_name": "Investigations",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "energy_water",
+      "subcategory": "Corps of Engineers",
+      "agency": "Army Corps of Engineers",
+      "account_name": "Mississippi River and Tributaries",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "energy_water",
+      "subcategory": "Bureau of Reclamation",
+      "agency": "Bureau of Reclamation",
+      "account_name": "Water and Related Resources",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "energy_water",
+      "subcategory": "Department of Energy",
+      "agency": "Department of Energy",
+      "account_name": "Energy Efficiency and Renewable Energy",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "energy_water",
+      "subcategory": "Department of Energy",
+      "agency": "Department of Energy",
+      "account_name": "Science",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "energy_water",
+      "subcategory": "Department of Energy",
+      "agency": "Department of Energy",
+      "account_name": "Nuclear Energy",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "energy_water",
+      "subcategory": "Department of Energy",
+      "agency": "Department of Energy",
+      "account_name": "Fossil Energy and Carbon Management",
+      "is_new": true,
+      "notes": "[New] Added in FY27 guidance"
+    },
+    {
+      "subcommittee": "financial_services_general_government",
+      "subcategory": "General Services Administration",
+      "agency": "General Services Administration",
+      "account_name": "Federal Buildings Fund",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "financial_services_general_government",
+      "subcategory": "Small Business Administration",
+      "agency": "Small Business Administration",
+      "account_name": "Entrepreneurial Development Programs",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "homeland_security",
+      "subcategory": "Federal Emergency Management Agency",
+      "agency": "FEMA",
+      "account_name": "Federal Assistance",
+      "is_new": false,
+      "notes": "Includes Pre-Disaster Mitigation and BRIC"
+    },
+    {
+      "subcommittee": "homeland_security",
+      "subcategory": "Federal Emergency Management Agency",
+      "agency": "FEMA",
+      "account_name": "State and Local Programs",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "homeland_security",
+      "subcategory": "Federal Emergency Management Agency",
+      "agency": "FEMA",
+      "account_name": "Firefighter Assistance Grants",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "homeland_security",
+      "subcategory": "Cybersecurity and Infrastructure Security Agency",
+      "agency": "CISA",
+      "account_name": "Cybersecurity and Infrastructure Security Agency Operations",
+      "is_new": true,
+      "notes": "[New] Added in FY27 guidance"
+    },
+    {
+      "subcommittee": "interior_environment",
+      "subcategory": "Department of the Interior",
+      "agency": "Bureau of Indian Affairs",
+      "account_name": "Operation of Indian Programs",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "interior_environment",
+      "subcategory": "Department of the Interior",
+      "agency": "Bureau of Indian Affairs",
+      "account_name": "Construction",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "interior_environment",
+      "subcategory": "Department of the Interior",
+      "agency": "National Park Service",
+      "account_name": "Construction",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "interior_environment",
+      "subcategory": "Department of the Interior",
+      "agency": "U.S. Fish and Wildlife Service",
+      "account_name": "Construction",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "interior_environment",
+      "subcategory": "Environmental Protection Agency",
+      "agency": "Environmental Protection Agency",
+      "account_name": "State and Tribal Assistance Grants",
+      "is_new": false,
+      "notes": "Includes Clean Water and Drinking Water SRFs"
+    },
+    {
+      "subcommittee": "interior_environment",
+      "subcategory": "Environmental Protection Agency",
+      "agency": "Environmental Protection Agency",
+      "account_name": "Environmental Programs and Management",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "labor_hhs_education",
+      "subcategory": "Department of Labor",
+      "agency": "Employment and Training Administration",
+      "account_name": "Training and Employment Services",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "labor_hhs_education",
+      "subcategory": "Department of Health and Human Services",
+      "agency": "Health Resources and Services Administration",
+      "account_name": "Health Resources and Services",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "labor_hhs_education",
+      "subcategory": "Department of Health and Human Services",
+      "agency": "Administration for Community Living",
+      "account_name": "Aging and Disability Services Programs",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "labor_hhs_education",
+      "subcategory": "Department of Health and Human Services",
+      "agency": "Substance Abuse and Mental Health Services Administration",
+      "account_name": "Mental Health",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "labor_hhs_education",
+      "subcategory": "Department of Education",
+      "agency": "Department of Education",
+      "account_name": "Innovation and Improvement",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "labor_hhs_education",
+      "subcategory": "Department of Education",
+      "agency": "Department of Education",
+      "account_name": "Career, Technical, and Adult Education",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "labor_hhs_education",
+      "subcategory": "Department of Education",
+      "agency": "Department of Education",
+      "account_name": "Higher Education",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "labor_hhs_education",
+      "subcategory": "Department of Education",
+      "agency": "Department of Education",
+      "account_name": "Safe Schools and Citizenship Education",
+      "is_new": true,
+      "notes": "[New] Added in FY27 guidance"
+    },
+    {
+      "subcommittee": "legislative_branch",
+      "subcategory": "Library of Congress",
+      "agency": "Library of Congress",
+      "account_name": "Salaries and Expenses",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "milcon_va",
+      "subcategory": "Military Construction",
+      "agency": "Department of Defense",
+      "account_name": "Military Construction, Army",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "milcon_va",
+      "subcategory": "Military Construction",
+      "agency": "Department of Defense",
+      "account_name": "Military Construction, Navy and Marine Corps",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "milcon_va",
+      "subcategory": "Military Construction",
+      "agency": "Department of Defense",
+      "account_name": "Military Construction, Air Force",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "milcon_va",
+      "subcategory": "Military Construction",
+      "agency": "Department of Defense",
+      "account_name": "Military Construction, Defense-Wide",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "milcon_va",
+      "subcategory": "Military Construction",
+      "agency": "Department of Defense",
+      "account_name": "Military Construction, Army National Guard",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "milcon_va",
+      "subcategory": "Military Construction",
+      "agency": "Department of Defense",
+      "account_name": "Military Construction, Air National Guard",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "milcon_va",
+      "subcategory": "Military Construction",
+      "agency": "Department of Defense",
+      "account_name": "Military Construction, Army Reserve",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "milcon_va",
+      "subcategory": "Military Construction",
+      "agency": "Department of Defense",
+      "account_name": "Military Construction, Navy Reserve",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "milcon_va",
+      "subcategory": "Military Construction",
+      "agency": "Department of Defense",
+      "account_name": "Military Construction, Air Force Reserve",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "milcon_va",
+      "subcategory": "Department of Veterans Affairs",
+      "agency": "Department of Veterans Affairs",
+      "account_name": "Construction, Major Projects",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "milcon_va",
+      "subcategory": "Department of Veterans Affairs",
+      "agency": "Department of Veterans Affairs",
+      "account_name": "Construction, Minor Projects",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "milcon_va",
+      "subcategory": "Department of Veterans Affairs",
+      "agency": "Department of Veterans Affairs",
+      "account_name": "Grants for State Extended Care Facilities",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "milcon_va",
+      "subcategory": "Department of Veterans Affairs",
+      "agency": "Department of Veterans Affairs",
+      "account_name": "Grants for State Veterans Cemeteries",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "state_foreign_operations",
+      "subcategory": "Department of State",
+      "agency": "Department of State",
+      "account_name": "Educational and Cultural Exchange Programs",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "state_foreign_operations",
+      "subcategory": "USAID",
+      "agency": "U.S. Agency for International Development",
+      "account_name": "Development Assistance",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "state_foreign_operations",
+      "subcategory": "USAID",
+      "agency": "U.S. Agency for International Development",
+      "account_name": "Global Health Programs",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "transportation_hud",
+      "subcategory": "Department of Transportation",
+      "agency": "Federal Aviation Administration",
+      "account_name": "Grants-in-Aid for Airports",
+      "is_new": false,
+      "notes": "Airport Improvement Program"
+    },
+    {
+      "subcommittee": "transportation_hud",
+      "subcategory": "Department of Transportation",
+      "agency": "Federal Highway Administration",
+      "account_name": "Federal-Aid Highways",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "transportation_hud",
+      "subcategory": "Department of Transportation",
+      "agency": "Federal Transit Administration",
+      "account_name": "Capital Investment Grants",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "transportation_hud",
+      "subcategory": "Department of Transportation",
+      "agency": "Federal Transit Administration",
+      "account_name": "Transit Infrastructure Grants",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "transportation_hud",
+      "subcategory": "Department of Transportation",
+      "agency": "Federal Railroad Administration",
+      "account_name": "Federal-State Partnership for Intercity Passenger Rail",
+      "is_new": true,
+      "notes": "[New] Added in FY27 guidance"
+    },
+    {
+      "subcommittee": "transportation_hud",
+      "subcategory": "Department of Transportation",
+      "agency": "Maritime Administration",
+      "account_name": "Port Infrastructure Development Program",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "transportation_hud",
+      "subcategory": "Department of Housing and Urban Development",
+      "agency": "HUD",
+      "account_name": "Community Development Fund",
+      "is_new": false,
+      "notes": "Community Development Block Grants"
+    },
+    {
+      "subcommittee": "transportation_hud",
+      "subcategory": "Department of Housing and Urban Development",
+      "agency": "HUD",
+      "account_name": "HOME Investment Partnerships Program",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "transportation_hud",
+      "subcategory": "Department of Housing and Urban Development",
+      "agency": "HUD",
+      "account_name": "Public Housing Capital Fund",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "transportation_hud",
+      "subcategory": "Department of Housing and Urban Development",
+      "agency": "HUD",
+      "account_name": "Choice Neighborhoods Initiative",
+      "is_new": false,
+      "notes": null
+    },
+    {
+      "subcommittee": "transportation_hud",
+      "subcategory": "Department of Housing and Urban Development",
+      "agency": "HUD",
+      "account_name": "Economic Development Initiative",
+      "is_new": true,
+      "notes": "[New] Added in FY27 guidance"
+    }
+  ]
+}
