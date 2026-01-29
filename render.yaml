@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: tx11-appropriations-api
+    runtime: python
+    buildCommand: pip install -r requirements.txt && alembic upgrade head && python -c "from app.seed_accounts import seed_accounts; seed_accounts()"
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATABASE_URL
+        value: sqlite:///./appropriations.db
+      - key: PYTHON_VERSION
+        value: 3.11.0
+    healthCheckPath: /health
