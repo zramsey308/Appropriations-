@@ -1063,6 +1063,16 @@
                                     <label>Justification</label>
                                     <textarea id="programmatic_justification" placeholder="Why should this program receive increased funding?"></textarea>
                                 </div>
+                                <div class="form-group full-width">
+                                    <label>TX-11 Connection</label>
+                                    <textarea id="programmatic_tx11_explanation" placeholder="How does this program benefit TX-11 (Midland, Odessa, San Angelo, Permian Basin)?"></textarea>
+                                </div>
+                                <div class="form-group full-width">
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="programmatic_tx11_nexus">
+                                        <label for="programmatic_tx11_nexus">I confirm this request has a direct connection to TX-11</label>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -1083,6 +1093,16 @@
                                 <div class="form-group full-width">
                                     <label>Justification</label>
                                     <textarea id="language_justification" placeholder="Why is this language change needed?"></textarea>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>TX-11 Connection</label>
+                                    <textarea id="language_tx11_explanation" placeholder="How does this language change benefit TX-11 (Midland, Odessa, San Angelo, Permian Basin)?"></textarea>
+                                </div>
+                                <div class="form-group full-width">
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="language_tx11_nexus">
+                                        <label for="language_tx11_nexus">I confirm this request has a direct connection to TX-11</label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1323,11 +1343,15 @@
             };
             if (requestType === 'programmatic') {
                 data.program_name = document.getElementById('program_name').value;
-                data.programmatic_justification = document.getElementById('programmatic_justification').value;
+                const progJustification = document.getElementById('programmatic_justification').value;
+                const progTx11 = document.getElementById('programmatic_tx11_explanation').value;
+                data.programmatic_justification = progJustification + (progTx11 ? '\n\nTX-11 Connection: ' + progTx11 : '');
             } else if (requestType === 'language') {
                 data.bill_section = document.getElementById('bill_section').value;
                 data.proposed_language = document.getElementById('proposed_language').value;
-                data.language_justification = document.getElementById('language_justification').value;
+                const langJustification = document.getElementById('language_justification').value;
+                const langTx11 = document.getElementById('language_tx11_explanation').value;
+                data.language_justification = langJustification + (langTx11 ? '\n\nTX-11 Connection: ' + langTx11 : '');
             }
             try {
                 const response = await fetch(`${API_BASE}/api/requests`, {

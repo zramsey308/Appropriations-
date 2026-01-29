@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Appropriations Request - TX-11</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #d97706;
+            --primary-dark: #b45309;
+            --primary-light: #fbbf24;
+            --dark: #0f172a;
+            --dark-lighter: #1e293b;
+            --surface: #ffffff;
+            --surface-alt: #f8fafc;
+            --border: #e2e8f0;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --success: #059669;
+            --danger: #dc2626;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--surface-alt);
+            min-height: 100vh;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--dark) 0%, var(--dark-lighter) 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .header-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            opacity: 0.8;
+            font-size: 0.95rem;
+        }
+
+        .header .badge {
+            display: inline-block;
+            background: var(--primary);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: 1rem;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem;
+        }
+
+        .card {
+            background: var(--surface);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .card-body {
+            padding: 2rem;
+        }
+
+        .intro-box {
+            background: linear-gradient(135deg, rgba(217, 119, 6, 0.08) 0%, rgba(251, 191, 36, 0.08) 100%);
+            border: 1px solid rgba(217, 119, 6, 0.2);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .intro-box h3 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--primary-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .intro-box p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .form-section {
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .form-section:last-of-type {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .section-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.25rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .form-group label .required {
+            color: var(--danger);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            background: var(--surface);
+            width: 100%;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.1);
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-group .help-text {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .type-selector {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .type-option {
+            flex: 1;
+            padding: 1rem;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .type-option:hover {
+            border-color: var(--primary);
+        }
+
+        .type-option.selected {
+            border-color: var(--primary);
+            background: rgba(217, 119, 6, 0.05);
+        }
+
+        .type-option input {
+            display: none;
+        }
+
+        .type-option .type-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .type-option .type-desc {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .type-fields {
+            display: none;
+        }
+
+        .type-fields.active {
+            display: block;
+        }
+
+        .checkbox-field {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 1rem;
+            background: var(--surface-alt);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+        }
+
+        .checkbox-field input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-top: 2px;
+            accent-color: var(--primary);
+            flex-shrink: 0;
+        }
+
+        .checkbox-field label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        .btn {
+            padding: 0.875rem 2rem;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .success-message {
+            display: none;
+            text-align: center;
+            padding: 3rem 2rem;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(5, 150, 105, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 2.5rem;
+        }
+
+        .success-message h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .success-message p {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+
+        .success-message .request-id {
+            background: var(--surface-alt);
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            font-family: monospace;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary-dark);
+        }
+
+        .toast-container {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            z-index: 1000;
+        }
+
+        .toast {
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius-md);
+            color: white;
+            font-weight: 500;
+            box-shadow: var(--shadow-lg);
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast.error { background: var(--danger); }
+        .toast.success { background: var(--success); }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        @media (max-width: 640px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .type-selector {
+                flex-direction: column;
+            }
+
+            .header h1 {
+                font-size: 1.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1>Texas 11th Congressional District</h1>
+            <p>FY2027 Appropriations Request Submission</p>
+            <span class="badge">Fiscal Year 2027</span>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="card">
+            <div class="card-body">
+                <!-- Success Message (hidden by default) -->
+                <div class="success-message" id="success-message">
+                    <div class="success-icon">&#10003;</div>
+                    <h2>Request Submitted Successfully</h2>
+                    <p>Thank you for your submission. Your request has been received and will be reviewed by our office.</p>
+                    <div class="request-id">Request #<span id="request-number"></span></div>
+                    <br><br>
+                    <button class="btn btn-primary" onclick="resetForm()" style="max-width: 200px; margin: 0 auto;">Submit Another</button>
+                </div>
+
+                <!-- Form -->
+                <form id="submit-form">
+                    <div class="intro-box">
+                        <h3>Submission Guidelines</h3>
+                        <p>All requests must demonstrate a direct connection to Texas Congressional District 11, which includes Midland, Odessa, San Angelo, and the Permian Basin region. Please provide complete and accurate information.</p>
+                    </div>
+
+                    <!-- Request Type Selection -->
+                    <div class="form-section">
+                        <div class="section-title">Request Type</div>
+                        <div class="type-selector">
+                            <label class="type-option selected" data-type="cpf">
+                                <input type="radio" name="request_type" value="cpf" checked>
+                                <div class="type-name">Community Project Funding</div>
+                                <div class="type-desc">Direct funding for local projects</div>
+                            </label>
+                            <label class="type-option" data-type="programmatic">
+                                <input type="radio" name="request_type" value="programmatic">
+                                <div class="type-name">Programmatic</div>
+                                <div class="type-desc">Federal program funding</div>
+                            </label>
+                            <label class="type-option" data-type="language">
+                                <input type="radio" name="request_type" value="language">
+                                <div class="type-name">Language</div>
+                                <div class="type-desc">Bill language modifications</div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Contact Information -->
+                    <div class="form-section">
+                        <div class="section-title">Contact Information</div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Your Name <span class="required">*</span></label>
+                                <input type="text" id="requester_name" required placeholder="Full name">
+                            </div>
+                            <div class="form-group">
+                                <label>Email Address <span class="required">*</span></label>
+                                <input type="email" id="requester_email" required placeholder="email@example.com">
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Organization <span class="required">*</span></label>
+                                <input type="text" id="requester_organization" required placeholder="City, County, or Organization name">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Request Details -->
+                    <div class="form-section">
+                        <div class="section-title">Request Details</div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Subcommittee <span class="required">*</span></label>
+                                <select id="subcommittee" required>
+                                    <option value="">Select subcommittee...</option>
+                                    <option value="agriculture">Agriculture</option>
+                                    <option value="commerce_justice_science">Commerce, Justice, Science</option>
+                                    <option value="defense">Defense</option>
+                                    <option value="energy_water">Energy & Water</option>
+                                    <option value="financial_services_general_government">Financial Services & General Government</option>
+                                    <option value="homeland_security">Homeland Security</option>
+                                    <option value="interior_environment">Interior & Environment</option>
+                                    <option value="labor_hhs_education">Labor, HHS, Education</option>
+                                    <option value="legislative_branch">Legislative Branch</option>
+                                    <option value="milcon_va">MilCon & VA</option>
+                                    <option value="state_foreign_operations">State & Foreign Operations</option>
+                                    <option value="transportation_hud">Transportation & HUD</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Requested Amount ($)</label>
+                                <input type="number" id="requested_amount" placeholder="0.00" step="0.01">
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Request Title <span class="required">*</span></label>
+                                <input type="text" id="title" required placeholder="Brief, descriptive title">
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Description <span class="required">*</span></label>
+                                <textarea id="description" required placeholder="Provide a detailed description of your request..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TX-11 Connection (All Types) -->
+                    <div class="form-section">
+                        <div class="section-title">TX-11 District Connection</div>
+                        <div class="form-grid">
+                            <div class="form-group full-width">
+                                <label>How does this benefit TX-11? <span class="required">*</span></label>
+                                <textarea id="tx11_nexus_explanation" required placeholder="Explain the direct connection and benefit to Midland, Odessa, San Angelo, or other TX-11 communities..."></textarea>
+                                <span class="help-text">All requests must demonstrate a clear benefit to the 11th Congressional District of Texas.</span>
+                            </div>
+                            <div class="form-group full-width">
+                                <div class="checkbox-field">
+                                    <input type="checkbox" id="tx11_nexus" required>
+                                    <label for="tx11_nexus">I confirm this request has a direct connection to and will benefit Texas Congressional District 11 (Midland, Odessa, San Angelo, Permian Basin region).</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CPF Specific Fields -->
+                    <div id="cpf-fields" class="type-fields active">
+                        <div class="form-section">
+                            <div class="section-title">CPF Project Details</div>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Entity Type <span class="required">*</span></label>
+                                    <select id="entity_type">
+                                        <option value="">Select type...</option>
+                                        <option value="state_government">State Government</option>
+                                        <option value="local_government">Local Government</option>
+                                        <option value="tribal_government">Tribal Government</option>
+                                        <option value="nonprofit">Nonprofit (501c3)</option>
+                                        <option value="public_higher_education">Public Higher Education</option>
+                                        <option value="special_district">Special District</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Entity Name</label>
+                                    <input type="text" id="entity_name" placeholder="Legal entity name">
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Entity Address</label>
+                                    <input type="text" id="entity_address" placeholder="Full mailing address">
+                                </div>
+                                <div class="form-group">
+                                    <label>Project Name</label>
+                                    <input type="text" id="project_name" placeholder="Official project name">
+                                </div>
+                                <div class="form-group">
+                                    <label>Project Location</label>
+                                    <input type="text" id="project_address" placeholder="Project address in TX-11">
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Project Description</label>
+                                    <textarea id="project_description" placeholder="Detailed description of the project scope and objectives..."></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label>Total Project Cost ($)</label>
+                                    <input type="number" id="total_project_cost" placeholder="0.00" step="0.01">
+                                </div>
+                                <div class="form-group">
+                                    <label>Cost Share / Match ($)</label>
+                                    <input type="number" id="cost_share_amount" placeholder="0.00" step="0.01">
+                                    <span class="help-text">Local or other funding committed</span>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Public Benefit</label>
+                                    <textarea id="public_benefit_justification" placeholder="How will this project benefit the public?"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Programmatic Specific Fields -->
+                    <div id="programmatic-fields" class="type-fields">
+                        <div class="form-section">
+                            <div class="section-title">Programmatic Details</div>
+                            <div class="form-grid">
+                                <div class="form-group full-width">
+                                    <label>Program Name <span class="required">*</span></label>
+                                    <input type="text" id="program_name" placeholder="Federal program name">
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Justification <span class="required">*</span></label>
+                                    <textarea id="programmatic_justification" placeholder="Why should this program receive increased funding? How will it benefit TX-11?"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Language Specific Fields -->
+                    <div id="language-fields" class="type-fields">
+                        <div class="form-section">
+                            <div class="section-title">Language Details</div>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Bill Section</label>
+                                    <input type="text" id="bill_section" placeholder="e.g., Section 123, Title II">
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Proposed Language <span class="required">*</span></label>
+                                    <textarea id="proposed_language" placeholder="Enter the exact proposed bill language..."></textarea>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Justification <span class="required">*</span></label>
+                                    <textarea id="language_justification" placeholder="Why is this language change needed? How will it benefit TX-11?"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="submit-btn">Submit Request</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        Office of Congressman August Pfluger | Texas 11th Congressional District | FY2027 Appropriations
+    </footer>
+
+    <div class="toast-container" id="toast-container"></div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080';
+
+        // Type selector
+        document.querySelectorAll('.type-option').forEach(option => {
+            option.addEventListener('click', () => {
+                document.querySelectorAll('.type-option').forEach(o => o.classList.remove('selected'));
+                document.querySelectorAll('.type-fields').forEach(f => f.classList.remove('active'));
+
+                option.classList.add('selected');
+                const type = option.dataset.type;
+                document.getElementById(`${type}-fields`).classList.add('active');
+            });
+        });
+
+        function showToast(message, type = 'error') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        function resetForm() {
+            document.getElementById('submit-form').reset();
+            document.getElementById('submit-form').style.display = 'block';
+            document.getElementById('success-message').classList.remove('show');
+            document.querySelectorAll('.type-option').forEach(o => o.classList.remove('selected'));
+            document.querySelector('.type-option[data-type="cpf"]').classList.add('selected');
+            document.querySelectorAll('.type-fields').forEach(f => f.classList.remove('active'));
+            document.getElementById('cpf-fields').classList.add('active');
+        }
+
+        document.getElementById('submit-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const btn = document.getElementById('submit-btn');
+            btn.disabled = true;
+            btn.textContent = 'Submitting...';
+
+            const requestType = document.querySelector('input[name="request_type"]:checked').value;
+
+            // Validate TX-11 checkbox
+            if (!document.getElementById('tx11_nexus').checked) {
+                showToast('You must confirm the TX-11 district connection');
+                btn.disabled = false;
+                btn.textContent = 'Submit Request';
+                return;
+            }
+
+            const data = {
+                request_type: requestType,
+                subcommittee: document.getElementById('subcommittee').value,
+                title: document.getElementById('title').value,
+                description: document.getElementById('description').value,
+                requester_name: document.getElementById('requester_name').value,
+                requester_email: document.getElementById('requester_email').value,
+                requester_organization: document.getElementById('requester_organization').value,
+                requested_amount: parseFloat(document.getElementById('requested_amount').value) || null
+            };
+
+            // Add programmatic fields
+            if (requestType === 'programmatic') {
+                data.program_name = document.getElementById('program_name').value;
+                data.programmatic_justification = document.getElementById('programmatic_justification').value;
+            }
+
+            // Add language fields
+            if (requestType === 'language') {
+                data.bill_section = document.getElementById('bill_section').value;
+                data.proposed_language = document.getElementById('proposed_language').value;
+                data.language_justification = document.getElementById('language_justification').value;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/requests`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to submit request');
+                }
+
+                const request = await response.json();
+
+                // If CPF, also create CPF details
+                if (requestType === 'cpf') {
+                    const cpfData = {
+                        tx11_nexus: true,
+                        tx11_nexus_explanation: document.getElementById('tx11_nexus_explanation').value,
+                        entity_type: document.getElementById('entity_type').value,
+                        entity_name: document.getElementById('entity_name').value,
+                        entity_address: document.getElementById('entity_address').value,
+                        project_name: document.getElementById('project_name').value,
+                        project_address: document.getElementById('project_address').value,
+                        project_description: document.getElementById('project_description').value,
+                        total_project_cost: parseFloat(document.getElementById('total_project_cost').value) || null,
+                        cost_share_amount: parseFloat(document.getElementById('cost_share_amount').value) || null,
+                        public_benefit_justification: document.getElementById('public_benefit_justification').value
+                    };
+
+                    await fetch(`${API_BASE}/api/requests/${request.id}/cpf`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(cpfData)
+                    });
+                }
+
+                // Show success message
+                document.getElementById('submit-form').style.display = 'none';
+                document.getElementById('request-number').textContent = request.id;
+                document.getElementById('success-message').classList.add('show');
+
+            } catch (error) {
+                showToast(error.message);
+                btn.disabled = false;
+                btn.textContent = 'Submit Request';
+            }
+        });
+    </script>
+</body>
+</html>
