@@ -12,66 +12,68 @@
         }
 
         :root {
-            /* West Texas Desert Colors */
-            --terracotta: #c2703a;
-            --terracotta-dark: #a85d2e;
-            --desert-sand: #e8d4b8;
-            --mesa-brown: #8b5a2b;
-            --sunset-orange: #e07b39;
-            --cactus-green: #5d7052;
-            --sky-blue: #87ceeb;
-            --desert-sky: #1e3a5f;
-            --midnight: #0f1c2e;
-            --cream: #faf6f0;
-            --bone: #f5efe6;
-            --dust: #d4c4a8;
+            /* Modern West Texas Palette */
+            --primary: #d97706;
+            --primary-dark: #b45309;
+            --primary-light: #fbbf24;
+            --secondary: #0c4a6e;
+            --secondary-light: #0369a1;
+            --accent: #059669;
+            --accent-light: #10b981;
 
-            --primary: var(--terracotta);
-            --primary-dark: var(--terracotta-dark);
-            --primary-light: var(--sunset-orange);
-            --secondary: var(--desert-sky);
-            --accent: var(--cactus-green);
-            --success: #5d8a66;
-            --warning: var(--sunset-orange);
-            --danger: #b54a32;
+            --dark: #0f172a;
+            --dark-lighter: #1e293b;
+            --surface: #ffffff;
+            --surface-alt: #f8fafc;
+            --border: #e2e8f0;
+            --border-dark: #cbd5e1;
 
-            --gray-50: var(--cream);
-            --gray-100: var(--bone);
-            --gray-200: var(--dust);
-            --gray-300: #c4b494;
-            --gray-400: #9a8b70;
-            --gray-500: #6b5d48;
-            --gray-600: #4a4035;
-            --gray-700: #3a322a;
-            --gray-800: #2a2520;
-            --gray-900: var(--midnight);
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
 
-            --radius: 12px;
-            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --success: #059669;
+            --warning: #d97706;
+            --danger: #dc2626;
+
+            --glass: rgba(255, 255, 255, 0.8);
+            --glass-dark: rgba(15, 23, 42, 0.95);
+
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
             --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            --shadow-glow: 0 0 40px rgba(217, 119, 6, 0.15);
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(180deg, var(--bone) 0%, var(--dust) 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--surface-alt);
             min-height: 100vh;
-            color: var(--gray-800);
+            color: var(--text-primary);
+            line-height: 1.6;
         }
 
-        /* Header - Desert Sky Gradient */
+        /* Glassmorphism Header */
         .header {
-            background: linear-gradient(135deg, var(--desert-sky) 0%, var(--midnight) 50%, var(--terracotta-dark) 100%);
+            background: var(--glass-dark);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             color: white;
-            padding: 1.5rem 2rem;
-            box-shadow: var(--shadow-lg);
+            padding: 1rem 2rem;
             position: sticky;
             top: 0;
             z-index: 100;
-            border-bottom: 4px solid var(--terracotta);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
         }
 
         .header-content {
-            max-width: 1400px;
+            max-width: 1440px;
             margin: 0 auto;
             display: flex;
             justify-content: space-between;
@@ -81,230 +83,326 @@
         .logo {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 14px;
         }
 
         .logo-icon {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, var(--terracotta) 0%, var(--sunset-orange) 100%);
-            border-radius: 12px;
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            border-radius: var(--radius-md);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            font-size: 22px;
+            box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
         }
 
-        .logo h1 {
-            font-size: 1.75rem;
+        .logo-text h1 {
+            font-size: 1.25rem;
             font-weight: 700;
-            letter-spacing: -0.5px;
+            letter-spacing: -0.02em;
         }
 
-        .logo span {
-            font-size: 0.875rem;
-            opacity: 0.9;
+        .logo-text span {
+            font-size: 0.8rem;
+            opacity: 0.7;
             font-weight: 400;
-            display: block;
-            margin-top: 2px;
         }
 
-        .header-badge {
-            background: var(--terracotta);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.875rem;
-            font-weight: 600;
-        }
-
-        /* Navigation */
-        .nav {
+        .header-actions {
             display: flex;
-            gap: 8px;
-            background: white;
-            padding: 8px;
-            border-radius: 16px;
-            max-width: 1400px;
-            margin: 1.5rem auto;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--dust);
+            align-items: center;
+            gap: 12px;
+        }
+
+        .fiscal-badge {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+
+        /* Modern Navigation */
+        .nav-container {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 1.25rem 1.5rem;
+        }
+
+        .nav {
+            display: inline-flex;
+            gap: 4px;
+            background: var(--surface);
+            padding: 4px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border);
         }
 
         .nav-btn {
-            padding: 14px 28px;
+            padding: 10px 20px;
             border: none;
             background: transparent;
-            color: var(--gray-600);
-            font-size: 0.95rem;
-            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 500;
             cursor: pointer;
-            border-radius: 10px;
-            transition: all 0.2s;
+            border-radius: var(--radius-md);
+            transition: all 0.2s ease;
         }
 
         .nav-btn:hover {
-            color: var(--terracotta);
-            background: var(--bone);
+            color: var(--primary);
+            background: rgba(217, 119, 6, 0.08);
         }
 
         .nav-btn.active {
-            background: linear-gradient(135deg, var(--terracotta) 0%, var(--terracotta-dark) 100%);
+            background: var(--dark);
             color: white;
-            box-shadow: 0 2px 8px rgba(194, 112, 58, 0.4);
+            box-shadow: var(--shadow-md);
         }
 
         /* Main Container */
         .container {
-            max-width: 1400px;
+            max-width: 1440px;
             margin: 0 auto;
-            padding: 0 1.5rem 2rem;
+            padding: 0 1.5rem 3rem;
         }
 
-        /* Hero Dashboard */
-        .dashboard-hero {
-            background: linear-gradient(135deg, var(--desert-sky) 0%, var(--midnight) 100%);
-            border-radius: 20px;
-            padding: 2.5rem;
-            margin-bottom: 2rem;
-            color: white;
+        /* Hero Dashboard - Bento Grid Style */
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .bento-card {
+            background: var(--surface);
+            border-radius: var(--radius-xl);
+            padding: 1.75rem;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
-            box-shadow: var(--shadow-lg);
         }
 
-        .dashboard-hero::before {
+        .bento-card:hover {
+            border-color: var(--border-dark);
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+
+        /* Hero Card - Main Welcome */
+        .bento-hero {
+            grid-column: span 8;
+            background: linear-gradient(135deg, var(--dark) 0%, var(--dark-lighter) 100%);
+            color: white;
+            min-height: 280px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .bento-hero::before {
             content: '';
             position: absolute;
-            top: 0;
-            right: 0;
+            top: -50%;
+            right: -20%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(217, 119, 6, 0.15) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .bento-hero::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -10%;
             width: 300px;
-            height: 100%;
-            background: linear-gradient(135deg, transparent 0%, rgba(224, 123, 57, 0.2) 100%);
-            border-radius: 0 20px 20px 0;
+            height: 300px;
+            background: radial-gradient(circle, rgba(5, 150, 105, 0.1) 0%, transparent 70%);
+            pointer-events: none;
         }
 
-        .dashboard-hero h2 {
-            font-size: 1.5rem;
-            font-weight: 400;
-            opacity: 0.9;
-            margin-bottom: 0.5rem;
-        }
-
-        .dashboard-hero .hero-title {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-
-        .dashboard-hero .hero-subtitle {
-            font-size: 1rem;
-            opacity: 0.7;
-        }
-
-        .hero-stats {
-            display: flex;
-            gap: 3rem;
-            margin-top: 2rem;
+        .hero-content {
             position: relative;
             z-index: 1;
         }
 
-        .hero-stat {
-            text-align: center;
+        .hero-eyebrow {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--primary-light);
+            font-weight: 600;
+            margin-bottom: 0.75rem;
         }
 
-        .hero-stat .value {
-            font-size: 3rem;
+        .hero-title {
+            font-size: 2rem;
             font-weight: 700;
-            color: var(--sunset-orange);
-            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            letter-spacing: -0.02em;
+            margin-bottom: 0.5rem;
+            line-height: 1.2;
         }
 
-        .hero-stat .label {
-            font-size: 0.875rem;
-            opacity: 0.8;
+        .hero-subtitle {
+            font-size: 0.95rem;
+            opacity: 0.7;
+            max-width: 400px;
+        }
+
+        .hero-metrics {
+            display: flex;
+            gap: 2.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-metric {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .hero-metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.1;
+        }
+
+        .hero-metric-label {
+            font-size: 0.8rem;
             text-transform: uppercase;
             letter-spacing: 0.1em;
+            opacity: 0.6;
             margin-top: 4px;
         }
 
-        /* Dashboard Cards Grid */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
+        /* Quick Stats Cards */
+        .bento-stat {
+            grid-column: span 4;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 140px;
         }
 
-        .stat-card {
-            background: white;
-            border-radius: var(--radius);
-            padding: 1.75rem;
-            box-shadow: var(--shadow);
-            transition: transform 0.2s, box-shadow 0.2s;
-            border: 1px solid var(--dust);
-            position: relative;
-            overflow: hidden;
+        .stat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 4px;
-            height: 100%;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-lg);
-        }
-
-        .stat-card .icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-md);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 18px;
+        }
+
+        .stat-icon.cpf {
+            background: linear-gradient(135deg, rgba(217, 119, 6, 0.15) 0%, rgba(251, 191, 36, 0.15) 100%);
+            color: var(--primary);
+        }
+
+        .stat-icon.programmatic {
+            background: linear-gradient(135deg, rgba(5, 150, 105, 0.15) 0%, rgba(16, 185, 129, 0.15) 100%);
+            color: var(--accent);
+        }
+
+        .stat-icon.language {
+            background: linear-gradient(135deg, rgba(12, 74, 110, 0.15) 0%, rgba(3, 105, 161, 0.15) 100%);
+            color: var(--secondary);
+        }
+
+        .stat-icon.amount {
+            background: linear-gradient(135deg, rgba(220, 38, 38, 0.1) 0%, rgba(239, 68, 68, 0.1) 100%);
+            color: var(--danger);
+        }
+
+        .stat-trend {
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+
+        .stat-trend.up {
+            background: rgba(5, 150, 105, 0.1);
+            color: var(--accent);
+        }
+
+        .stat-content {
+            margin-top: auto;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.1;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Activity Card */
+        .bento-activity {
+            grid-column: span 8;
+        }
+
+        .bento-quick-actions {
+            grid-column: span 4;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+        }
+
+        .quick-actions-title {
+            font-size: 1rem;
+            font-weight: 600;
             margin-bottom: 1rem;
         }
 
-        .stat-card .label {
-            font-size: 0.875rem;
-            color: var(--gray-500);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
+        .quick-action-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: var(--radius-md);
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 8px;
         }
 
-        .stat-card .value {
-            font-size: 2.25rem;
-            font-weight: 700;
-            color: var(--gray-900);
+        .quick-action-btn:hover {
+            background: rgba(255,255,255,0.25);
+            transform: translateX(4px);
         }
 
-        .stat-card .subtext {
-            font-size: 0.875rem;
-            color: var(--gray-400);
-            margin-top: 0.5rem;
+        .quick-action-btn:last-child {
+            margin-bottom: 0;
         }
-
-        .stat-card.cpf::before { background: var(--terracotta); }
-        .stat-card.cpf .icon { background: rgba(194, 112, 58, 0.15); color: var(--terracotta); }
-
-        .stat-card.programmatic::before { background: var(--cactus-green); }
-        .stat-card.programmatic .icon { background: rgba(93, 112, 82, 0.15); color: var(--cactus-green); }
-
-        .stat-card.language::before { background: var(--desert-sky); }
-        .stat-card.language .icon { background: rgba(30, 58, 95, 0.15); color: var(--desert-sky); }
-
-        .stat-card.total::before { background: var(--sunset-orange); }
-        .stat-card.total .icon { background: rgba(224, 123, 57, 0.15); color: var(--sunset-orange); }
 
         /* Panels */
         .panel {
@@ -315,28 +413,27 @@
             display: block;
         }
 
-        /* Cards */
+        /* Modern Cards */
         .card {
-            background: white;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
+            background: var(--surface);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-sm);
             overflow: hidden;
-            border: 1px solid var(--dust);
+            border: 1px solid var(--border);
         }
 
         .card-header {
             padding: 1.25rem 1.5rem;
-            border-bottom: 1px solid var(--dust);
+            border-bottom: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: var(--bone);
         }
 
         .card-header h2 {
-            font-size: 1.125rem;
+            font-size: 1rem;
             font-weight: 600;
-            color: var(--gray-800);
+            color: var(--text-primary);
         }
 
         .card-body {
@@ -347,13 +444,13 @@
         .form-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
+            gap: 1.25rem;
         }
 
         .form-group {
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
+            gap: 6px;
         }
 
         .form-group.full-width {
@@ -361,9 +458,9 @@
         }
 
         .form-group label {
-            font-size: 0.875rem;
+            font-size: 0.8rem;
             font-weight: 600;
-            color: var(--gray-700);
+            color: var(--text-secondary);
         }
 
         .form-group label .required {
@@ -373,122 +470,112 @@
         .form-group input,
         .form-group select,
         .form-group textarea {
-            padding: 0.875rem 1rem;
-            border: 2px solid var(--dust);
-            border-radius: 10px;
-            font-size: 1rem;
-            transition: border-color 0.2s, box-shadow 0.2s;
-            background: white;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            background: var(--surface);
         }
 
         .form-group input:focus,
         .form-group select:focus,
         .form-group textarea:focus {
             outline: none;
-            border-color: var(--terracotta);
-            box-shadow: 0 0 0 3px rgba(194, 112, 58, 0.15);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.1);
         }
 
         .form-group textarea {
-            min-height: 120px;
+            min-height: 100px;
             resize: vertical;
         }
 
-        .form-group input::placeholder {
-            color: var(--gray-400);
-        }
-
-        /* Buttons */
+        /* Modern Buttons */
         .btn {
-            padding: 0.875rem 1.75rem;
+            padding: 0.625rem 1.25rem;
             border: none;
-            border-radius: 10px;
-            font-size: 0.95rem;
-            font-weight: 600;
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            font-weight: 500;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
             display: inline-flex;
             align-items: center;
             gap: 8px;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, var(--terracotta) 0%, var(--terracotta-dark) 100%);
+            background: var(--dark);
             color: white;
         }
 
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(194, 112, 58, 0.4);
+            background: var(--dark-lighter);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-accent {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+        }
+
+        .btn-accent:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
         }
 
         .btn-secondary {
-            background: var(--bone);
-            color: var(--gray-700);
-            border: 2px solid var(--dust);
+            background: var(--surface);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
         }
 
         .btn-secondary:hover {
-            background: var(--dust);
-        }
-
-        .btn-success {
-            background: var(--cactus-green);
-            color: white;
-        }
-
-        .btn-danger {
-            background: var(--danger);
-            color: white;
+            background: var(--surface-alt);
+            border-color: var(--border-dark);
         }
 
         .form-actions {
             display: flex;
-            gap: 1rem;
+            gap: 0.75rem;
             margin-top: 1.5rem;
             padding-top: 1.5rem;
-            border-top: 2px solid var(--dust);
+            border-top: 1px solid var(--border);
         }
 
         /* Request Type Tabs */
         .type-tabs {
             display: flex;
-            gap: 0.5rem;
+            gap: 8px;
             margin-bottom: 1.5rem;
+            flex-wrap: wrap;
         }
 
         .type-tab {
-            padding: 0.75rem 1.5rem;
-            border: 2px solid var(--dust);
-            background: white;
-            border-radius: 10px;
-            font-size: 0.875rem;
+            padding: 0.625rem 1.25rem;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            border-radius: var(--radius-md);
+            font-size: 0.8rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
+            color: var(--text-secondary);
         }
 
         .type-tab:hover {
-            border-color: var(--terracotta);
+            border-color: var(--primary);
+            color: var(--primary);
         }
 
         .type-tab.active {
-            border-color: var(--terracotta);
-            background: var(--terracotta);
+            background: var(--dark);
+            border-color: var(--dark);
             color: white;
         }
 
-        .type-tab.active[data-type="programmatic"] {
-            background: var(--cactus-green);
-            border-color: var(--cactus-green);
-        }
-
-        .type-tab.active[data-type="language"] {
-            background: var(--desert-sky);
-            border-color: var(--desert-sky);
-        }
-
-        /* Request Type Specific Fields */
         .type-fields {
             display: none;
         }
@@ -497,7 +584,32 @@
             display: block;
         }
 
-        /* Table */
+        /* Section Headers */
+        .section-header {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+            margin-bottom: 1.25rem;
+        }
+
+        .section-header h3 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-header h3::before {
+            content: '';
+            width: 3px;
+            height: 16px;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+
+        /* Modern Table */
         .table-container {
             overflow-x: auto;
         }
@@ -508,64 +620,79 @@
         }
 
         th, td {
-            padding: 1rem;
+            padding: 0.875rem 1rem;
             text-align: left;
-            border-bottom: 1px solid var(--dust);
         }
 
         th {
-            background: var(--bone);
-            font-size: 0.75rem;
-            font-weight: 700;
+            font-size: 0.7rem;
+            font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            color: var(--gray-600);
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            font-size: 0.875rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
         }
 
         tr:hover td {
-            background: var(--cream);
+            background: var(--surface-alt);
         }
 
         /* Badges */
         .badge {
-            padding: 0.375rem 0.875rem;
+            padding: 4px 10px;
             border-radius: 20px;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 600;
             display: inline-block;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
         }
 
-        .badge-cpf { background: rgba(194, 112, 58, 0.15); color: var(--terracotta-dark); }
-        .badge-programmatic { background: rgba(93, 112, 82, 0.15); color: var(--cactus-green); }
-        .badge-language { background: rgba(30, 58, 95, 0.15); color: var(--desert-sky); }
-        .badge-draft { background: var(--dust); color: var(--gray-600); }
-        .badge-submitted { background: rgba(30, 58, 95, 0.15); color: var(--desert-sky); }
-        .badge-selected { background: rgba(93, 138, 102, 0.15); color: var(--success); }
+        .badge-cpf { background: rgba(217, 119, 6, 0.1); color: var(--primary-dark); }
+        .badge-programmatic { background: rgba(5, 150, 105, 0.1); color: var(--accent); }
+        .badge-language { background: rgba(12, 74, 110, 0.1); color: var(--secondary); }
+        .badge-draft { background: var(--surface-alt); color: var(--text-muted); border: 1px solid var(--border); }
+        .badge-submitted { background: rgba(12, 74, 110, 0.1); color: var(--secondary); }
+        .badge-selected { background: rgba(5, 150, 105, 0.1); color: var(--accent); }
 
-        /* Amount formatting */
         .amount {
-            font-family: 'SF Mono', Consolas, monospace;
-            font-weight: 600;
-            color: var(--gray-700);
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-weight: 500;
+            color: var(--text-primary);
         }
 
         /* Empty State */
         .empty-state {
             text-align: center;
-            padding: 4rem 2rem;
-            color: var(--gray-500);
+            padding: 3rem 2rem;
+            color: var(--text-muted);
         }
 
         .empty-state-icon {
-            font-size: 4rem;
+            font-size: 3rem;
             margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-state p {
+            font-size: 0.9rem;
         }
 
         /* Toast Notifications */
         .toast-container {
             position: fixed;
-            bottom: 2rem;
-            right: 2rem;
+            bottom: 1.5rem;
+            right: 1.5rem;
             z-index: 1000;
             display: flex;
             flex-direction: column;
@@ -573,132 +700,63 @@
         }
 
         .toast {
-            padding: 1rem 1.5rem;
-            border-radius: 10px;
+            padding: 0.875rem 1.25rem;
+            border-radius: var(--radius-md);
             color: white;
             font-weight: 500;
-            box-shadow: var(--shadow-lg);
+            font-size: 0.875rem;
+            box-shadow: var(--shadow-xl);
             animation: slideIn 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        .toast.success { background: var(--cactus-green); }
+        .toast.success { background: var(--accent); }
         .toast.error { background: var(--danger); }
-        .toast.info { background: var(--desert-sky); }
+        .toast.info { background: var(--secondary); }
 
         @keyframes slideIn {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
 
-        /* CPF Specific Styles */
-        .cpf-section {
-            margin-top: 2rem;
-            padding-top: 2rem;
-            border-top: 2px solid var(--dust);
-        }
-
-        .cpf-section h3 {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--gray-700);
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .cpf-section h3::before {
-            content: '';
-            width: 4px;
-            height: 20px;
-            background: var(--terracotta);
-            border-radius: 2px;
-        }
-
+        /* Checkbox */
         .checkbox-group {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 10px;
             padding: 1rem;
-            background: var(--bone);
-            border-radius: 10px;
-            border: 2px solid var(--dust);
+            background: var(--surface-alt);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
         }
 
         .checkbox-group input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            accent-color: var(--terracotta);
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
         }
 
-        /* West Texas Decorative Elements */
-        .divider {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin: 2rem 0;
-            color: var(--gray-400);
-            font-size: 0.875rem;
-        }
-
-        .divider::before,
-        .divider::after {
-            content: '';
-            flex: 1;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--dust), transparent);
+        .checkbox-group label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
         }
 
         /* Responsive */
+        @media (max-width: 1024px) {
+            .bento-hero { grid-column: span 12; }
+            .bento-stat { grid-column: span 6; }
+            .bento-activity { grid-column: span 12; }
+            .bento-quick-actions { grid-column: span 12; }
+        }
+
         @media (max-width: 768px) {
-            .header-content {
-                flex-direction: column;
-                gap: 1rem;
-            }
-
-            .nav {
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .hero-stats {
-                flex-wrap: wrap;
-                gap: 1.5rem;
-            }
-
-            .dashboard-hero .hero-title {
-                font-size: 1.75rem;
-            }
-        }
-
-        /* Subcommittee breakdown */
-        .breakdown-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-
-        .breakdown-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.75rem 1rem;
-            background: var(--bone);
-            border-radius: 8px;
-            font-size: 0.875rem;
-        }
-
-        .breakdown-item .count {
-            background: var(--terracotta);
-            color: white;
-            padding: 0.25rem 0.75rem;
-            border-radius: 12px;
-            font-weight: 600;
+            .header-content { flex-direction: column; gap: 1rem; }
+            .bento-stat { grid-column: span 12; }
+            .hero-metrics { flex-wrap: wrap; gap: 1.5rem; }
+            .form-grid { grid-template-columns: 1fr; }
+            .nav { flex-wrap: wrap; }
         }
     </style>
 </head>
@@ -706,83 +764,108 @@
     <header class="header">
         <div class="header-content">
             <div class="logo">
-                <div class="logo-icon">&#127797;</div>
-                <div>
-                    <h1>TX-11 Appropriations Tracker</h1>
-                    <span>West Texas Congressional District - Fiscal Year 2027</span>
+                <div class="logo-icon">&#9733;</div>
+                <div class="logo-text">
+                    <h1>TX-11 Appropriations</h1>
+                    <span>Fiscal Year 2027</span>
                 </div>
             </div>
-            <div class="header-badge">FY 2027</div>
+            <div class="header-actions">
+                <div class="fiscal-badge">FY 2027</div>
+            </div>
         </div>
     </header>
 
-    <nav class="nav">
-        <button class="nav-btn active" data-panel="dashboard">Dashboard</button>
-        <button class="nav-btn" data-panel="new-request">New Request</button>
-        <button class="nav-btn" data-panel="requests">All Requests</button>
-        <button class="nav-btn" data-panel="accounts">Eligible Accounts</button>
-    </nav>
+    <div class="nav-container">
+        <nav class="nav">
+            <button class="nav-btn active" data-panel="dashboard">Dashboard</button>
+            <button class="nav-btn" data-panel="new-request">New Request</button>
+            <button class="nav-btn" data-panel="requests">All Requests</button>
+            <button class="nav-btn" data-panel="accounts">Eligible Accounts</button>
+        </nav>
+    </div>
 
     <main class="container">
         <!-- Dashboard Panel -->
         <div id="dashboard" class="panel active">
-            <!-- Hero Section -->
-            <div class="dashboard-hero">
-                <h2>Welcome to the</h2>
-                <div class="hero-title">TX-11 Appropriations Dashboard</div>
-                <div class="hero-subtitle">Serving the Permian Basin, Big Bend, and West Texas Communities</div>
-
-                <div class="hero-stats">
-                    <div class="hero-stat">
-                        <div class="value" id="hero-total">0</div>
-                        <div class="label">Total Requests</div>
+            <div class="bento-grid">
+                <!-- Hero Card -->
+                <div class="bento-card bento-hero">
+                    <div class="hero-content">
+                        <div class="hero-eyebrow">Texas Congressional District 11</div>
+                        <h1 class="hero-title">Appropriations Dashboard</h1>
+                        <p class="hero-subtitle">Serving Midland, Odessa, San Angelo, and the Permian Basin communities</p>
                     </div>
-                    <div class="hero-stat">
-                        <div class="value" id="hero-amount">$0</div>
-                        <div class="label">Total Requested</div>
+                    <div class="hero-metrics">
+                        <div class="hero-metric">
+                            <span class="hero-metric-value" id="hero-total">0</span>
+                            <span class="hero-metric-label">Total Requests</span>
+                        </div>
+                        <div class="hero-metric">
+                            <span class="hero-metric-value" id="hero-amount">$0</span>
+                            <span class="hero-metric-label">Requested</span>
+                        </div>
+                        <div class="hero-metric">
+                            <span class="hero-metric-value" id="hero-selected">0</span>
+                            <span class="hero-metric-label">CPF Selected</span>
+                        </div>
                     </div>
-                    <div class="hero-stat">
-                        <div class="value" id="hero-selected">0</div>
-                        <div class="label">CPF Selected</div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="bento-card bento-quick-actions">
+                    <div class="quick-actions-title">Quick Actions</div>
+                    <button class="quick-action-btn" onclick="showPanel('new-request')">
+                        <span>+</span> New CPF Request
+                    </button>
+                    <button class="quick-action-btn" onclick="showPanel('new-request'); setTimeout(() => document.querySelector('[data-type=programmatic]').click(), 100)">
+                        <span>+</span> Programmatic Request
+                    </button>
+                    <button class="quick-action-btn" onclick="showPanel('new-request'); setTimeout(() => document.querySelector('[data-type=language]').click(), 100)">
+                        <span>+</span> Language Request
+                    </button>
+                </div>
+
+                <!-- Stat Cards -->
+                <div class="bento-card bento-stat">
+                    <div class="stat-header">
+                        <div class="stat-icon cpf">&#128203;</div>
+                        <span class="stat-trend up">Active</span>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="stat-cpf">0</div>
+                        <div class="stat-label">Community Project Funding</div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Stats Cards -->
-            <div class="dashboard-grid">
-                <div class="stat-card cpf">
-                    <div class="icon">&#128203;</div>
-                    <div class="label">Community Project Funding</div>
-                    <div class="value" id="stat-cpf">0</div>
-                    <div class="subtext">Direct community investments</div>
+                <div class="bento-card bento-stat">
+                    <div class="stat-header">
+                        <div class="stat-icon programmatic">&#128200;</div>
+                        <span class="stat-trend up">Active</span>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="stat-programmatic">0</div>
+                        <div class="stat-label">Programmatic Requests</div>
+                    </div>
                 </div>
-                <div class="stat-card programmatic">
-                    <div class="icon">&#128200;</div>
-                    <div class="label">Programmatic Requests</div>
-                    <div class="value" id="stat-programmatic">0</div>
-                    <div class="subtext">Program funding increases</div>
-                </div>
-                <div class="stat-card language">
-                    <div class="icon">&#128221;</div>
-                    <div class="label">Language Requests</div>
-                    <div class="value" id="stat-language">0</div>
-                    <div class="subtext">Bill language modifications</div>
-                </div>
-                <div class="stat-card total">
-                    <div class="icon">&#128176;</div>
-                    <div class="label">Total Funding Requested</div>
-                    <div class="value" id="stat-amount">$0</div>
-                    <div class="subtext">Across all request types</div>
-                </div>
-            </div>
 
-            <!-- Recent Requests -->
-            <div class="card">
-                <div class="card-header">
-                    <h2>Recent Requests</h2>
-                    <button class="btn btn-primary" onclick="showPanel('new-request')">+ New Request</button>
+                <div class="bento-card bento-stat">
+                    <div class="stat-header">
+                        <div class="stat-icon language">&#128221;</div>
+                        <span class="stat-trend up">Active</span>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="stat-language">0</div>
+                        <div class="stat-label">Language Requests</div>
+                    </div>
                 </div>
-                <div class="card-body">
+
+                <!-- Activity Card -->
+                <div class="bento-card bento-activity">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="font-size: 0.9rem; font-weight: 600;">Recent Activity</h3>
+                        <button class="btn btn-secondary" onclick="showPanel('requests')" style="font-size: 0.75rem; padding: 6px 12px;">View All</button>
+                    </div>
                     <div class="table-container">
                         <table>
                             <thead>
@@ -797,10 +880,23 @@
                             </thead>
                             <tbody id="recent-requests">
                                 <tr>
-                                    <td colspan="6" class="empty-state">Loading...</td>
+                                    <td colspan="6" class="empty-state">
+                                        <div class="empty-state-icon">&#128203;</div>
+                                        <p>No requests yet</p>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+                </div>
+
+                <div class="bento-card bento-stat">
+                    <div class="stat-header">
+                        <div class="stat-icon amount">&#128176;</div>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="stat-amount" style="font-size: 1.5rem;">$0</div>
+                        <div class="stat-label">Total Funding Requested</div>
                     </div>
                 </div>
             </div>
@@ -810,11 +906,10 @@
         <div id="new-request" class="panel">
             <div class="card">
                 <div class="card-header">
-                    <h2>Create New Appropriations Request</h2>
+                    <h2>Create New Request</h2>
                 </div>
                 <div class="card-body">
                     <form id="request-form">
-                        <!-- Request Type Tabs -->
                         <div class="type-tabs">
                             <button type="button" class="type-tab active" data-type="cpf">Community Project Funding</button>
                             <button type="button" class="type-tab" data-type="programmatic">Programmatic</button>
@@ -823,7 +918,6 @@
 
                         <input type="hidden" id="request_type" value="cpf">
 
-                        <!-- Common Fields -->
                         <div class="form-grid">
                             <div class="form-group">
                                 <label>Subcommittee <span class="required">*</span></label>
@@ -850,13 +944,13 @@
                             </div>
 
                             <div class="form-group full-width">
-                                <label>Project/Request Title <span class="required">*</span></label>
-                                <input type="text" id="title" placeholder="Enter a descriptive title for this request" required>
+                                <label>Title <span class="required">*</span></label>
+                                <input type="text" id="title" placeholder="Enter request title" required>
                             </div>
 
                             <div class="form-group full-width">
                                 <label>Description</label>
-                                <textarea id="description" placeholder="Provide a detailed description of the project or request..."></textarea>
+                                <textarea id="description" placeholder="Provide a detailed description..."></textarea>
                             </div>
 
                             <div class="form-group">
@@ -871,131 +965,131 @@
 
                             <div class="form-group full-width">
                                 <label>Organization</label>
-                                <input type="text" id="requester_organization" placeholder="City, County, Organization, or Entity name">
+                                <input type="text" id="requester_organization" placeholder="City, County, or Organization">
                             </div>
                         </div>
 
-                        <!-- CPF-Specific Fields -->
+                        <!-- CPF Fields -->
                         <div id="cpf-fields" class="type-fields active">
-                            <div class="cpf-section">
-                                <h3>Community Project Funding Details</h3>
-                                <div class="form-grid">
-                                    <div class="form-group">
-                                        <label>Eligible Account</label>
-                                        <select id="cpf_account_id">
-                                            <option value="">Select CPF account...</option>
-                                        </select>
-                                    </div>
+                            <div class="section-header">
+                                <h3>CPF Details</h3>
+                            </div>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Eligible Account</label>
+                                    <select id="cpf_account_id">
+                                        <option value="">Select account...</option>
+                                    </select>
+                                </div>
 
-                                    <div class="form-group">
-                                        <label>Entity Type</label>
-                                        <select id="entity_type">
-                                            <option value="">Select entity type...</option>
-                                            <option value="state_government">State Government</option>
-                                            <option value="local_government">Local Government</option>
-                                            <option value="tribal_government">Tribal Government</option>
-                                            <option value="nonprofit">Nonprofit (501c3)</option>
-                                            <option value="public_higher_education">Public Higher Education</option>
-                                            <option value="special_district">Special District</option>
-                                        </select>
-                                    </div>
+                                <div class="form-group">
+                                    <label>Entity Type</label>
+                                    <select id="entity_type">
+                                        <option value="">Select type...</option>
+                                        <option value="state_government">State Government</option>
+                                        <option value="local_government">Local Government</option>
+                                        <option value="tribal_government">Tribal Government</option>
+                                        <option value="nonprofit">Nonprofit (501c3)</option>
+                                        <option value="public_higher_education">Public Higher Education</option>
+                                        <option value="special_district">Special District</option>
+                                    </select>
+                                </div>
 
-                                    <div class="form-group">
-                                        <label>Entity Name</label>
-                                        <input type="text" id="entity_name" placeholder="Legal entity name">
-                                    </div>
+                                <div class="form-group">
+                                    <label>Entity Name</label>
+                                    <input type="text" id="entity_name" placeholder="Legal entity name">
+                                </div>
 
-                                    <div class="form-group">
-                                        <label>Entity Address</label>
-                                        <input type="text" id="entity_address" placeholder="Full address">
-                                    </div>
+                                <div class="form-group">
+                                    <label>Entity Address</label>
+                                    <input type="text" id="entity_address" placeholder="Full address">
+                                </div>
 
-                                    <div class="form-group">
-                                        <label>Project Name</label>
-                                        <input type="text" id="project_name" placeholder="Official project name">
-                                    </div>
+                                <div class="form-group">
+                                    <label>Project Name</label>
+                                    <input type="text" id="project_name" placeholder="Project name">
+                                </div>
 
-                                    <div class="form-group">
-                                        <label>Project Location</label>
-                                        <input type="text" id="project_address" placeholder="Project address in TX-11">
-                                    </div>
+                                <div class="form-group">
+                                    <label>Project Location</label>
+                                    <input type="text" id="project_address" placeholder="Location in TX-11">
+                                </div>
 
-                                    <div class="form-group full-width">
-                                        <label>Project Description</label>
-                                        <textarea id="project_description" placeholder="Detailed description of the project and its community impact..."></textarea>
-                                    </div>
+                                <div class="form-group full-width">
+                                    <label>Project Description</label>
+                                    <textarea id="project_description" placeholder="Describe the project..."></textarea>
+                                </div>
 
-                                    <div class="form-group">
-                                        <label>Total Project Cost ($)</label>
-                                        <input type="number" id="total_project_cost" placeholder="0.00" step="0.01">
-                                    </div>
+                                <div class="form-group">
+                                    <label>Total Project Cost ($)</label>
+                                    <input type="number" id="total_project_cost" placeholder="0.00" step="0.01">
+                                </div>
 
-                                    <div class="form-group">
-                                        <label>Cost Share Amount ($)</label>
-                                        <input type="number" id="cost_share_amount" placeholder="0.00" step="0.01">
-                                    </div>
+                                <div class="form-group">
+                                    <label>Cost Share Amount ($)</label>
+                                    <input type="number" id="cost_share_amount" placeholder="0.00" step="0.01">
+                                </div>
 
-                                    <div class="form-group full-width">
-                                        <label>TX-11 Nexus Explanation</label>
-                                        <textarea id="tx11_nexus_explanation" placeholder="Explain how this project benefits the TX-11 district (Permian Basin, Big Bend, Midland, Odessa, San Angelo, etc.)..."></textarea>
-                                    </div>
+                                <div class="form-group full-width">
+                                    <label>TX-11 Nexus Explanation</label>
+                                    <textarea id="tx11_nexus_explanation" placeholder="How does this benefit TX-11 (Midland, Odessa, San Angelo, Permian Basin)?"></textarea>
+                                </div>
 
-                                    <div class="form-group full-width">
-                                        <label>Public Benefit Justification</label>
-                                        <textarea id="public_benefit_justification" placeholder="Describe how this project benefits the public and community..."></textarea>
-                                    </div>
+                                <div class="form-group full-width">
+                                    <label>Public Benefit Justification</label>
+                                    <textarea id="public_benefit_justification" placeholder="Describe the public benefit..."></textarea>
+                                </div>
 
-                                    <div class="form-group full-width">
-                                        <div class="checkbox-group">
-                                            <input type="checkbox" id="tx11_nexus">
-                                            <label for="tx11_nexus">I confirm this project has a direct nexus to Texas Congressional District 11</label>
-                                        </div>
+                                <div class="form-group full-width">
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="tx11_nexus">
+                                        <label for="tx11_nexus">I confirm this project has a direct nexus to TX-11</label>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Programmatic-Specific Fields -->
+                        <!-- Programmatic Fields -->
                         <div id="programmatic-fields" class="type-fields">
-                            <div class="cpf-section">
-                                <h3>Programmatic Request Details</h3>
-                                <div class="form-grid">
-                                    <div class="form-group full-width">
-                                        <label>Program Name</label>
-                                        <input type="text" id="program_name" placeholder="Official name of the federal program">
-                                    </div>
-                                    <div class="form-group full-width">
-                                        <label>Programmatic Justification</label>
-                                        <textarea id="programmatic_justification" placeholder="Explain why this program funding should be increased and how it benefits TX-11..."></textarea>
-                                    </div>
+                            <div class="section-header">
+                                <h3>Programmatic Details</h3>
+                            </div>
+                            <div class="form-grid">
+                                <div class="form-group full-width">
+                                    <label>Program Name</label>
+                                    <input type="text" id="program_name" placeholder="Federal program name">
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Justification</label>
+                                    <textarea id="programmatic_justification" placeholder="Why should this program receive increased funding?"></textarea>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Language-Specific Fields -->
+                        <!-- Language Fields -->
                         <div id="language-fields" class="type-fields">
-                            <div class="cpf-section">
-                                <h3>Bill Language Request Details</h3>
-                                <div class="form-grid">
-                                    <div class="form-group">
-                                        <label>Bill Section</label>
-                                        <input type="text" id="bill_section" placeholder="e.g., Section 123, Title II">
-                                    </div>
-                                    <div class="form-group full-width">
-                                        <label>Proposed Language</label>
-                                        <textarea id="proposed_language" placeholder="Enter the exact proposed bill language..."></textarea>
-                                    </div>
-                                    <div class="form-group full-width">
-                                        <label>Language Justification</label>
-                                        <textarea id="language_justification" placeholder="Explain why this language change is needed..."></textarea>
-                                    </div>
+                            <div class="section-header">
+                                <h3>Language Details</h3>
+                            </div>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Bill Section</label>
+                                    <input type="text" id="bill_section" placeholder="e.g., Section 123">
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Proposed Language</label>
+                                    <textarea id="proposed_language" placeholder="Enter the proposed bill language..."></textarea>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Justification</label>
+                                    <textarea id="language_justification" placeholder="Why is this language change needed?"></textarea>
                                 </div>
                             </div>
                         </div>
 
                         <div class="form-actions">
-                            <button type="submit" class="btn btn-primary">Submit Request</button>
-                            <button type="reset" class="btn btn-secondary">Clear Form</button>
+                            <button type="submit" class="btn btn-accent">Submit Request</button>
+                            <button type="reset" class="btn btn-secondary">Clear</button>
                         </div>
                     </form>
                 </div>
@@ -1006,7 +1100,7 @@
         <div id="requests" class="panel">
             <div class="card">
                 <div class="card-header">
-                    <h2>All Appropriations Requests</h2>
+                    <h2>All Requests</h2>
                     <button class="btn btn-secondary" onclick="loadRequests()">Refresh</button>
                 </div>
                 <div class="card-body">
@@ -1039,7 +1133,7 @@
         <div id="accounts" class="panel">
             <div class="card">
                 <div class="card-header">
-                    <h2>CPF Eligible Accounts - FY27</h2>
+                    <h2>CPF Eligible Accounts</h2>
                 </div>
                 <div class="card-body">
                     <div class="table-container">
@@ -1049,7 +1143,7 @@
                                     <th>ID</th>
                                     <th>Subcommittee</th>
                                     <th>Agency</th>
-                                    <th>Account Name</th>
+                                    <th>Account</th>
                                     <th>Subcategory</th>
                                     <th>Status</th>
                                 </tr>
@@ -1071,38 +1165,30 @@
     <script>
         const API_BASE = 'http://localhost:8080';
 
-        // Navigation
         document.querySelectorAll('.nav-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                showPanel(btn.dataset.panel);
-            });
+            btn.addEventListener('click', () => showPanel(btn.dataset.panel));
         });
 
         function showPanel(panelId) {
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-
             document.querySelector(`[data-panel="${panelId}"]`).classList.add('active');
             document.getElementById(panelId).classList.add('active');
-
             if (panelId === 'dashboard') loadDashboard();
             if (panelId === 'requests') loadRequests();
             if (panelId === 'accounts') loadAccounts();
         }
 
-        // Request Type Tabs
         document.querySelectorAll('.type-tab').forEach(tab => {
             tab.addEventListener('click', () => {
                 document.querySelectorAll('.type-tab').forEach(t => t.classList.remove('active'));
                 document.querySelectorAll('.type-fields').forEach(f => f.classList.remove('active'));
-
                 tab.classList.add('active');
                 document.getElementById('request_type').value = tab.dataset.type;
                 document.getElementById(`${tab.dataset.type}-fields`).classList.add('active');
             });
         });
 
-        // Toast Notifications
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
@@ -1112,72 +1198,49 @@
             setTimeout(() => toast.remove(), 4000);
         }
 
-        // Format currency
         function formatCurrency(amount) {
             if (!amount) return '$0';
-            return new Intl.NumberFormat('en-US', {
-                style: 'currency',
-                currency: 'USD',
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0
-            }).format(amount);
+            return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
         }
 
-        // Format compact currency for hero
-        function formatCompactCurrency(amount) {
+        function formatCompact(amount) {
             if (!amount) return '$0';
-            if (amount >= 1000000) {
-                return '$' + (amount / 1000000).toFixed(1) + 'M';
-            } else if (amount >= 1000) {
-                return '$' + (amount / 1000).toFixed(0) + 'K';
-            }
+            if (amount >= 1000000) return '$' + (amount / 1000000).toFixed(1) + 'M';
+            if (amount >= 1000) return '$' + (amount / 1000).toFixed(0) + 'K';
             return formatCurrency(amount);
         }
 
-        // Format subcommittee name
         function formatSubcommittee(sub) {
             if (!sub) return '-';
             return sub.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
         }
 
-        // Load Dashboard
         async function loadDashboard() {
             try {
                 const response = await fetch(`${API_BASE}/api/dashboard/summary`);
                 const data = await response.json();
-
-                // Hero stats
                 document.getElementById('hero-total').textContent = data.total_requests || 0;
-                document.getElementById('hero-amount').textContent = formatCompactCurrency(data.total_requested_amount);
+                document.getElementById('hero-amount').textContent = formatCompact(data.total_requested_amount);
                 document.getElementById('hero-selected').textContent = data.cpf_selected || 0;
-
-                // Card stats
                 document.getElementById('stat-cpf').textContent = data.by_type?.cpf || 0;
                 document.getElementById('stat-programmatic').textContent = data.by_type?.programmatic || 0;
                 document.getElementById('stat-language').textContent = data.by_type?.language || 0;
                 document.getElementById('stat-amount').textContent = formatCurrency(data.total_requested_amount);
-
                 loadRecentRequests();
             } catch (error) {
-                showToast('Failed to load dashboard - is the server running?', 'error');
+                showToast('Failed to connect to server', 'error');
             }
         }
 
-        // Load Recent Requests
         async function loadRecentRequests() {
             try {
                 const response = await fetch(`${API_BASE}/api/requests?limit=5`);
                 const requests = await response.json();
-
                 const tbody = document.getElementById('recent-requests');
                 if (requests.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">
-                        <div class="empty-state-icon">&#127797;</div>
-                        <p>No requests yet. Create your first appropriations request!</p>
-                    </td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="6" class="empty-state"><div class="empty-state-icon">&#128203;</div><p>No requests yet. Create your first request!</p></td></tr>`;
                     return;
                 }
-
                 tbody.innerHTML = requests.map(r => `
                     <tr>
                         <td><strong>#${r.id}</strong></td>
@@ -1189,26 +1252,19 @@
                     </tr>
                 `).join('');
             } catch (error) {
-                document.getElementById('recent-requests').innerHTML =
-                    `<tr><td colspan="6" class="empty-state">Unable to connect to server</td></tr>`;
+                document.getElementById('recent-requests').innerHTML = `<tr><td colspan="6" class="empty-state">Unable to connect</td></tr>`;
             }
         }
 
-        // Load All Requests
         async function loadRequests() {
             try {
                 const response = await fetch(`${API_BASE}/api/requests`);
                 const requests = await response.json();
-
                 const tbody = document.getElementById('all-requests');
                 if (requests.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="8" class="empty-state">
-                        <div class="empty-state-icon">&#127797;</div>
-                        <p>No requests found</p>
-                    </td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="8" class="empty-state"><div class="empty-state-icon">&#128203;</div><p>No requests found</p></td></tr>`;
                     return;
                 }
-
                 tbody.innerHTML = requests.map(r => `
                     <tr>
                         <td><strong>#${r.id}</strong></td>
@@ -1226,20 +1282,16 @@
             }
         }
 
-        // Load Eligible Accounts
         async function loadAccounts() {
             try {
                 const response = await fetch(`${API_BASE}/api/eligible-accounts`);
                 const accounts = await response.json();
-
                 const tbody = document.getElementById('accounts-list');
                 const select = document.getElementById('cpf_account_id');
-
                 if (accounts.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="6" class="empty-state">No accounts found</td></tr>`;
                     return;
                 }
-
                 tbody.innerHTML = accounts.map(a => `
                     <tr>
                         <td>${a.id}</td>
@@ -1247,25 +1299,18 @@
                         <td>${a.agency}</td>
                         <td>${a.account_name}</td>
                         <td>${a.subcategory || '-'}</td>
-                        <td>${a.is_new ? '<span class="badge badge-cpf">NEW FY27</span>' : '<span class="badge badge-draft">Existing</span>'}</td>
+                        <td>${a.is_new ? '<span class="badge badge-cpf">NEW</span>' : '<span class="badge badge-draft">Existing</span>'}</td>
                     </tr>
                 `).join('');
-
-                // Populate CPF account dropdown
-                select.innerHTML = '<option value="">Select CPF account...</option>' +
-                    accounts.map(a => `<option value="${a.id}">${a.agency} - ${a.account_name}</option>`).join('');
-
+                select.innerHTML = '<option value="">Select account...</option>' + accounts.map(a => `<option value="${a.id}">${a.agency} - ${a.account_name}</option>`).join('');
             } catch (error) {
                 showToast('Failed to load accounts', 'error');
             }
         }
 
-        // Form Submission
         document.getElementById('request-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-
             const requestType = document.getElementById('request_type').value;
-
             const data = {
                 request_type: requestType,
                 subcommittee: document.getElementById('subcommittee').value,
@@ -1276,8 +1321,6 @@
                 requester_organization: document.getElementById('requester_organization').value,
                 requested_amount: parseFloat(document.getElementById('requested_amount').value) || null
             };
-
-            // Add type-specific fields
             if (requestType === 'programmatic') {
                 data.program_name = document.getElementById('program_name').value;
                 data.programmatic_justification = document.getElementById('programmatic_justification').value;
@@ -1286,23 +1329,17 @@
                 data.proposed_language = document.getElementById('proposed_language').value;
                 data.language_justification = document.getElementById('language_justification').value;
             }
-
             try {
-                // Create the request
                 const response = await fetch(`${API_BASE}/api/requests`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
-
                 if (!response.ok) {
                     const error = await response.json();
                     throw new Error(error.error || 'Failed to create request');
                 }
-
                 const request = await response.json();
-
-                // If CPF, also create CPF details
                 if (requestType === 'cpf') {
                     const cpfData = {
                         cpf_account_id: parseInt(document.getElementById('cpf_account_id').value) || null,
@@ -1318,24 +1355,20 @@
                         cost_share_amount: parseFloat(document.getElementById('cost_share_amount').value) || null,
                         public_benefit_justification: document.getElementById('public_benefit_justification').value
                     };
-
                     await fetch(`${API_BASE}/api/requests/${request.id}/cpf`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(cpfData)
                     });
                 }
-
                 showToast('Request submitted successfully!', 'success');
                 document.getElementById('request-form').reset();
                 showPanel('dashboard');
-
             } catch (error) {
                 showToast(error.message, 'error');
             }
         });
 
-        // Initialize
         loadDashboard();
         loadAccounts();
     </script>
