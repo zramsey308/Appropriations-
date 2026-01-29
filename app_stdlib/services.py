@@ -28,7 +28,7 @@ SUBCOMMITTEES = [
     "transportation_hud",
 ]
 
-MAX_SELECTED_SLOTS = 15
+# No cap on CPF selections
 
 
 def dict_from_row(row) -> Optional[Dict[str, Any]]:
@@ -393,37 +393,22 @@ def select_cpf(request_id: int, slot: Optional[int] = None) -> Dict[str, Any]:
             raise ValueError("CPF details not found")
 
         if cpf["selected"]:
-            raise ValueError(f"Already selected in slot {cpf['selected_slot']}")
-
-        # Check cap
-        cursor.execute("SELECT COUNT(*) as cnt FROM cpf_details WHERE selected = 1")
-        count = cursor.fetchone()["cnt"]
-        if count >= MAX_SELECTED_SLOTS:
-            raise ValueError(f"Maximum selection cap of {MAX_SELECTED_SLOTS} reached")
+            raise ValueError("Already selected")
 
         # Validate first
         validation = validate_cpf(request_id)
         if not validation["passed"]:
             raise ValueError(f"Validation failed: {', '.join(validation['missing_requirements'])}")
 
-        # Determine slot
+        # Determine slot number (auto-increment)
         if slot is not None:
-            if slot < 1 or slot > MAX_SELECTED_SLOTS:
-                raise ValueError(f"Slot must be 1-{MAX_SELECTED_SLOTS}")
             cursor.execute("SELECT * FROM cpf_details WHERE selected_slot = ?", (slot,))
             if cursor.fetchone():
                 raise ValueError(f"Slot {slot} is already taken")
             assigned_slot = slot
         else:
-            cursor.execute("SELECT selected_slot FROM cpf_details WHERE selected_slot IS NOT NULL")
-            used = {row["selected_slot"] for row in cursor.fetchall()}
-            assigned_slot = None
-            for s in range(1, MAX_SELECTED_SLOTS + 1):
-                if s not in used:
-                    assigned_slot = s
-                    break
-            if assigned_slot is None:
-                raise ValueError("No slots available")
+            cursor.execute("SELECT COALESCE(MAX(selected_slot), 0) + 1 as next_slot FROM cpf_details WHERE selected = 1")
+            assigned_slot = cursor.fetchone()["next_slot"]
 
         # Update CPF details
         cursor.execute("""
@@ -541,6 +526,5 @@ def get_dashboard_summary(fiscal_year: int = 2027) -> Dict[str, Any]:
             "by_subcommittee": by_subcommittee,
             "by_status": by_status,
             "cpf_selected": cpf_row["selected"] if cpf_row else 0,
-            "cpf_slots_remaining": MAX_SELECTED_SLOTS - (cpf_row["selected"] if cpf_row else 0),
             "total_requested_amount": total_amount
         }
