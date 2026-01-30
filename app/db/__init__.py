@@ -1,14 +1,25 @@
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.pool import NullPool
 
 from app.config import settings
 
-# SQLite requires check_same_thread=False for FastAPI
+# Configure connection based on database type
 connect_args = {}
-if settings.database_url.startswith("sqlite"):
-    connect_args["check_same_thread"] = False
+engine_kwargs = {}
 
-engine = create_engine(settings.database_url, connect_args=connect_args)
+if settings.database_url.startswith("sqlite"):
+    # SQLite requires check_same_thread=False for FastAPI
+    connect_args["check_same_thread"] = False
+elif settings.database_url.startswith("postgresql"):
+    # PostgreSQL (Supabase) - use NullPool for serverless compatibility
+    engine_kwargs["poolclass"] = NullPool
+
+engine = create_engine(
+    settings.database_url,
+    connect_args=connect_args,
+    **engine_kwargs
+)
 
 # Enable foreign keys for SQLite
 if settings.database_url.startswith("sqlite"):

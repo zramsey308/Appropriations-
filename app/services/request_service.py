@@ -1,10 +1,14 @@
 from typing import Optional, List
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+import logging
 
 from app.models import Request, CPFDetails
 from app.models.enums import RequestType, Subcommittee, RequestStatus
 from app.schemas.request import RequestCreate, RequestUpdate
+from app.services.sheets_backup import backup_to_sheets_async
+
+logger = logging.getLogger(__name__)
 
 
 class RequestService:
@@ -16,6 +20,28 @@ class RequestService:
         self.db.add(request)
         self.db.commit()
         self.db.refresh(request)
+
+        # Backup to Google Sheets (non-blocking)
+        try:
+            request_dict = {
+                "id": request.id,
+                "request_type": request.request_type.value if request.request_type else None,
+                "subcommittee": request.subcommittee.value if request.subcommittee else None,
+                "title": request.title,
+                "description": request.description,
+                "requester_name": request.requester_name,
+                "requester_email": request.requester_email,
+                "requester_organization": request.requester_organization,
+                "requested_amount": float(request.requested_amount) if request.requested_amount else None,
+                "status": request.status.value if request.status else "draft",
+                "program_name": request.program_name,
+                "bill_section": request.bill_section,
+                "proposed_language": request.proposed_language,
+            }
+            backup_to_sheets_async(request_dict)
+        except Exception as e:
+            logger.warning(f"Google Sheets backup failed: {e}")
+
         return request
 
     def get(self, request_id: int) -> Optional[Request]:
