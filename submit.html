@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Submit Appropriations Request - TX-11</title>
+    <title>Appropriations Request Submission - FY 2027 - TX-11</title>
     <style>
         * {
             margin: 0;
@@ -25,6 +25,8 @@
             --text-muted: #94a3b8;
             --success: #059669;
             --danger: #dc2626;
+            --warning: #f59e0b;
+            --info: #0284c7;
             --radius-md: 12px;
             --radius-lg: 16px;
             --radius-xl: 24px;
@@ -48,7 +50,7 @@
         }
 
         .header-content {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
         }
 
@@ -74,7 +76,7 @@
         }
 
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
             padding: 2rem 1.5rem 4rem;
         }
@@ -89,6 +91,79 @@
 
         .card-body {
             padding: 2rem;
+        }
+
+        /* Disclosure Section */
+        .disclosure-box {
+            background: linear-gradient(135deg, rgba(220, 38, 38, 0.05) 0%, rgba(245, 158, 11, 0.05) 100%);
+            border: 2px solid rgba(220, 38, 38, 0.3);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .disclosure-box h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--danger);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        .disclosure-box .deadline {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--warning);
+            margin-bottom: 1rem;
+        }
+
+        .disclosure-box .note {
+            background: rgba(220, 38, 38, 0.1);
+            border-left: 4px solid var(--danger);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .disclosure-box .note strong {
+            color: var(--danger);
+        }
+
+        .disclosure-box h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 1rem 0 0.5rem;
+        }
+
+        .disclosure-box ul {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-left: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .disclosure-box ul li {
+            margin-bottom: 0.35rem;
+        }
+
+        .submission-info {
+            background: var(--info);
+            color: white;
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            margin-top: 1rem;
+            font-size: 0.85rem;
+        }
+
+        .submission-info strong {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .submission-info a {
+            color: white;
+            font-weight: 600;
         }
 
         .intro-box {
@@ -124,7 +199,7 @@
         }
 
         .section-title {
-            font-size: 1rem;
+            font-size: 1.1rem;
             font-weight: 600;
             color: var(--text-primary);
             margin-bottom: 1.25rem;
@@ -136,7 +211,7 @@
         .section-title::before {
             content: '';
             width: 4px;
-            height: 20px;
+            height: 24px;
             background: var(--primary);
             border-radius: 2px;
         }
@@ -192,9 +267,33 @@
             resize: vertical;
         }
 
+        .form-group textarea.large {
+            min-height: 150px;
+        }
+
         .form-group .help-text {
             font-size: 0.75rem;
             color: var(--text-muted);
+        }
+
+        .question-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+
+        .question-label {
+            display: flex;
+            align-items: flex-start;
         }
 
         .type-selector {
@@ -268,6 +367,36 @@
             font-size: 0.85rem;
             color: var(--text-secondary);
             cursor: pointer;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .radio-option:hover {
+            border-color: var(--primary);
+        }
+
+        .radio-option input[type="radio"] {
+            accent-color: var(--primary);
+        }
+
+        .radio-option label {
+            cursor: pointer;
+            font-size: 0.85rem;
         }
 
         .btn {
@@ -376,7 +505,7 @@
             font-size: 0.8rem;
         }
 
-        @media (max-width: 640px) {
+        @media (max-width: 768px) {
             .form-grid {
                 grid-template-columns: 1fr;
             }
@@ -388,6 +517,14 @@
             .header h1 {
                 font-size: 1.25rem;
             }
+
+            .card-body {
+                padding: 1.5rem;
+            }
+
+            .radio-group {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -395,7 +532,7 @@
     <header class="header">
         <div class="header-content">
             <h1>Texas 11th Congressional District</h1>
-            <p>FY2027 Appropriations Request Submission</p>
+            <p>Appropriations Request Submission</p>
             <span class="badge">Fiscal Year 2027</span>
         </div>
     </header>
@@ -407,7 +544,7 @@
                 <div class="success-message" id="success-message">
                     <div class="success-icon">&#10003;</div>
                     <h2>Request Submitted Successfully</h2>
-                    <p>Thank you for your submission. Your request has been received and will be reviewed by our office.</p>
+                    <p>Thank you for your submission. Your request has been received and will be reviewed by our office. Please also email your completed form and support letters to the addresses listed in the guidelines.</p>
                     <div class="request-id">Request #<span id="request-number"></span></div>
                     <br><br>
                     <button class="btn btn-primary" onclick="resetForm()" style="max-width: 200px; margin: 0 auto;">Submit Another</button>
@@ -415,11 +552,6 @@
 
                 <!-- Form -->
                 <form id="submit-form">
-                    <div class="intro-box">
-                        <h3>Submission Guidelines</h3>
-                        <p>All requests must demonstrate a direct connection to Texas Congressional District 11, which includes Midland, Odessa, San Angelo, and the Permian Basin region. Please provide complete and accurate information.</p>
-                    </div>
-
                     <!-- Request Type Selection -->
                     <div class="form-section">
                         <div class="section-title">Request Type</div>
@@ -442,167 +574,388 @@
                         </div>
                     </div>
 
-                    <!-- Contact Information -->
+                    <!-- CPF Disclosure Section (only shown for CPF) -->
+                    <div id="cpf-disclosure" class="disclosure-box">
+                        <h2>FY'27 Community Project Funding (CPF) Requests</h2>
+                        <div class="deadline">Submission Deadline: TBD</div>
+
+                        <div class="note">
+                            <strong>NOTE:</strong> Due to a limited number of requests allowed by each congressional office, the office of Congressman August Pfluger will only consider proposals that are:
+                            <ol style="margin-top: 0.5rem; margin-left: 1rem;">
+                                <li>Submitted by organizations based in Congressional District TX-11; and</li>
+                                <li>Affect the constituents of Congressional District TX-11</li>
+                            </ol>
+                        </div>
+
+                        <h3>Community Funding Projects MUST meet all guidelines established by the Committee:</h3>
+                        <ul>
+                            <li>Requestor MUST be able to demonstrate broad community support for the project.</li>
+                            <li>Requestor MUST submit examples of community support to the office of Rep. August Pfluger in order for the request to be considered.</li>
+                            <li>The project or requesting entity must have NO financial ties to the Member or his/her family.</li>
+                            <li>Funding must be for FY'27 ONLY.</li>
+                            <li>If the project would normally require a funding match or cost share by a non-federal entity, then the requesting entity will need to demonstrate that it can provide this match if it makes a CPF request.</li>
+                            <li>The recipient of the CPF must be a governmental entity or a 501(c)(3) nonprofit organization. <strong>Requests made by for-profit entities are NOT permitted.</strong></li>
+                        </ul>
+
+                        <div class="submission-info">
+                            <strong>Submission Requirements:</strong>
+                            Completed forms MUST be submitted to BOTH <a href="mailto:Alexandra.davis@mail.house.gov">Alexandra.davis@mail.house.gov</a> and <a href="mailto:Zachary.ramsey@mail.house.gov">Zachary.ramsey@mail.house.gov</a> with all required information including at least three community letters of support.
+                        </div>
+                    </div>
+
+                    <div class="intro-box">
+                        <h3>REQUEST FORM</h3>
+                        <p>Please provide ALL requested information. Inadequately submitted forms deteriorate the likelihood of a request's success. All fields marked with <span style="color: var(--danger);">*</span> are required.</p>
+                    </div>
+
+                    <!-- Requesting Organization Info -->
                     <div class="form-section">
-                        <div class="section-title">Contact Information</div>
+                        <div class="section-title">Requesting Organization Info</div>
                         <div class="form-grid">
-                            <div class="form-group">
-                                <label>Your Name <span class="required">*</span></label>
-                                <input type="text" id="requester_name" required placeholder="Full name">
-                            </div>
-                            <div class="form-group">
-                                <label>Email Address <span class="required">*</span></label>
-                                <input type="email" id="requester_email" required placeholder="email@example.com">
+                            <div class="form-group full-width">
+                                <label>Name of Requesting Organization/Entity <span class="required">*</span></label>
+                                <input type="text" id="organization_name" required placeholder="Enter organization name">
                             </div>
                             <div class="form-group full-width">
-                                <label>Organization <span class="required">*</span></label>
-                                <input type="text" id="requester_organization" required placeholder="City, County, or Organization name">
+                                <label>Type of Entity <span class="required">*</span></label>
+                                <select id="entity_type" required>
+                                    <option value="">Select entity type...</option>
+                                    <option value="state_local_tribal_government">State, Local, or Tribal Government</option>
+                                    <option value="public_entity">Public Entity</option>
+                                    <option value="nonprofit_501c3">501(c)(3) Nonprofit Organization</option>
+                                </select>
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Address of Organization <span class="required">*</span></label>
+                                <input type="text" id="org_address" required placeholder="Full mailing address">
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Website</label>
+                                <input type="url" id="org_website" placeholder="https://www.example.com">
                             </div>
                         </div>
                     </div>
 
-                    <!-- Request Details -->
+                    <!-- Point of Contact -->
                     <div class="form-section">
-                        <div class="section-title">Request Details</div>
+                        <div class="section-title">Point of Contact for Request</div>
                         <div class="form-grid">
+                            <div class="form-group">
+                                <label>Name <span class="required">*</span></label>
+                                <input type="text" id="contact_name" required placeholder="Full name">
+                            </div>
+                            <div class="form-group">
+                                <label>Title <span class="required">*</span></label>
+                                <input type="text" id="contact_title" required placeholder="Job title">
+                            </div>
+                            <div class="form-group">
+                                <label>Phone # <span class="required">*</span></label>
+                                <input type="tel" id="contact_phone" required placeholder="(XXX) XXX-XXXX">
+                            </div>
+                            <div class="form-group">
+                                <label>Email Address <span class="required">*</span></label>
+                                <input type="email" id="contact_email" required placeholder="email@example.com">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Project Information -->
+                    <div class="form-section">
+                        <div class="section-title">Project Information</div>
+                        <div class="form-grid">
+                            <div class="form-group full-width">
+                                <label>Project Name <span class="required">*</span></label>
+                                <input type="text" id="project_name" required placeholder="Official project name">
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Purpose of Project <span class="required">*</span></label>
+                                <textarea id="project_purpose" required placeholder="Describe the purpose and goals of this project..."></textarea>
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Postal Address of Project <span class="required">*</span></label>
+                                <input type="text" id="project_address" required placeholder="Physical location of the project in TX-11">
+                            </div>
+                            <div class="form-group">
+                                <label>Requested FY'27 Funding Amount <span class="required">*</span></label>
+                                <input type="number" id="requested_amount" required placeholder="0.00" step="0.01" min="0">
+                            </div>
                             <div class="form-group">
                                 <label>Subcommittee <span class="required">*</span></label>
                                 <select id="subcommittee" required>
                                     <option value="">Select subcommittee...</option>
-                                    <option value="agriculture">Agriculture</option>
+                                    <option value="agriculture">Agriculture, Rural Development, FDA</option>
                                     <option value="commerce_justice_science">Commerce, Justice, Science</option>
                                     <option value="defense">Defense</option>
-                                    <option value="energy_water">Energy & Water</option>
-                                    <option value="financial_services_general_government">Financial Services & General Government</option>
+                                    <option value="energy_water">Energy and Water</option>
+                                    <option value="financial_services">Financial Services</option>
                                     <option value="homeland_security">Homeland Security</option>
-                                    <option value="interior_environment">Interior & Environment</option>
-                                    <option value="labor_hhs_education">Labor, HHS, Education</option>
-                                    <option value="legislative_branch">Legislative Branch</option>
-                                    <option value="milcon_va">MilCon & VA</option>
-                                    <option value="state_foreign_operations">State & Foreign Operations</option>
-                                    <option value="transportation_hud">Transportation & HUD</option>
+                                    <option value="interior_environment">Interior and Environment</option>
+                                    <option value="labor_hhs_education">Labor, Health and Human Services, Education</option>
+                                    <option value="milcon_va">Military Construction, Veterans Affairs</option>
+                                    <option value="transportation_hud">Transportation, Housing and Urban Development</option>
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label>Requested Amount ($)</label>
-                                <input type="number" id="requested_amount" placeholder="0.00" step="0.01">
+                                <label>Agency</label>
+                                <input type="text" id="agency" placeholder="Responsible federal agency">
                             </div>
                             <div class="form-group full-width">
-                                <label>Request Title <span class="required">*</span></label>
-                                <input type="text" id="title" required placeholder="Brief, descriptive title">
-                            </div>
-                            <div class="form-group full-width">
-                                <label>Description <span class="required">*</span></label>
-                                <textarea id="description" required placeholder="Provide a detailed description of your request..."></textarea>
+                                <label>Eligible Account <span class="required">*</span></label>
+                                <select id="eligible_account" required disabled>
+                                    <option value="">Select subcommittee first...</option>
+                                </select>
+                                <span class="help-text">Select a subcommittee above to see eligible accounts</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- TX-11 Connection (All Types) -->
+                    <!-- Supporting Documentation Questions -->
                     <div class="form-section">
-                        <div class="section-title">TX-11 District Connection</div>
-                        <div class="form-grid">
-                            <div class="form-group full-width">
-                                <label>How does this benefit TX-11? <span class="required">*</span></label>
-                                <textarea id="tx11_nexus_explanation" required placeholder="Explain the direct connection and benefit to Midland, Odessa, San Angelo, or other TX-11 communities..."></textarea>
-                                <span class="help-text">All requests must demonstrate a clear benefit to the 11th Congressional District of Texas.</span>
+                        <div class="section-title">Supporting Documentation</div>
+
+                        <!-- Question 1 -->
+                        <div class="form-group full-width" style="margin-bottom: 1.5rem;">
+                            <label class="question-label">
+                                <span class="question-number">1</span>
+                                <span>How would this project benefit the public and why is it a responsible use of taxpayer dollars? <span class="required">*</span></span>
+                            </label>
+                            <textarea id="q1_public_benefit" required class="large" placeholder="Explain the public benefit and responsible use of taxpayer funds..."></textarea>
+                        </div>
+
+                        <!-- Question 2 -->
+                        <div class="form-group full-width" style="margin-bottom: 1.5rem;">
+                            <label class="question-label">
+                                <span class="question-number">2</span>
+                                <span>Total funding request: <span class="required">*</span></span>
+                            </label>
+                            <input type="number" id="q2_total_request" required placeholder="0.00" step="0.01" min="0">
+                        </div>
+
+                        <!-- Question 3 -->
+                        <div class="form-group full-width" style="margin-bottom: 1.5rem;">
+                            <label class="question-label">
+                                <span class="question-number">3</span>
+                                <span>Total project cost: <span class="required">*</span></span>
+                            </label>
+                            <input type="number" id="q3_total_cost" required placeholder="0.00" step="0.01" min="0">
+                        </div>
+
+                        <!-- Question 4 -->
+                        <div class="form-group full-width" style="margin-bottom: 1.5rem;">
+                            <label class="question-label">
+                                <span class="question-number">4</span>
+                                <span>Why should this request be considered a priority for the people of Texas' 11th Congressional District? <span class="required">*</span></span>
+                            </label>
+                            <textarea id="q4_tx11_priority" required class="large" placeholder="Explain why this is a priority for TX-11 constituents..."></textarea>
+                        </div>
+
+                        <!-- Question 5 -->
+                        <div class="form-group full-width" style="margin-bottom: 1.5rem;">
+                            <label class="question-label">
+                                <span class="question-number">5</span>
+                                <span>List any stakeholders that support this request. <span class="required">*</span></span>
+                            </label>
+                            <textarea id="q5_stakeholders" required class="large" placeholder="This can include letters from local officials, press articles highlighting the need of the request, or resolutions passed by city councils or boards, just to name a few..."></textarea>
+                            <span class="help-text">Include letters from local officials, press articles, resolutions passed by city councils or boards, etc.</span>
+                        </div>
+
+                        <!-- Question 6 -->
+                        <div class="form-group full-width" style="margin-bottom: 1.5rem;">
+                            <label class="question-label">
+                                <span class="question-number">6</span>
+                                <span>Please provide a breakdown here of how this funding would be utilized: <span class="required">*</span></span>
+                            </label>
+                            <textarea id="q6_funding_breakdown" required class="large" placeholder="Provide a detailed breakdown of how the funding will be used..."></textarea>
+                        </div>
+
+                        <!-- Question 7 -->
+                        <div class="form-group full-width" style="margin-bottom: 1.5rem;">
+                            <label class="question-label">
+                                <span class="question-number">7</span>
+                                <span>Is this a new or ongoing project? <span class="required">*</span></span>
+                            </label>
+                            <div class="radio-group">
+                                <label class="radio-option">
+                                    <input type="radio" name="q7_project_status" value="new" required>
+                                    <span>New Project</span>
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="q7_project_status" value="ongoing">
+                                    <span>Ongoing Project</span>
+                                </label>
                             </div>
-                            <div class="form-group full-width">
-                                <div class="checkbox-field">
-                                    <input type="checkbox" id="tx11_nexus" required>
-                                    <label for="tx11_nexus">I confirm this request has a direct connection to and will benefit Texas Congressional District 11 (Midland, Odessa, San Angelo, Permian Basin region).</label>
-                                </div>
+                        </div>
+
+                        <!-- Question 8 -->
+                        <div class="form-group full-width" style="margin-bottom: 1.5rem;">
+                            <label class="question-label">
+                                <span class="question-number">8</span>
+                                <span>Is this project an eligible purpose under the relevant program? <span class="required">*</span></span>
+                            </label>
+                            <div class="radio-group">
+                                <label class="radio-option">
+                                    <input type="radio" name="q8_eligible" value="yes" required>
+                                    <span>Yes</span>
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="q8_eligible" value="no">
+                                    <span>No</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Question 9 -->
+                        <div class="form-group full-width" style="margin-bottom: 1.5rem;">
+                            <label class="question-label">
+                                <span class="question-number">9</span>
+                                <span>If yes, please justify the project's eligibility. <span class="required">*</span></span>
+                            </label>
+                            <textarea id="q9_eligibility_justification" required class="large" placeholder="Include the appropriate statutory, CFR, or other agency guidance citation. Also include the relevant language justifying eligibility."></textarea>
+                            <span class="help-text">Include appropriate statutory, CFR, or other agency guidance citation and relevant language justifying eligibility.</span>
+                        </div>
+
+                        <!-- Question 10 -->
+                        <div class="form-group full-width" style="margin-bottom: 1.5rem;">
+                            <label class="question-label">
+                                <span class="question-number">10</span>
+                                <span>What is the timeline of completion for this project? <span class="required">*</span></span>
+                            </label>
+                            <textarea id="q10_timeline" required placeholder="Describe the project timeline and expected completion date..."></textarea>
+                        </div>
+
+                        <!-- Question 11 -->
+                        <div class="form-group full-width" style="margin-bottom: 1.5rem;">
+                            <label class="question-label">
+                                <span class="question-number">11</span>
+                                <span>Will this project require additional federal dollars in later fiscal years? <span class="required">*</span></span>
+                            </label>
+                            <div class="radio-group">
+                                <label class="radio-option">
+                                    <input type="radio" name="q11_future_funding" value="yes" required>
+                                    <span>Yes</span>
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="q11_future_funding" value="no">
+                                    <span>No</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Question 12 -->
+                        <div class="form-group full-width" style="margin-bottom: 1.5rem;">
+                            <label class="question-label">
+                                <span class="question-number">12</span>
+                                <span>If the House Appropriations Committee is unable to provide the full amount of funding requested, can this project start in a limited capacity? <span class="required">*</span></span>
+                            </label>
+                            <div class="radio-group">
+                                <label class="radio-option">
+                                    <input type="radio" name="q12_partial_funding" value="yes" required>
+                                    <span>Yes</span>
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="q12_partial_funding" value="no">
+                                    <span>No</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Question 13 -->
+                        <div class="form-group full-width" style="margin-bottom: 1.5rem;">
+                            <label class="question-label">
+                                <span class="question-number">13</span>
+                                <span>Is this project currently authorized in law? If so, where? <span class="required">*</span></span>
+                            </label>
+                            <textarea id="q13_authorization" required placeholder="If authorized, specify where. If not applicable, write 'N/A'."></textarea>
+                        </div>
+
+                        <!-- Question 14 -->
+                        <div class="form-group full-width" style="margin-bottom: 1.5rem;">
+                            <label class="question-label">
+                                <span class="question-number">14</span>
+                                <span>If this project has been included in a presidential budget request, please indicate that here:</span>
+                            </label>
+                            <textarea id="q14_presidential_budget" placeholder="Detail the dollar amount and what fiscal year it was included in. Leave blank if not applicable."></textarea>
+                        </div>
+
+                        <!-- Question 15 -->
+                        <div class="form-group full-width" style="margin-bottom: 1.5rem;">
+                            <label class="question-label">
+                                <span class="question-number">15</span>
+                                <span>If this project has received any funding in the past, from either a public or private source, please detail that here:</span>
+                            </label>
+                            <textarea id="q15_past_funding" placeholder="List any previous funding sources and amounts..."></textarea>
+                        </div>
+
+                        <!-- Question 16 -->
+                        <div class="form-group full-width" style="margin-bottom: 1.5rem;">
+                            <label class="question-label">
+                                <span class="question-number">16</span>
+                                <span>If this project requires a non-federal cost share, please indicate that here and explain how you can demonstrate that the non-federal cost share will be met:</span>
+                            </label>
+                            <textarea id="q16_cost_share" placeholder="Explain how the non-federal cost share will be met..."></textarea>
+                        </div>
+
+                        <!-- Question 17 -->
+                        <div class="form-group full-width" style="margin-bottom: 1.5rem;">
+                            <label class="question-label">
+                                <span class="question-number">17</span>
+                                <span>Does any derogatory information or potentially mitigating information exist that would render the entity potentially unsuitable for receiving community project funding? <span class="required">*</span></span>
+                            </label>
+                            <textarea id="q17_derogatory_info" required placeholder="Please explain if applicable. If none, write 'None'."></textarea>
+                        </div>
+
+                        <!-- Question 18 -->
+                        <div class="form-group full-width" style="margin-bottom: 1.5rem;">
+                            <label class="question-label">
+                                <span class="question-number">18</span>
+                                <span>If submitting multiple requests, please rank this request in terms of priority:</span>
+                            </label>
+                            <input type="text" id="q18_priority_rank" placeholder="e.g., 1 of 3, or Priority #2">
+                        </div>
+
+                        <!-- Question 19 -->
+                        <div class="form-group full-width" style="margin-bottom: 1.5rem;">
+                            <label class="question-label">
+                                <span class="question-number">19</span>
+                                <span>Please list all Members of both the United States House of Representatives and United States Senate who are receiving this request:</span>
+                            </label>
+                            <textarea id="q19_other_members" placeholder="List all Representatives and Senators receiving this request..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- TX-11 Connection Confirmation -->
+                    <div class="form-section">
+                        <div class="section-title">TX-11 District Connection Confirmation</div>
+                        <div class="form-group full-width" style="margin-top: 1rem;">
+                            <div class="checkbox-field">
+                                <input type="checkbox" id="tx11_nexus" required>
+                                <label for="tx11_nexus">I confirm this request has a direct connection to and will benefit Texas Congressional District 11 (Midland, Odessa, San Angelo, Permian Basin region), and the requesting organization is based in TX-11. <span class="required">*</span></label>
+                            </div>
+                        </div>
+                        <div class="form-group full-width" style="margin-top: 1rem;">
+                            <div class="checkbox-field">
+                                <input type="checkbox" id="no_financial_ties" required>
+                                <label for="no_financial_ties">I confirm the project and requesting entity have NO financial ties to the Member or his/her family. <span class="required">*</span></label>
                             </div>
                         </div>
                     </div>
 
-                    <!-- CPF Specific Fields -->
-                    <div id="cpf-fields" class="type-fields active">
+                    <!-- Programmatic/Language Fields (hidden by default) -->
+                    <div id="programmatic-language-fields" class="type-fields">
                         <div class="form-section">
-                            <div class="section-title">CPF Project Details</div>
-                            <div class="form-grid">
-                                <div class="form-group">
-                                    <label>Entity Type <span class="required">*</span></label>
-                                    <select id="entity_type">
-                                        <option value="">Select type...</option>
-                                        <option value="state_government">State Government</option>
-                                        <option value="local_government">Local Government</option>
-                                        <option value="tribal_government">Tribal Government</option>
-                                        <option value="nonprofit">Nonprofit (501c3)</option>
-                                        <option value="public_higher_education">Public Higher Education</option>
-                                        <option value="special_district">Special District</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label>Entity Name</label>
-                                    <input type="text" id="entity_name" placeholder="Legal entity name">
-                                </div>
-                                <div class="form-group full-width">
-                                    <label>Entity Address</label>
-                                    <input type="text" id="entity_address" placeholder="Full mailing address">
-                                </div>
-                                <div class="form-group">
-                                    <label>Project Name</label>
-                                    <input type="text" id="project_name" placeholder="Official project name">
-                                </div>
-                                <div class="form-group">
-                                    <label>Project Location</label>
-                                    <input type="text" id="project_address" placeholder="Project address in TX-11">
-                                </div>
-                                <div class="form-group full-width">
-                                    <label>Project Description</label>
-                                    <textarea id="project_description" placeholder="Detailed description of the project scope and objectives..."></textarea>
-                                </div>
-                                <div class="form-group">
-                                    <label>Total Project Cost ($)</label>
-                                    <input type="number" id="total_project_cost" placeholder="0.00" step="0.01">
-                                </div>
-                                <div class="form-group">
-                                    <label>Cost Share / Match ($)</label>
-                                    <input type="number" id="cost_share_amount" placeholder="0.00" step="0.01">
-                                    <span class="help-text">Local or other funding committed</span>
-                                </div>
-                                <div class="form-group full-width">
-                                    <label>Public Benefit</label>
-                                    <textarea id="public_benefit_justification" placeholder="How will this project benefit the public?"></textarea>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Programmatic Specific Fields -->
-                    <div id="programmatic-fields" class="type-fields">
-                        <div class="form-section">
-                            <div class="section-title">Programmatic Details</div>
+                            <div class="section-title">Additional Request Details</div>
                             <div class="form-grid">
                                 <div class="form-group full-width">
-                                    <label>Program Name <span class="required">*</span></label>
-                                    <input type="text" id="program_name" placeholder="Federal program name">
+                                    <label>Program Name and Agency</label>
+                                    <input type="text" id="program_name_agency" placeholder="e.g., Manufacturing Extension Partnership - NIST">
                                 </div>
                                 <div class="form-group full-width">
-                                    <label>Justification <span class="required">*</span></label>
-                                    <textarea id="programmatic_justification" placeholder="Why should this program receive increased funding? How will it benefit TX-11?"></textarea>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Language Specific Fields -->
-                    <div id="language-fields" class="type-fields">
-                        <div class="form-section">
-                            <div class="section-title">Language Details</div>
-                            <div class="form-grid">
-                                <div class="form-group">
-                                    <label>Bill Section</label>
-                                    <input type="text" id="bill_section" placeholder="e.g., Section 123, Title II">
+                                    <label>Proposed Bill/Report Language</label>
+                                    <textarea id="proposed_language" class="large" placeholder="Enter the exact proposed language and specify if for bill, report, or both..."></textarea>
                                 </div>
                                 <div class="form-group full-width">
-                                    <label>Proposed Language <span class="required">*</span></label>
-                                    <textarea id="proposed_language" placeholder="Enter the exact proposed bill language..."></textarea>
-                                </div>
-                                <div class="form-group full-width">
-                                    <label>Justification <span class="required">*</span></label>
-                                    <textarea id="language_justification" placeholder="Why is this language change needed? How will it benefit TX-11?"></textarea>
+                                    <label>Justification</label>
+                                    <textarea id="request_justification" class="large" placeholder="Explain why this request should be supported..."></textarea>
                                 </div>
                             </div>
                         </div>
@@ -621,20 +974,130 @@
     <div class="toast-container" id="toast-container"></div>
 
     <script>
-        // Auto-detect API URL: use Render backend in production, localhost for development
+        // Auto-detect API URL
         const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
             ? 'http://localhost:8080'
             : 'https://tx11-appropriations-api.onrender.com';
 
-        // Type selector
+        // Eligible accounts by subcommittee
+        const eligibleAccounts = {
+            agriculture: [
+                { value: 'ars_buildings_facilities', label: 'Agricultural Research Service, Buildings and Facilities' },
+                { value: 'rural_community_facility', label: 'Rural Development, Rural Community Facility Grants' },
+                { value: 'rus_reconnect', label: 'Rural Utilities Service, ReConnect Grants' },
+                { value: 'rus_distance_learning', label: 'Rural Utilities Service, Distance Learning and Telemedicine Grants' },
+                { value: 'nrcs_conservation', label: 'Natural Resources Conservation Service, Conservation Operations' }
+            ],
+            commerce_justice_science: [
+                { value: 'nist_research', label: 'NIST, Scientific and Technical Research and Services [New]' },
+                { value: 'nist_construction', label: 'NIST, Construction of Research Facilities [New]' },
+                { value: 'noaa_operations', label: 'NOAA Operations, Research, and Facilities' },
+                { value: 'doj_byrne_jag', label: 'DOJ, Byrne Justice Assistance Grants (JAG)' },
+                { value: 'doj_cops_tech', label: 'DOJ, COPS Technology and Equipment' },
+                { value: 'nasa_safety_security', label: 'NASA, Safety, Security and Mission Services' }
+            ],
+            defense: [
+                { value: 'rdte_army', label: 'Research, Development, Test, and Evaluation Army' },
+                { value: 'rdte_navy', label: 'Research, Development, Test, and Evaluation Navy' },
+                { value: 'rdte_air_force', label: 'Research, Development, Test, and Evaluation Air Force' },
+                { value: 'rdte_space_force', label: 'Research, Development, Test, and Evaluation Space Force' },
+                { value: 'rdte_defense_wide', label: 'Research, Development, Test, and Evaluation Defense-Wide' }
+            ],
+            energy_water: [
+                { value: 'corps_investigations', label: 'Corps of Engineers: Investigations' },
+                { value: 'corps_construction', label: 'Corps of Engineers: Construction' },
+                { value: 'corps_mississippi', label: 'Corps of Engineers: Mississippi River and Tributaries' },
+                { value: 'corps_operations', label: 'Corps of Engineers: Operation and Maintenance' },
+                { value: 'reclamation_water', label: 'Bureau of Reclamation: Water and Related Resources' },
+                { value: 'doe_efficiency_renewable', label: 'DOE: Energy Efficiency, Renewable Energy, Sustainable Transportation' },
+                { value: 'doe_cybersecurity', label: 'DOE: Cybersecurity, Energy Security, Emergency Response' },
+                { value: 'doe_electricity_storage', label: 'DOE: Electricity, Energy Storage' },
+                { value: 'doe_fossil_carbon', label: 'DOE: Fossil Energy, Carbon Management, Critical Minerals' }
+            ],
+            financial_services: [
+                { value: 'sba_initiatives', label: 'Small Business Administration, Small Business Initiatives' }
+            ],
+            homeland_security: [
+                { value: 'pre_disaster_mitigation', label: 'Pre-Disaster Mitigation Grants' },
+                { value: 'eoc_grants', label: 'Emergency Operations Center Grants' }
+            ],
+            interior_environment: [
+                { value: 'nps_treasures', label: 'Save America\'s Treasures (National Park Service)' },
+                { value: 'lwcf_acquisitions', label: 'Land and Water Conservation Fund Acquisitions' },
+                { value: 'epa_stag_water', label: 'EPA State and Tribal Assistance Grants (Water Infrastructure)' },
+                { value: 'usfs_state_private', label: 'State and Private Forestry (U.S. Forest Service)' }
+            ],
+            labor_hhs_education: [
+                { value: 'dol_eta_training', label: 'DOL - Employment and Training Administration - Training and Employment Services' },
+                { value: 'hhs_hrsa_management', label: 'HHS - Health Resources and Services Administration - Program Management' },
+                { value: 'hhs_samhsa_support', label: 'HHS - SAMHSA - Health Surveillance and Program Support' },
+                { value: 'hhs_acf_children', label: 'HHS - Administration for Children and Families - Children and Families Services Programs' },
+                { value: 'hhs_acl_aging', label: 'HHS - Administration for Community Living - Aging and Disability Services Programs' },
+                { value: 'ed_innovation', label: 'Department of Education - Innovation and Improvement' },
+                { value: 'ed_higher_ed', label: 'Department of Education - Higher Education' }
+            ],
+            milcon_va: [
+                { value: 'milcon_army', label: 'Military Construction: Army' },
+                { value: 'milcon_navy_marines', label: 'Military Construction: Navy and Marine Corps' },
+                { value: 'milcon_air_force', label: 'Military Construction: Air Force' },
+                { value: 'milcon_space_force', label: 'Military Construction: Space Force' },
+                { value: 'milcon_defense_wide', label: 'Military Construction: Defense-Wide' },
+                { value: 'milcon_army_ng', label: 'Military Construction: Army National Guard' },
+                { value: 'milcon_air_ng', label: 'Military Construction: Air National Guard' },
+                { value: 'milcon_army_reserve', label: 'Military Construction: Army Reserve' },
+                { value: 'milcon_navy_reserve', label: 'Military Construction: Navy Reserve' },
+                { value: 'milcon_af_reserve', label: 'Military Construction: Air Force Reserve' },
+                { value: 'va_minor_construction', label: 'VA: Construction, Minor Projects' }
+            ],
+            transportation_hud: [
+                { value: 'dot_airport', label: 'DOT - Airport Improvement Program' },
+                { value: 'dot_highway', label: 'DOT - Highway Infrastructure Projects' },
+                { value: 'dot_transit', label: 'DOT - Transit Infrastructure Projects' },
+                { value: 'hud_edi', label: 'HUD - Economic Development Initiatives' }
+            ]
+        };
+
+        // Update eligible accounts dropdown when subcommittee changes
+        document.getElementById('subcommittee').addEventListener('change', function() {
+            const accountSelect = document.getElementById('eligible_account');
+            const selectedSubcommittee = this.value;
+
+            // Clear existing options
+            accountSelect.innerHTML = '';
+
+            if (selectedSubcommittee && eligibleAccounts[selectedSubcommittee]) {
+                accountSelect.disabled = false;
+                accountSelect.innerHTML = '<option value="">Select eligible account...</option>';
+                eligibleAccounts[selectedSubcommittee].forEach(account => {
+                    const option = document.createElement('option');
+                    option.value = account.value;
+                    option.textContent = account.label;
+                    accountSelect.appendChild(option);
+                });
+            } else {
+                accountSelect.disabled = true;
+                accountSelect.innerHTML = '<option value="">Select subcommittee first...</option>';
+            }
+        });
+
+        // Type selector - toggle visibility based on request type
         document.querySelectorAll('.type-option').forEach(option => {
             option.addEventListener('click', () => {
                 document.querySelectorAll('.type-option').forEach(o => o.classList.remove('selected'));
-                document.querySelectorAll('.type-fields').forEach(f => f.classList.remove('active'));
-
                 option.classList.add('selected');
                 const type = option.dataset.type;
-                document.getElementById(`${type}-fields`).classList.add('active');
+
+                // Show/hide CPF disclosure
+                const cpfDisclosure = document.getElementById('cpf-disclosure');
+                const programmaticLanguageFields = document.getElementById('programmatic-language-fields');
+
+                if (type === 'cpf') {
+                    cpfDisclosure.style.display = 'block';
+                    programmaticLanguageFields.classList.remove('active');
+                } else {
+                    cpfDisclosure.style.display = 'none';
+                    programmaticLanguageFields.classList.add('active');
+                }
             });
         });
 
@@ -651,10 +1114,17 @@
             document.getElementById('submit-form').reset();
             document.getElementById('submit-form').style.display = 'block';
             document.getElementById('success-message').classList.remove('show');
+
+            // Reset type selector to CPF
             document.querySelectorAll('.type-option').forEach(o => o.classList.remove('selected'));
             document.querySelector('.type-option[data-type="cpf"]').classList.add('selected');
-            document.querySelectorAll('.type-fields').forEach(f => f.classList.remove('active'));
-            document.getElementById('cpf-fields').classList.add('active');
+            document.getElementById('cpf-disclosure').style.display = 'block';
+            document.getElementById('programmatic-language-fields').classList.remove('active');
+
+            // Reset eligible account dropdown
+            const accountSelect = document.getElementById('eligible_account');
+            accountSelect.disabled = true;
+            accountSelect.innerHTML = '<option value="">Select subcommittee first...</option>';
         }
 
         document.getElementById('submit-form').addEventListener('submit', async (e) => {
@@ -666,7 +1136,7 @@
 
             const requestType = document.querySelector('input[name="request_type"]:checked').value;
 
-            // Validate TX-11 checkbox
+            // Validate checkboxes
             if (!document.getElementById('tx11_nexus').checked) {
                 showToast('You must confirm the TX-11 district connection');
                 btn.disabled = false;
@@ -674,28 +1144,30 @@
                 return;
             }
 
+            if (!document.getElementById('no_financial_ties').checked) {
+                showToast('You must confirm no financial ties to the Member');
+                btn.disabled = false;
+                btn.textContent = 'Submit Request';
+                return;
+            }
+
+            // Build request data
             const data = {
                 request_type: requestType,
                 subcommittee: document.getElementById('subcommittee').value,
-                title: document.getElementById('title').value,
-                description: document.getElementById('description').value,
-                requester_name: document.getElementById('requester_name').value,
-                requester_email: document.getElementById('requester_email').value,
-                requester_organization: document.getElementById('requester_organization').value,
+                title: document.getElementById('project_name').value,
+                description: document.getElementById('project_purpose').value,
+                requester_name: document.getElementById('contact_name').value,
+                requester_email: document.getElementById('contact_email').value,
+                requester_organization: document.getElementById('organization_name').value,
                 requested_amount: parseFloat(document.getElementById('requested_amount').value) || null
             };
 
-            // Add programmatic fields
-            if (requestType === 'programmatic') {
-                data.program_name = document.getElementById('program_name').value;
-                data.programmatic_justification = document.getElementById('programmatic_justification').value;
-            }
-
-            // Add language fields
-            if (requestType === 'language') {
-                data.bill_section = document.getElementById('bill_section').value;
-                data.proposed_language = document.getElementById('proposed_language').value;
-                data.language_justification = document.getElementById('language_justification').value;
+            // Add programmatic/language fields if not CPF
+            if (requestType !== 'cpf') {
+                data.program_name = document.getElementById('program_name_agency').value || null;
+                data.proposed_language = document.getElementById('proposed_language').value || null;
+                data.programmatic_justification = document.getElementById('request_justification').value || null;
             }
 
             try {
@@ -716,16 +1188,33 @@
                 if (requestType === 'cpf') {
                     const cpfData = {
                         tx11_nexus: true,
-                        tx11_nexus_explanation: document.getElementById('tx11_nexus_explanation').value,
+                        tx11_nexus_explanation: document.getElementById('q4_tx11_priority').value,
                         entity_type: document.getElementById('entity_type').value,
-                        entity_name: document.getElementById('entity_name').value,
-                        entity_address: document.getElementById('entity_address').value,
+                        entity_name: document.getElementById('organization_name').value,
+                        entity_address: document.getElementById('org_address').value,
                         project_name: document.getElementById('project_name').value,
                         project_address: document.getElementById('project_address').value,
-                        project_description: document.getElementById('project_description').value,
-                        total_project_cost: parseFloat(document.getElementById('total_project_cost').value) || null,
-                        cost_share_amount: parseFloat(document.getElementById('cost_share_amount').value) || null,
-                        public_benefit_justification: document.getElementById('public_benefit_justification').value
+                        project_description: document.getElementById('project_purpose').value,
+                        public_benefit_justification: document.getElementById('q1_public_benefit').value,
+                        requested_amount: parseFloat(document.getElementById('requested_amount').value) || null,
+                        total_project_cost: parseFloat(document.getElementById('q3_total_cost').value) || null,
+                        cost_share_amount: null,
+                        cost_share_explanation: document.getElementById('q16_cost_share').value || null,
+                        stakeholders_support: document.getElementById('q5_stakeholders').value || null,
+                        eligibility_citations: document.getElementById('q9_eligibility_justification').value || null,
+                        timeline: document.getElementById('q10_timeline').value || null,
+                        authorized_in_law: document.getElementById('q13_authorization').value !== 'N/A',
+                        authorization_citation: document.getElementById('q13_authorization').value || null,
+                        in_presidential_budget: !!document.getElementById('q14_presidential_budget').value,
+                        presidential_budget_details: document.getElementById('q14_presidential_budget').value || null,
+                        prior_federal_funding: !!document.getElementById('q15_past_funding').value,
+                        prior_funding_details: document.getElementById('q15_past_funding').value || null,
+                        future_federal_funding: document.querySelector('input[name="q11_future_funding"]:checked')?.value === 'yes',
+                        partial_funding_acceptable: document.querySelector('input[name="q12_partial_funding"]:checked')?.value === 'yes',
+                        derogatory_info: document.getElementById('q17_derogatory_info').value !== 'None',
+                        derogatory_info_explanation: document.getElementById('q17_derogatory_info').value || null,
+                        members_receiving_request: document.getElementById('q19_other_members').value || null,
+                        tx11_priority_justification: document.getElementById('q4_tx11_priority').value || null
                     };
 
                     await fetch(`${API_BASE}/api/requests/${request.id}/cpf`, {
