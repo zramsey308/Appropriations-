@@ -32,6 +32,7 @@ class RequestStatus(str, enum.Enum):
 
 
 class EntityType(str, enum.Enum):
+    corporate_private_sector = "corporate_private_sector"
     state_government = "state_government"
     local_government = "local_government"
     tribal_government = "tribal_government"
@@ -41,6 +42,7 @@ class EntityType(str, enum.Enum):
 
 
 ALLOWED_ENTITY_TYPES = [
+    EntityType.corporate_private_sector,
     EntityType.state_government,
     EntityType.local_government,
     EntityType.tribal_government,
