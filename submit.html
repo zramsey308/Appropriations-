@@ -526,6 +526,179 @@
                 flex-direction: column;
             }
         }
+
+        /* Upload Section Styles */
+        .upload-requirements {
+            background: linear-gradient(135deg, rgba(2, 132, 199, 0.08) 0%, rgba(14, 165, 233, 0.08) 100%);
+            border: 1px solid rgba(2, 132, 199, 0.2);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .upload-requirements .upload-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-requirements h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--info);
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-requirements p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-requirements .file-types {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .upload-dropzone {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius-md);
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .upload-dropzone:hover,
+        .upload-dropzone.dragover {
+            border-color: var(--primary);
+            background: rgba(217, 119, 6, 0.05);
+        }
+
+        .upload-dropzone .dropzone-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.5;
+        }
+
+        .upload-dropzone p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin: 0.25rem 0;
+        }
+
+        .upload-btn {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: var(--radius-md);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .upload-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .uploaded-files {
+            margin-top: 1rem;
+        }
+
+        .uploaded-file {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            background: var(--surface-alt);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            margin-bottom: 0.5rem;
+        }
+
+        .uploaded-file .file-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .uploaded-file .file-icon {
+            font-size: 1.5rem;
+        }
+
+        .uploaded-file .file-name {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .uploaded-file .file-size {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .uploaded-file .remove-file {
+            background: none;
+            border: none;
+            color: var(--danger);
+            font-size: 1.25rem;
+            cursor: pointer;
+            padding: 0.25rem;
+            line-height: 1;
+        }
+
+        .uploaded-file .remove-file:hover {
+            background: rgba(220, 38, 38, 0.1);
+            border-radius: 4px;
+        }
+
+        .upload-status {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: var(--radius-md);
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .upload-status.incomplete {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .upload-status.complete {
+            background: rgba(5, 150, 105, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(5, 150, 105, 0.3);
+        }
+
+        .upload-progress {
+            display: none;
+            margin-top: 0.5rem;
+        }
+
+        .upload-progress.active {
+            display: block;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
     </style>
 </head>
 <body>
@@ -596,11 +769,6 @@
                             <li>If the project would normally require a funding match or cost share by a non-federal entity, then the requesting entity will need to demonstrate that it can provide this match if it makes a CPF request.</li>
                             <li>The recipient of the CPF must be a governmental entity or a 501(c)(3) nonprofit organization. <strong>Requests made by for-profit entities are NOT permitted.</strong></li>
                         </ul>
-
-                        <div class="submission-info">
-                            <strong>Submission Requirements:</strong>
-                            Completed forms MUST be submitted to BOTH <a href="mailto:Alexandra.davis@mail.house.gov">Alexandra.davis@mail.house.gov</a> and <a href="mailto:Zachary.ramsey@mail.house.gov">Zachary.ramsey@mail.house.gov</a> with all required information including at least three community letters of support.
-                        </div>
                     </div>
 
                     <div class="intro-box">
@@ -923,6 +1091,37 @@
                         </div>
                     </div>
 
+                    <!-- Community Support Letters Upload -->
+                    <div class="form-section" id="support-letters-section">
+                        <div class="section-title">Community Support Letters</div>
+                        <div class="upload-requirements">
+                            <div class="upload-icon">&#128196;</div>
+                            <h4>3 Letters of Community Support Required</h4>
+                            <p>You must upload at least 3 letters of community support from local officials, organizations, or stakeholders. These letters demonstrate broad community backing for your project.</p>
+                            <p class="file-types">Accepted file types: PDF, Word (.doc, .docx)</p>
+                        </div>
+
+                        <div class="upload-area" id="upload-area">
+                            <div class="upload-dropzone" id="upload-dropzone">
+                                <div class="dropzone-icon">&#128194;</div>
+                                <p><strong>Drag and drop files here</strong></p>
+                                <p>or</p>
+                                <label class="upload-btn">
+                                    <input type="file" id="file-input" multiple accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" style="display: none;">
+                                    Browse Files
+                                </label>
+                            </div>
+
+                            <div class="uploaded-files" id="uploaded-files">
+                                <!-- Uploaded files will appear here -->
+                            </div>
+
+                            <div class="upload-status" id="upload-status">
+                                <span class="upload-count">0 of 3 required letters uploaded</span>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- TX-11 Connection Confirmation -->
                     <div class="form-section">
                         <div class="section-title">TX-11 District Connection Confirmation</div>
@@ -1057,6 +1256,157 @@
             ]
         };
 
+        // File upload handling
+        let uploadedFiles = [];
+        const maxFiles = 10;
+        const requiredFiles = 3;
+        const maxFileSize = 10 * 1024 * 1024; // 10MB
+        const allowedTypes = [
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        ];
+
+        function initFileUpload() {
+            const dropzone = document.getElementById('upload-dropzone');
+            const fileInput = document.getElementById('file-input');
+
+            // Drag and drop handlers
+            dropzone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropzone.classList.add('dragover');
+            });
+
+            dropzone.addEventListener('dragleave', () => {
+                dropzone.classList.remove('dragover');
+            });
+
+            dropzone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropzone.classList.remove('dragover');
+                handleFiles(e.dataTransfer.files);
+            });
+
+            // Click to upload
+            fileInput.addEventListener('change', (e) => {
+                handleFiles(e.target.files);
+                fileInput.value = ''; // Reset input
+            });
+        }
+
+        function handleFiles(files) {
+            for (const file of files) {
+                if (uploadedFiles.length >= maxFiles) {
+                    showToast(`Maximum ${maxFiles} files allowed`);
+                    break;
+                }
+
+                if (!allowedTypes.includes(file.type)) {
+                    showToast(`${file.name}: Only PDF and Word documents are allowed`);
+                    continue;
+                }
+
+                if (file.size > maxFileSize) {
+                    showToast(`${file.name}: File size exceeds 10MB limit`);
+                    continue;
+                }
+
+                // Check for duplicates
+                if (uploadedFiles.some(f => f.name === file.name && f.size === file.size)) {
+                    showToast(`${file.name}: File already added`);
+                    continue;
+                }
+
+                uploadedFiles.push(file);
+            }
+
+            renderUploadedFiles();
+            updateUploadStatus();
+        }
+
+        function renderUploadedFiles() {
+            const container = document.getElementById('uploaded-files');
+
+            if (uploadedFiles.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            container.innerHTML = uploadedFiles.map((file, index) => `
+                <div class="uploaded-file">
+                    <div class="file-info">
+                        <span class="file-icon">${file.type === 'application/pdf' ? '&#128196;' : '&#128195;'}</span>
+                        <div>
+                            <div class="file-name">${file.name}</div>
+                            <div class="file-size">${formatFileSize(file.size)}</div>
+                        </div>
+                    </div>
+                    <button type="button" class="remove-file" onclick="removeFile(${index})" title="Remove file">&times;</button>
+                </div>
+            `).join('');
+        }
+
+        function removeFile(index) {
+            uploadedFiles.splice(index, 1);
+            renderUploadedFiles();
+            updateUploadStatus();
+        }
+
+        function updateUploadStatus() {
+            const statusEl = document.getElementById('upload-status');
+            const count = uploadedFiles.length;
+
+            statusEl.innerHTML = `<span class="upload-count">${count} of ${requiredFiles} required letters uploaded</span>`;
+
+            if (count >= requiredFiles) {
+                statusEl.className = 'upload-status complete';
+            } else {
+                statusEl.className = 'upload-status incomplete';
+            }
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        async function uploadFilesToRequest(requestId) {
+            const results = [];
+
+            for (const file of uploadedFiles) {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('attachment_type', 'cpf_support_letter');
+
+                try {
+                    const response = await fetch(`${API_BASE}/api/requests/${requestId}/attachments`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        results.push({ success: true, file: file.name, data: result });
+                    } else {
+                        results.push({ success: false, file: file.name, error: 'Upload failed' });
+                    }
+                } catch (error) {
+                    results.push({ success: false, file: file.name, error: error.message });
+                }
+            }
+
+            return results;
+        }
+
+        // Initialize file upload on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            initFileUpload();
+            updateUploadStatus();
+        });
+
         // Update eligible accounts dropdown when subcommittee changes
         document.getElementById('subcommittee').addEventListener('change', function() {
             const accountSelect = document.getElementById('eligible_account');
@@ -1087,15 +1437,18 @@
                 option.classList.add('selected');
                 const type = option.dataset.type;
 
-                // Show/hide CPF disclosure
+                // Show/hide CPF disclosure and support letters
                 const cpfDisclosure = document.getElementById('cpf-disclosure');
+                const supportLettersSection = document.getElementById('support-letters-section');
                 const programmaticLanguageFields = document.getElementById('programmatic-language-fields');
 
                 if (type === 'cpf') {
                     cpfDisclosure.style.display = 'block';
+                    supportLettersSection.style.display = 'block';
                     programmaticLanguageFields.classList.remove('active');
                 } else {
                     cpfDisclosure.style.display = 'none';
+                    supportLettersSection.style.display = 'none';
                     programmaticLanguageFields.classList.add('active');
                 }
             });
@@ -1119,12 +1472,18 @@
             document.querySelectorAll('.type-option').forEach(o => o.classList.remove('selected'));
             document.querySelector('.type-option[data-type="cpf"]').classList.add('selected');
             document.getElementById('cpf-disclosure').style.display = 'block';
+            document.getElementById('support-letters-section').style.display = 'block';
             document.getElementById('programmatic-language-fields').classList.remove('active');
 
             // Reset eligible account dropdown
             const accountSelect = document.getElementById('eligible_account');
             accountSelect.disabled = true;
             accountSelect.innerHTML = '<option value="">Select subcommittee first...</option>';
+
+            // Reset uploaded files
+            uploadedFiles = [];
+            renderUploadedFiles();
+            updateUploadStatus();
         }
 
         document.getElementById('submit-form').addEventListener('submit', async (e) => {
@@ -1135,6 +1494,14 @@
             btn.textContent = 'Submitting...';
 
             const requestType = document.querySelector('input[name="request_type"]:checked').value;
+
+            // Validate support letters for CPF requests
+            if (requestType === 'cpf' && uploadedFiles.length < requiredFiles) {
+                showToast(`Please upload at least ${requiredFiles} community support letters`);
+                btn.disabled = false;
+                btn.textContent = 'Submit Request';
+                return;
+            }
 
             // Validate checkboxes
             if (!document.getElementById('tx11_nexus').checked) {
@@ -1222,6 +1589,16 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(cpfData)
                     });
+
+                    // Upload support letters
+                    if (uploadedFiles.length > 0) {
+                        btn.textContent = 'Uploading files...';
+                        const uploadResults = await uploadFilesToRequest(request.id);
+                        const failedUploads = uploadResults.filter(r => !r.success);
+                        if (failedUploads.length > 0) {
+                            console.warn('Some files failed to upload:', failedUploads);
+                        }
+                    }
                 }
 
                 // Show success message
