@@ -1180,6 +1180,240 @@
         </div>
     </main>
 
+    <!-- Edit Modal -->
+    <div id="edit-modal" class="modal" style="display: none;">
+        <div class="modal-backdrop" onclick="closeEditModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Request #<span id="edit-request-id"></span></h2>
+                <button class="modal-close" onclick="closeEditModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="edit-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select id="edit-status">
+                                <option value="draft">Draft</option>
+                                <option value="submitted">Submitted</option>
+                                <option value="under_review">Under Review</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                                <option value="selected">Selected</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Type</label>
+                            <input type="text" id="edit-type" readonly style="background: var(--surface-alt);">
+                        </div>
+                        <div class="form-group">
+                            <label>Subcommittee</label>
+                            <select id="edit-subcommittee">
+                                <option value="agriculture">Agriculture</option>
+                                <option value="commerce_justice_science">Commerce, Justice, Science</option>
+                                <option value="defense">Defense</option>
+                                <option value="energy_water">Energy & Water</option>
+                                <option value="financial_services">Financial Services</option>
+                                <option value="homeland_security">Homeland Security</option>
+                                <option value="interior_environment">Interior & Environment</option>
+                                <option value="labor_hhs_education">Labor, HHS, Education</option>
+                                <option value="milcon_va">MilCon & VA</option>
+                                <option value="transportation_hud">Transportation & HUD</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Requested Amount ($)</label>
+                            <input type="number" id="edit-amount" step="0.01">
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Title</label>
+                            <input type="text" id="edit-title">
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Description</label>
+                            <textarea id="edit-description" rows="4"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Requester Name</label>
+                            <input type="text" id="edit-requester-name">
+                        </div>
+                        <div class="form-group">
+                            <label>Requester Email</label>
+                            <input type="email" id="edit-requester-email">
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Organization</label>
+                            <input type="text" id="edit-requester-org">
+                        </div>
+                    </div>
+
+                    <!-- CPF Details Section -->
+                    <div id="edit-cpf-section" style="margin-top: 1.5rem; display: none;">
+                        <h3 style="font-size: 1rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border);">CPF Details</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Entity Type</label>
+                                <select id="edit-entity-type">
+                                    <option value="">Select...</option>
+                                    <option value="state_local_tribal_government">State, Local, or Tribal Government</option>
+                                    <option value="public_entity">Public Entity</option>
+                                    <option value="nonprofit_501c3">501(c)(3) Nonprofit</option>
+                                    <option value="state_government">State Government</option>
+                                    <option value="local_government">Local Government</option>
+                                    <option value="tribal_government">Tribal Government</option>
+                                    <option value="nonprofit">Nonprofit</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Entity Name</label>
+                                <input type="text" id="edit-entity-name">
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Entity Address</label>
+                                <input type="text" id="edit-entity-address">
+                            </div>
+                            <div class="form-group">
+                                <label>Project Name</label>
+                                <input type="text" id="edit-project-name">
+                            </div>
+                            <div class="form-group">
+                                <label>Project Address</label>
+                                <input type="text" id="edit-project-address">
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Project Description</label>
+                                <textarea id="edit-project-description" rows="3"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Total Project Cost ($)</label>
+                                <input type="number" id="edit-total-cost" step="0.01">
+                            </div>
+                            <div class="form-group">
+                                <label>Cost Share Amount ($)</label>
+                                <input type="number" id="edit-cost-share" step="0.01">
+                            </div>
+                            <div class="form-group full-width">
+                                <label>TX-11 Priority Justification</label>
+                                <textarea id="edit-tx11-priority" rows="3"></textarea>
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Public Benefit Justification</label>
+                                <textarea id="edit-public-benefit" rows="3"></textarea>
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Stakeholders Support</label>
+                                <textarea id="edit-stakeholders" rows="2"></textarea>
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Eligibility Citations</label>
+                                <textarea id="edit-eligibility" rows="2"></textarea>
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Timeline</label>
+                                <textarea id="edit-timeline" rows="2"></textarea>
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Other Members Receiving Request</label>
+                                <textarea id="edit-other-members" rows="2"></textarea>
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Staff Notes</label>
+                                <textarea id="edit-notes" rows="3" placeholder="Internal notes (not visible to requestor)"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions" style="margin-top: 1.5rem;">
+                        <button type="submit" class="btn btn-accent">Save Changes</button>
+                        <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                        <button type="button" class="btn btn-danger" onclick="deleteRequest()" style="margin-left: auto;">Delete</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-backdrop {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+        .modal-content {
+            position: relative;
+            background: var(--surface);
+            border-radius: var(--radius-xl);
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-xl);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            background: var(--surface);
+            z-index: 1;
+        }
+        .modal-header h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        .modal-close {
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: var(--surface-alt);
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+        }
+        .modal-close:hover {
+            background: var(--danger);
+            color: white;
+        }
+        .modal-body {
+            padding: 1.5rem;
+        }
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #b91c1c;
+        }
+        tr.clickable {
+            cursor: pointer;
+        }
+        tr.clickable:hover {
+            background: var(--surface-alt);
+        }
+    </style>
+
     <div class="toast-container" id="toast-container"></div>
 
     <script>
@@ -1258,14 +1492,15 @@
         async function loadRecentRequests() {
             try {
                 const response = await fetch(`${API_BASE}/api/requests?limit=5`);
-                const requests = await response.json();
+                const data = await response.json();
+                const requests = data.items || data;
                 const tbody = document.getElementById('recent-requests');
                 if (requests.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="6" class="empty-state"><div class="empty-state-icon">&#128203;</div><p>No requests yet. Create your first request!</p></td></tr>`;
                     return;
                 }
                 tbody.innerHTML = requests.map(r => `
-                    <tr>
+                    <tr class="clickable" onclick="openEditModal(${r.id})">
                         <td><strong>#${r.id}</strong></td>
                         <td>${r.title}</td>
                         <td><span class="badge badge-${r.request_type}">${r.request_type.toUpperCase()}</span></td>
@@ -1282,14 +1517,15 @@
         async function loadRequests() {
             try {
                 const response = await fetch(`${API_BASE}/api/requests`);
-                const requests = await response.json();
+                const data = await response.json();
+                const requests = data.items || data;
                 const tbody = document.getElementById('all-requests');
                 if (requests.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="8" class="empty-state"><div class="empty-state-icon">&#128203;</div><p>No requests found</p></td></tr>`;
                     return;
                 }
                 tbody.innerHTML = requests.map(r => `
-                    <tr>
+                    <tr class="clickable" onclick="openEditModal(${r.id})">
                         <td><strong>#${r.id}</strong></td>
                         <td>${r.title}</td>
                         <td><span class="badge badge-${r.request_type}">${r.request_type.toUpperCase()}</span></td>
@@ -1302,6 +1538,153 @@
                 `).join('');
             } catch (error) {
                 showToast('Failed to load requests', 'error');
+            }
+        }
+
+        let currentEditId = null;
+        let currentCpfDetails = null;
+
+        async function openEditModal(id) {
+            currentEditId = id;
+            try {
+                const response = await fetch(`${API_BASE}/api/requests/${id}`);
+                if (!response.ok) throw new Error('Request not found');
+                const request = await response.json();
+
+                document.getElementById('edit-request-id').textContent = id;
+                document.getElementById('edit-status').value = request.status || 'submitted';
+                document.getElementById('edit-type').value = request.request_type?.toUpperCase() || '';
+                document.getElementById('edit-subcommittee').value = request.subcommittee || '';
+                document.getElementById('edit-amount').value = request.requested_amount || '';
+                document.getElementById('edit-title').value = request.title || '';
+                document.getElementById('edit-description').value = request.description || '';
+                document.getElementById('edit-requester-name').value = request.requester_name || '';
+                document.getElementById('edit-requester-email').value = request.requester_email || '';
+                document.getElementById('edit-requester-org').value = request.requester_organization || '';
+                document.getElementById('edit-notes').value = request.notes || '';
+
+                // Load CPF details if CPF type
+                const cpfSection = document.getElementById('edit-cpf-section');
+                if (request.request_type === 'cpf') {
+                    cpfSection.style.display = 'block';
+                    try {
+                        const cpfResponse = await fetch(`${API_BASE}/api/requests/${id}/cpf`);
+                        if (cpfResponse.ok) {
+                            currentCpfDetails = await cpfResponse.json();
+                            document.getElementById('edit-entity-type').value = currentCpfDetails.entity_type || '';
+                            document.getElementById('edit-entity-name').value = currentCpfDetails.entity_name || '';
+                            document.getElementById('edit-entity-address').value = currentCpfDetails.entity_address || '';
+                            document.getElementById('edit-project-name').value = currentCpfDetails.project_name || '';
+                            document.getElementById('edit-project-address').value = currentCpfDetails.project_address || '';
+                            document.getElementById('edit-project-description').value = currentCpfDetails.project_description || '';
+                            document.getElementById('edit-total-cost').value = currentCpfDetails.total_project_cost || '';
+                            document.getElementById('edit-cost-share').value = currentCpfDetails.cost_share_amount || '';
+                            document.getElementById('edit-tx11-priority').value = currentCpfDetails.tx11_priority_justification || currentCpfDetails.tx11_nexus_explanation || '';
+                            document.getElementById('edit-public-benefit').value = currentCpfDetails.public_benefit_justification || '';
+                            document.getElementById('edit-stakeholders').value = currentCpfDetails.stakeholders_support || '';
+                            document.getElementById('edit-eligibility').value = currentCpfDetails.eligibility_citations || '';
+                            document.getElementById('edit-timeline').value = currentCpfDetails.timeline || '';
+                            document.getElementById('edit-other-members').value = currentCpfDetails.members_receiving_request || '';
+                        }
+                    } catch (e) {
+                        currentCpfDetails = null;
+                    }
+                } else {
+                    cpfSection.style.display = 'none';
+                    currentCpfDetails = null;
+                }
+
+                document.getElementById('edit-modal').style.display = 'flex';
+            } catch (error) {
+                showToast('Failed to load request details', 'error');
+            }
+        }
+
+        function closeEditModal() {
+            document.getElementById('edit-modal').style.display = 'none';
+            currentEditId = null;
+            currentCpfDetails = null;
+        }
+
+        document.getElementById('edit-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!currentEditId) return;
+
+            const data = {
+                status: document.getElementById('edit-status').value,
+                subcommittee: document.getElementById('edit-subcommittee').value,
+                requested_amount: parseFloat(document.getElementById('edit-amount').value) || null,
+                title: document.getElementById('edit-title').value,
+                description: document.getElementById('edit-description').value,
+                requester_name: document.getElementById('edit-requester-name').value,
+                requester_email: document.getElementById('edit-requester-email').value,
+                requester_organization: document.getElementById('edit-requester-org').value,
+                notes: document.getElementById('edit-notes').value
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/api/requests/${currentEditId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) throw new Error('Failed to update request');
+
+                // Update CPF details if applicable
+                if (document.getElementById('edit-cpf-section').style.display !== 'none') {
+                    const cpfData = {
+                        entity_type: document.getElementById('edit-entity-type').value || null,
+                        entity_name: document.getElementById('edit-entity-name').value || null,
+                        entity_address: document.getElementById('edit-entity-address').value || null,
+                        project_name: document.getElementById('edit-project-name').value || null,
+                        project_address: document.getElementById('edit-project-address').value || null,
+                        project_description: document.getElementById('edit-project-description').value || null,
+                        total_project_cost: parseFloat(document.getElementById('edit-total-cost').value) || null,
+                        cost_share_amount: parseFloat(document.getElementById('edit-cost-share').value) || null,
+                        tx11_nexus_explanation: document.getElementById('edit-tx11-priority').value || null,
+                        tx11_priority_justification: document.getElementById('edit-tx11-priority').value || null,
+                        public_benefit_justification: document.getElementById('edit-public-benefit').value || null,
+                        stakeholders_support: document.getElementById('edit-stakeholders').value || null,
+                        eligibility_citations: document.getElementById('edit-eligibility').value || null,
+                        timeline: document.getElementById('edit-timeline').value || null,
+                        members_receiving_request: document.getElementById('edit-other-members').value || null,
+                        tx11_nexus: true
+                    };
+
+                    await fetch(`${API_BASE}/api/requests/${currentEditId}/cpf`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(cpfData)
+                    });
+                }
+
+                showToast('Request updated successfully!', 'success');
+                closeEditModal();
+                loadRequests();
+                loadDashboard();
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        });
+
+        async function deleteRequest() {
+            if (!currentEditId) return;
+            if (!confirm('Are you sure you want to delete this request? This action cannot be undone.')) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/requests/${currentEditId}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) throw new Error('Failed to delete request');
+
+                showToast('Request deleted successfully', 'success');
+                closeEditModal();
+                loadRequests();
+                loadDashboard();
+            } catch (error) {
+                showToast(error.message, 'error');
             }
         }
 
