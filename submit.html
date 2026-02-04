@@ -716,11 +716,14 @@
                 <!-- Success Message (hidden by default) -->
                 <div class="success-message" id="success-message">
                     <div class="success-icon">&#10003;</div>
-                    <h2>Request Submitted Successfully</h2>
-                    <p>Thank you for your submission. Your request has been received and will be reviewed by our office. Please also email your completed form and support letters to the addresses listed in the guidelines.</p>
+                    <h2>Successfully Submitted!</h2>
+                    <p>Thank you for your submission. Your request has been saved and will be reviewed by our office.</p>
                     <div class="request-id">Request #<span id="request-number"></span></div>
-                    <br><br>
-                    <button class="btn btn-primary" onclick="resetForm()" style="max-width: 200px; margin: 0 auto;">Submit Another</button>
+                    <p style="margin-top: 1.5rem; color: var(--text-secondary); font-size: 0.9rem;">Your submission is saved in our system and can be viewed on the dashboard.</p>
+                    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 1.5rem;">
+                        <a href="frontend.html" class="btn btn-primary" style="max-width: 200px; text-decoration: none;">View Dashboard</a>
+                        <button class="btn btn-primary" onclick="resetForm()" style="max-width: 200px; background: var(--dark); border: 2px solid var(--dark);">Submit Another</button>
+                    </div>
                 </div>
 
                 <!-- Form -->
@@ -827,8 +830,8 @@
                         </div>
                     </div>
 
-                    <!-- Project Information -->
-                    <div class="form-section">
+                    <!-- CPF Project Information -->
+                    <div class="form-section" id="cpf-project-info">
                         <div class="section-title">Project Information</div>
                         <div class="form-grid">
                             <div class="form-group full-width">
@@ -1594,6 +1597,7 @@
 
                 // Get all sections by ID
                 const cpfDisclosure = document.getElementById('cpf-disclosure');
+                const cpfProjectInfo = document.getElementById('cpf-project-info');
                 const supportLettersSection = document.getElementById('support-letters-section');
                 const cpfSupportingDocs = document.getElementById('cpf-supporting-docs');
                 const cpfTx11Confirmation = document.getElementById('cpf-tx11-confirmation');
@@ -1604,6 +1608,7 @@
                 if (type === 'cpf') {
                     // Show CPF sections
                     cpfDisclosure.style.display = 'block';
+                    cpfProjectInfo.style.display = 'block';
                     supportLettersSection.style.display = 'block';
                     cpfSupportingDocs.style.display = 'block';
                     cpfTx11Confirmation.style.display = 'block';
@@ -1614,6 +1619,7 @@
                 } else {
                     // Hide CPF sections
                     cpfDisclosure.style.display = 'none';
+                    cpfProjectInfo.style.display = 'none';
                     supportLettersSection.style.display = 'none';
                     cpfSupportingDocs.style.display = 'none';
                     cpfTx11Confirmation.style.display = 'none';
@@ -1636,8 +1642,12 @@
 
         // Toggle required fields based on request type
         function toggleRequiredFields(mode) {
-            // CPF-specific required fields
-            const cpfRequiredIds = ['q1_public_benefit', 'q2_total_request', 'q3_total_cost', 'q4_tx11_priority',
+            // CPF Project Information required fields
+            const cpfProjectInfoIds = ['project_name', 'project_purpose', 'project_address',
+                                       'requested_amount', 'subcommittee', 'eligible_account'];
+
+            // CPF Supporting Documentation required fields
+            const cpfSupportingDocsIds = ['q1_public_benefit', 'q2_total_request', 'q3_total_cost', 'q4_tx11_priority',
                                     'q5_stakeholders', 'q6_funding_breakdown', 'q9_eligibility_justification',
                                     'q10_timeline', 'q13_authorization', 'q17_derogatory_info'];
 
@@ -1646,10 +1656,16 @@
                                    'pl_description', 'pl_goals_outcomes', 'pl_subcommittee'];
 
             if (mode === 'cpf') {
-                cpfRequiredIds.forEach(id => {
+                // Enable CPF fields
+                cpfProjectInfoIds.forEach(id => {
                     const el = document.getElementById(id);
                     if (el) el.required = true;
                 });
+                cpfSupportingDocsIds.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.required = true;
+                });
+                // Disable PL fields
                 plRequiredIds.forEach(id => {
                     const el = document.getElementById(id);
                     if (el) el.required = false;
@@ -1660,10 +1676,16 @@
                 const plNexus = document.getElementById('pl_tx11_nexus');
                 if (plNexus) plNexus.required = false;
             } else {
-                cpfRequiredIds.forEach(id => {
+                // Disable CPF fields
+                cpfProjectInfoIds.forEach(id => {
                     const el = document.getElementById(id);
                     if (el) el.required = false;
                 });
+                cpfSupportingDocsIds.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.required = false;
+                });
+                // Enable PL fields
                 plRequiredIds.forEach(id => {
                     const el = document.getElementById(id);
                     if (el) el.required = true;
@@ -1710,6 +1732,7 @@
             document.getElementById('programmatic-language-fields').classList.remove('active');
 
             // Reset CPF sections visibility
+            document.getElementById('cpf-project-info').style.display = 'block';
             document.getElementById('cpf-supporting-docs').style.display = 'block';
             document.getElementById('cpf-tx11-confirmation').style.display = 'block';
 
@@ -1877,8 +1900,13 @@
                 document.getElementById('request-number').textContent = request.id;
                 document.getElementById('success-message').classList.add('show');
 
+                // Show success toast and scroll to top
+                showToast('Request submitted successfully!', 'success');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+
             } catch (error) {
-                showToast(error.message);
+                console.error('Submission error:', error);
+                showToast(error.message || 'Failed to submit request. Please try again.');
                 btn.disabled = false;
                 btn.textContent = 'Submit Request';
             }
