@@ -60,5 +60,10 @@ def main():
         db.close()
 
 
+def seed_accounts():
+    """Alias for main() - called by Render startup command."""
+    main()
+
+
 if __name__ == "__main__":
     main()
