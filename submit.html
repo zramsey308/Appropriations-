@@ -877,8 +877,8 @@
                         </div>
                     </div>
 
-                    <!-- Supporting Documentation Questions -->
-                    <div class="form-section">
+                    <!-- CPF Supporting Documentation Questions -->
+                    <div class="form-section" id="cpf-supporting-docs">
                         <div class="section-title">Supporting Documentation</div>
 
                         <!-- Question 1 -->
@@ -1122,8 +1122,8 @@
                         </div>
                     </div>
 
-                    <!-- TX-11 Connection Confirmation -->
-                    <div class="form-section">
+                    <!-- CPF TX-11 Connection Confirmation -->
+                    <div class="form-section" id="cpf-tx11-confirmation">
                         <div class="section-title">TX-11 District Connection Confirmation</div>
                         <div class="form-group full-width" style="margin-top: 1rem;">
                             <div class="checkbox-field">
@@ -1139,22 +1139,177 @@
                         </div>
                     </div>
 
-                    <!-- Programmatic/Language Fields (hidden by default) -->
+                    <!-- Programmatic/Language Request Details (hidden by default) -->
                     <div id="programmatic-language-fields" class="type-fields">
                         <div class="form-section">
-                            <div class="section-title">Additional Request Details</div>
-                            <div class="form-grid">
-                                <div class="form-group full-width">
-                                    <label>Program Name and Agency</label>
-                                    <input type="text" id="program_name_agency" placeholder="e.g., Manufacturing Extension Partnership - NIST">
+                            <div class="section-title">Request Details</div>
+
+                            <!-- Question 1: Request Title -->
+                            <div class="form-group full-width" style="margin-bottom: 1.5rem;">
+                                <label class="question-label">
+                                    <span class="question-number">1</span>
+                                    <span>Request Title <span class="required">*</span></span>
+                                </label>
+                                <input type="text" id="pl_request_title" required placeholder="Enter a descriptive title for your request">
+                            </div>
+
+                            <!-- Question 2: Priority Ranking -->
+                            <div class="form-group full-width" style="margin-bottom: 1.5rem;">
+                                <label class="question-label">
+                                    <span class="question-number">2</span>
+                                    <span>If submitting multiple requests, please rank this request in terms of priority <span class="required">*</span></span>
+                                </label>
+                                <select id="pl_priority" required>
+                                    <option value="">Select priority...</option>
+                                    <option value="1">1 - Highest Priority</option>
+                                    <option value="2">2 - High Priority</option>
+                                    <option value="3">3 - Medium Priority</option>
+                                    <option value="4">4 - Lower Priority</option>
+                                    <option value="5">5 - Lowest Priority</option>
+                                </select>
+                            </div>
+
+                            <!-- Question 3: Problem Statement -->
+                            <div class="form-group full-width" style="margin-bottom: 1.5rem;">
+                                <label class="question-label">
+                                    <span class="question-number">3</span>
+                                    <span>Problem Statement (max 250 words) <span class="required">*</span></span>
+                                </label>
+                                <textarea id="pl_problem_statement" required class="large" placeholder="Describe the problem this request addresses..." maxlength="1500"></textarea>
+                                <span class="help-text">Briefly describe the issue or need that this request aims to address. Maximum 250 words.</span>
+                            </div>
+
+                            <!-- Question 4: Description/Explanation -->
+                            <div class="form-group full-width" style="margin-bottom: 1.5rem;">
+                                <label class="question-label">
+                                    <span class="question-number">4</span>
+                                    <span>Description/Explanation of Request <span class="required">*</span></span>
+                                </label>
+                                <textarea id="pl_description" required class="large" placeholder="Provide a detailed description of what you are requesting..."></textarea>
+                                <span class="help-text">Provide a detailed explanation of your request, including specific actions or funding levels sought.</span>
+                            </div>
+
+                            <!-- Question 5: Goals/Outcomes -->
+                            <div class="form-group full-width" style="margin-bottom: 1.5rem;">
+                                <label class="question-label">
+                                    <span class="question-number">5</span>
+                                    <span>Goals and Expected Outcomes <span class="required">*</span></span>
+                                </label>
+                                <textarea id="pl_goals_outcomes" required class="large" placeholder="What are the expected goals and outcomes if this request is funded?"></textarea>
+                                <span class="help-text">Describe the expected results and how success will be measured.</span>
+                            </div>
+
+                            <!-- Question 6: Programmatic Request Details (shown for programmatic type) -->
+                            <div id="programmatic-specific-fields">
+                                <div class="form-group full-width" style="margin-bottom: 1.5rem;">
+                                    <label class="question-label">
+                                        <span class="question-number">6</span>
+                                        <span>For Programmatic Requests: Program Name, Agency, and Proposed Funding Level <span class="required">*</span></span>
+                                    </label>
+                                    <div class="form-grid">
+                                        <div class="form-group">
+                                            <label>Program Name</label>
+                                            <input type="text" id="pl_program_name" placeholder="e.g., Manufacturing Extension Partnership">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Agency</label>
+                                            <input type="text" id="pl_agency" placeholder="e.g., NIST, DOD, HHS">
+                                        </div>
+                                        <div class="form-group full-width">
+                                            <label>Proposed Funding Level</label>
+                                            <input type="number" id="pl_funding_level" placeholder="0.00" step="0.01" min="0">
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="form-group full-width">
-                                    <label>Proposed Bill/Report Language</label>
-                                    <textarea id="proposed_language" class="large" placeholder="Enter the exact proposed language and specify if for bill, report, or both..."></textarea>
+                            </div>
+
+                            <!-- Question 7: Language Request Details (shown for language type) -->
+                            <div id="language-specific-fields">
+                                <div class="form-group full-width" style="margin-bottom: 1.5rem;">
+                                    <label class="question-label">
+                                        <span class="question-number">7</span>
+                                        <span>For Language Requests: Proposed Language and Location <span class="required">*</span></span>
+                                    </label>
+                                    <div class="form-grid">
+                                        <div class="form-group full-width">
+                                            <label>Proposed Bill/Report Language</label>
+                                            <textarea id="pl_proposed_language" class="large" placeholder="Enter the exact proposed language..."></textarea>
+                                        </div>
+                                        <div class="form-group full-width">
+                                            <label>Location (Bill Text, Report, or Both)</label>
+                                            <select id="pl_language_location">
+                                                <option value="">Select location...</option>
+                                                <option value="bill_text">Bill Text</option>
+                                                <option value="report">Report Language</option>
+                                                <option value="both">Both Bill and Report</option>
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="form-group full-width">
-                                    <label>Justification</label>
-                                    <textarea id="request_justification" class="large" placeholder="Explain why this request should be supported..."></textarea>
+                            </div>
+
+                            <!-- Question 8: Appropriations Subcommittee -->
+                            <div class="form-group full-width" style="margin-bottom: 1.5rem;">
+                                <label class="question-label">
+                                    <span class="question-number">8</span>
+                                    <span>Appropriations Bill/Subcommittee <span class="required">*</span></span>
+                                </label>
+                                <select id="pl_subcommittee" required>
+                                    <option value="">Select appropriations bill/subcommittee...</option>
+                                    <option value="agriculture">Agriculture, Rural Development, FDA</option>
+                                    <option value="commerce_justice_science">Commerce, Justice, Science</option>
+                                    <option value="defense">Defense</option>
+                                    <option value="energy_water">Energy and Water</option>
+                                    <option value="financial_services">Financial Services</option>
+                                    <option value="homeland_security">Homeland Security</option>
+                                    <option value="interior_environment">Interior and Environment</option>
+                                    <option value="labor_hhs_education">Labor, Health and Human Services, Education</option>
+                                    <option value="legislative_branch">Legislative Branch</option>
+                                    <option value="milcon_va">Military Construction, Veterans Affairs</option>
+                                    <option value="state_foreign_ops">State, Foreign Operations</option>
+                                    <option value="transportation_hud">Transportation, Housing and Urban Development</option>
+                                </select>
+                            </div>
+
+                            <!-- Question 9: Other Members -->
+                            <div class="form-group full-width" style="margin-bottom: 1.5rem;">
+                                <label class="question-label">
+                                    <span class="question-number">9</span>
+                                    <span>Please list all Members of both the United States House of Representatives and United States Senate who are receiving this request</span>
+                                </label>
+                                <textarea id="pl_other_members" placeholder="List all Representatives and Senators receiving this request..."></textarea>
+                            </div>
+
+                            <!-- Question 10: Prior Year Submissions -->
+                            <div class="form-group full-width" style="margin-bottom: 1.5rem;">
+                                <label class="question-label">
+                                    <span class="question-number">10</span>
+                                    <span>Was this request submitted in a prior fiscal year? <span class="required">*</span></span>
+                                </label>
+                                <div class="radio-group" style="margin-bottom: 1rem;">
+                                    <label class="radio-option">
+                                        <input type="radio" name="pl_prior_year" value="yes" required>
+                                        <span>Yes</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" name="pl_prior_year" value="no">
+                                        <span>No</span>
+                                    </label>
+                                </div>
+                                <div id="prior-year-details" style="display: none;">
+                                    <label>If yes, please provide details about previous submissions:</label>
+                                    <textarea id="pl_prior_year_details" placeholder="Include fiscal year(s), outcome, and any changes to the request..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TX-11 Connection Confirmation for Programmatic/Language -->
+                        <div class="form-section">
+                            <div class="section-title">TX-11 District Connection Confirmation</div>
+                            <div class="form-group full-width" style="margin-top: 1rem;">
+                                <div class="checkbox-field">
+                                    <input type="checkbox" id="pl_tx11_nexus" required>
+                                    <label for="pl_tx11_nexus">I confirm this request has a direct connection to and will benefit Texas Congressional District 11 (Midland, Odessa, San Angelo, Killeen, and the Permian Basin region). <span class="required">*</span></label>
                                 </div>
                             </div>
                         </div>
@@ -1437,19 +1592,98 @@
                 option.classList.add('selected');
                 const type = option.dataset.type;
 
-                // Show/hide CPF disclosure and support letters
+                // Get all sections by ID
                 const cpfDisclosure = document.getElementById('cpf-disclosure');
                 const supportLettersSection = document.getElementById('support-letters-section');
+                const cpfSupportingDocs = document.getElementById('cpf-supporting-docs');
+                const cpfTx11Confirmation = document.getElementById('cpf-tx11-confirmation');
                 const programmaticLanguageFields = document.getElementById('programmatic-language-fields');
+                const programmaticSpecificFields = document.getElementById('programmatic-specific-fields');
+                const languageSpecificFields = document.getElementById('language-specific-fields');
 
                 if (type === 'cpf') {
+                    // Show CPF sections
                     cpfDisclosure.style.display = 'block';
                     supportLettersSection.style.display = 'block';
+                    cpfSupportingDocs.style.display = 'block';
+                    cpfTx11Confirmation.style.display = 'block';
                     programmaticLanguageFields.classList.remove('active');
+
+                    // Enable CPF required fields, disable PL required fields
+                    toggleRequiredFields('cpf');
                 } else {
+                    // Hide CPF sections
                     cpfDisclosure.style.display = 'none';
                     supportLettersSection.style.display = 'none';
+                    cpfSupportingDocs.style.display = 'none';
+                    cpfTx11Confirmation.style.display = 'none';
                     programmaticLanguageFields.classList.add('active');
+
+                    // Enable PL required fields, disable CPF required fields
+                    toggleRequiredFields('programmatic_language');
+
+                    // Show/hide programmatic vs language specific fields
+                    if (type === 'programmatic') {
+                        programmaticSpecificFields.style.display = 'block';
+                        languageSpecificFields.style.display = 'none';
+                    } else if (type === 'language') {
+                        programmaticSpecificFields.style.display = 'none';
+                        languageSpecificFields.style.display = 'block';
+                    }
+                }
+            });
+        });
+
+        // Toggle required fields based on request type
+        function toggleRequiredFields(mode) {
+            // CPF-specific required fields
+            const cpfRequiredIds = ['q1_public_benefit', 'q2_total_request', 'q3_total_cost', 'q4_tx11_priority',
+                                    'q5_stakeholders', 'q6_funding_breakdown', 'q9_eligibility_justification',
+                                    'q10_timeline', 'q13_authorization', 'q17_derogatory_info'];
+
+            // Programmatic/Language required fields
+            const plRequiredIds = ['pl_request_title', 'pl_priority', 'pl_problem_statement',
+                                   'pl_description', 'pl_goals_outcomes', 'pl_subcommittee'];
+
+            if (mode === 'cpf') {
+                cpfRequiredIds.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.required = true;
+                });
+                plRequiredIds.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.required = false;
+                });
+                // CPF checkboxes
+                document.getElementById('tx11_nexus').required = true;
+                document.getElementById('no_financial_ties').required = true;
+                const plNexus = document.getElementById('pl_tx11_nexus');
+                if (plNexus) plNexus.required = false;
+            } else {
+                cpfRequiredIds.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.required = false;
+                });
+                plRequiredIds.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.required = true;
+                });
+                // PL checkboxes
+                document.getElementById('tx11_nexus').required = false;
+                document.getElementById('no_financial_ties').required = false;
+                const plNexus = document.getElementById('pl_tx11_nexus');
+                if (plNexus) plNexus.required = true;
+            }
+        }
+
+        // Prior year details toggle
+        document.querySelectorAll('input[name="pl_prior_year"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const detailsSection = document.getElementById('prior-year-details');
+                if (this.value === 'yes') {
+                    detailsSection.style.display = 'block';
+                } else {
+                    detailsSection.style.display = 'none';
                 }
             });
         });
@@ -1475,6 +1709,15 @@
             document.getElementById('support-letters-section').style.display = 'block';
             document.getElementById('programmatic-language-fields').classList.remove('active');
 
+            // Reset CPF sections visibility
+            document.getElementById('cpf-supporting-docs').style.display = 'block';
+            document.getElementById('cpf-tx11-confirmation').style.display = 'block';
+
+            // Reset programmatic/language specific sections
+            document.getElementById('programmatic-specific-fields').style.display = 'block';
+            document.getElementById('language-specific-fields').style.display = 'block';
+            document.getElementById('prior-year-details').style.display = 'none';
+
             // Reset eligible account dropdown
             const accountSelect = document.getElementById('eligible_account');
             accountSelect.disabled = true;
@@ -1484,6 +1727,9 @@
             uploadedFiles = [];
             renderUploadedFiles();
             updateUploadStatus();
+
+            // Reset required fields to CPF mode
+            toggleRequiredFields('cpf');
         }
 
         document.getElementById('submit-form').addEventListener('submit', async (e) => {
@@ -1503,19 +1749,29 @@
                 return;
             }
 
-            // Validate checkboxes
-            if (!document.getElementById('tx11_nexus').checked) {
-                showToast('You must confirm the TX-11 district connection');
-                btn.disabled = false;
-                btn.textContent = 'Submit Request';
-                return;
-            }
+            // Validate checkboxes based on request type
+            if (requestType === 'cpf') {
+                if (!document.getElementById('tx11_nexus').checked) {
+                    showToast('You must confirm the TX-11 district connection');
+                    btn.disabled = false;
+                    btn.textContent = 'Submit Request';
+                    return;
+                }
 
-            if (!document.getElementById('no_financial_ties').checked) {
-                showToast('You must confirm no financial ties to the Member');
-                btn.disabled = false;
-                btn.textContent = 'Submit Request';
-                return;
+                if (!document.getElementById('no_financial_ties').checked) {
+                    showToast('You must confirm no financial ties to the Member');
+                    btn.disabled = false;
+                    btn.textContent = 'Submit Request';
+                    return;
+                }
+            } else {
+                // Programmatic/Language validation
+                if (!document.getElementById('pl_tx11_nexus').checked) {
+                    showToast('You must confirm the TX-11 district connection');
+                    btn.disabled = false;
+                    btn.textContent = 'Submit Request';
+                    return;
+                }
             }
 
             // Build request data
@@ -1532,9 +1788,24 @@
 
             // Add programmatic/language fields if not CPF
             if (requestType !== 'cpf') {
-                data.program_name = document.getElementById('program_name_agency').value || null;
-                data.proposed_language = document.getElementById('proposed_language').value || null;
-                data.programmatic_justification = document.getElementById('request_justification').value || null;
+                data.title = document.getElementById('pl_request_title').value;
+                data.subcommittee = document.getElementById('pl_subcommittee').value;
+                data.description = document.getElementById('pl_description').value;
+                data.priority_rank = document.getElementById('pl_priority').value || null;
+                data.problem_statement = document.getElementById('pl_problem_statement').value || null;
+                data.goals_outcomes = document.getElementById('pl_goals_outcomes').value || null;
+                data.other_members = document.getElementById('pl_other_members').value || null;
+                data.prior_year_submission = document.querySelector('input[name="pl_prior_year"]:checked')?.value === 'yes';
+                data.prior_year_details = document.getElementById('pl_prior_year_details').value || null;
+
+                if (requestType === 'programmatic') {
+                    data.program_name = document.getElementById('pl_program_name').value || null;
+                    data.agency = document.getElementById('pl_agency').value || null;
+                    data.requested_amount = parseFloat(document.getElementById('pl_funding_level').value) || null;
+                } else if (requestType === 'language') {
+                    data.proposed_language = document.getElementById('pl_proposed_language').value || null;
+                    data.language_location = document.getElementById('pl_language_location').value || null;
+                }
             }
 
             try {
