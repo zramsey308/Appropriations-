@@ -1475,6 +1475,11 @@
         async function loadDashboard() {
             try {
                 const response = await fetch(`${API_BASE}/api/dashboard/summary`);
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    console.error('Dashboard API error:', response.status, errorData);
+                    throw new Error(errorData.detail || `Server error: ${response.status}`);
+                }
                 const data = await response.json();
                 document.getElementById('hero-total').textContent = data.total_requests || 0;
                 document.getElementById('hero-amount').textContent = formatCompact(data.total_requested_amount);
@@ -1485,7 +1490,8 @@
                 document.getElementById('stat-amount').textContent = formatCurrency(data.total_requested_amount);
                 loadRecentRequests();
             } catch (error) {
-                showToast('Failed to connect to server', 'error');
+                console.error('Dashboard load error:', error);
+                showToast('Dashboard: ' + (error.message || 'Failed to connect'), 'error');
             }
         }
 
