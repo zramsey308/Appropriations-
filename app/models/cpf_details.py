@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Text, DateTime
+from sqlalchemy import Column, Integer, BigInteger, String, Boolean, ForeignKey, Text, DateTime
 from sqlalchemy.orm import relationship
 
 from app.db import Base
@@ -28,10 +28,10 @@ class CPFDetails(Base):
     project_address = Column(Text, nullable=True)
     project_description = Column(Text, nullable=True)
 
-    # Funding details
-    requested_amount = Column(Integer, nullable=True)
-    total_project_cost = Column(Integer, nullable=True)
-    cost_share_amount = Column(Integer, nullable=True)
+    # Funding details (BigInteger for large funding amounts)
+    requested_amount = Column(BigInteger, nullable=True)
+    total_project_cost = Column(BigInteger, nullable=True)
+    cost_share_amount = Column(BigInteger, nullable=True)
     cost_share_required = Column(Boolean, default=False, nullable=False)
     cost_share_explanation = Column(Text, nullable=True)
 

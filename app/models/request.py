@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, DateTime, Text
+from sqlalchemy import Column, Integer, BigInteger, String, DateTime, Text
 from sqlalchemy.orm import relationship
 
 from app.db import Base
@@ -24,7 +24,7 @@ class Request(Base):
 
     # Programmatic fields
     program_name = Column(String(500), nullable=True)
-    requested_amount = Column(Integer, nullable=True)
+    requested_amount = Column(BigInteger, nullable=True)  # Changed to BigInteger for large funding amounts
     programmatic_justification = Column(Text, nullable=True)
 
     # Language fields
