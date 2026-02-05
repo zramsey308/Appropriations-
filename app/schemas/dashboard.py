@@ -1,11 +1,13 @@
 from pydantic import BaseModel
-from typing import Dict
+from typing import Dict, Optional
 
 
 class DashboardSummary(BaseModel):
     total_requests: int
+    total_requested_amount: Optional[float] = 0
     by_type: Dict[str, int]
     by_subcommittee: Dict[str, int]
     by_status: Dict[str, int]
-    cpf_selected_count: int
-    cpf_selected_slots_remaining: int
+    cpf_selected: int = 0
+    cpf_selected_count: int = 0
+    cpf_selected_slots_remaining: int = 15
