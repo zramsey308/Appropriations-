@@ -1650,9 +1650,15 @@
                                     'q5_stakeholders', 'q6_funding_breakdown', 'q9_eligibility_justification',
                                     'q10_timeline', 'q13_authorization', 'q17_derogatory_info'];
 
+            // CPF Radio button groups (first radio in each group)
+            const cpfRadioNames = ['q7_project_status', 'q8_eligible', 'q11_future_funding', 'q12_partial_funding'];
+
             // Programmatic/Language required fields
             const plRequiredIds = ['pl_request_title', 'pl_priority', 'pl_problem_statement',
                                    'pl_description', 'pl_goals_outcomes', 'pl_subcommittee'];
+
+            // PL Radio button groups
+            const plRadioNames = ['pl_prior_year'];
 
             if (mode === 'cpf') {
                 // Enable CPF fields
@@ -1664,10 +1670,20 @@
                     const el = document.getElementById(id);
                     if (el) el.required = true;
                 });
+                // Enable CPF radio groups
+                cpfRadioNames.forEach(name => {
+                    const radios = document.querySelectorAll(`input[name="${name}"]`);
+                    radios.forEach(r => r.required = true);
+                });
                 // Disable PL fields
                 plRequiredIds.forEach(id => {
                     const el = document.getElementById(id);
                     if (el) el.required = false;
+                });
+                // Disable PL radio groups
+                plRadioNames.forEach(name => {
+                    const radios = document.querySelectorAll(`input[name="${name}"]`);
+                    radios.forEach(r => r.required = false);
                 });
                 // CPF checkboxes
                 document.getElementById('tx11_nexus').required = true;
@@ -1684,10 +1700,20 @@
                     const el = document.getElementById(id);
                     if (el) el.required = false;
                 });
+                // Disable CPF radio groups
+                cpfRadioNames.forEach(name => {
+                    const radios = document.querySelectorAll(`input[name="${name}"]`);
+                    radios.forEach(r => r.required = false);
+                });
                 // Enable PL fields
                 plRequiredIds.forEach(id => {
                     const el = document.getElementById(id);
                     if (el) el.required = true;
+                });
+                // Enable PL radio groups
+                plRadioNames.forEach(name => {
+                    const radios = document.querySelectorAll(`input[name="${name}"]`);
+                    radios.forEach(r => r.required = true);
                 });
                 // PL checkboxes
                 document.getElementById('tx11_nexus').required = false;
