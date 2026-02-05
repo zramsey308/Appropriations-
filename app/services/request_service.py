@@ -6,7 +6,6 @@ import logging
 from app.models import Request, CPFDetails
 from app.models.enums import RequestType, Subcommittee, RequestStatus
 from app.schemas.request import RequestCreate, RequestUpdate
-from app.services.sheets_backup import backup_to_sheets_async
 
 logger = logging.getLogger(__name__)
 
@@ -20,28 +19,7 @@ class RequestService:
         self.db.add(request)
         self.db.commit()
         self.db.refresh(request)
-
-        # Backup to Google Sheets (non-blocking)
-        try:
-            request_dict = {
-                "id": request.id,
-                "request_type": request.request_type.value if request.request_type else None,
-                "subcommittee": request.subcommittee.value if request.subcommittee else None,
-                "title": request.title,
-                "description": request.description,
-                "requester_name": request.requester_name,
-                "requester_email": request.requester_email,
-                "requester_organization": request.requester_organization,
-                "requested_amount": float(request.requested_amount) if request.requested_amount else None,
-                "status": request.status.value if request.status else "draft",
-                "program_name": request.program_name,
-                "bill_section": request.bill_section,
-                "proposed_language": request.proposed_language,
-            }
-            backup_to_sheets_async(request_dict)
-        except Exception as e:
-            logger.warning(f"Google Sheets backup failed: {e}")
-
+        logger.info(f"Created request #{request.id} - {request.title}")
         return request
 
     def get(self, request_id: int) -> Optional[Request]:
@@ -100,7 +78,14 @@ class RequestService:
 
         total = query.count()
 
-        # By type
+        # Total requested amount
+        total_amount_result = (
+            query.with_entities(func.sum(Request.requested_amount))
+            .scalar()
+        )
+        total_requested_amount = float(total_amount_result) if total_amount_result else 0
+
+        # By type (handle None values)
         by_type = {}
         type_counts = (
             query.with_entities(Request.request_type, func.count(Request.id))
@@ -108,9 +93,10 @@ class RequestService:
             .all()
         )
         for rt, count in type_counts:
-            by_type[rt.value] = count
+            if rt is not None:
+                by_type[rt.value] = count
 
-        # By subcommittee
+        # By subcommittee (handle None values)
         by_subcommittee = {}
         sub_counts = (
             query.with_entities(Request.subcommittee, func.count(Request.id))
@@ -118,9 +104,10 @@ class RequestService:
             .all()
         )
         for sub, count in sub_counts:
-            by_subcommittee[sub.value] = count
+            if sub is not None:
+                by_subcommittee[sub.value] = count
 
-        # By status
+        # By status (handle None values)
         by_status = {}
         status_counts = (
             query.with_entities(Request.status, func.count(Request.id))
@@ -128,7 +115,8 @@ class RequestService:
             .all()
         )
         for st, count in status_counts:
-            by_status[st.value] = count
+            if st is not None:
+                by_status[st.value] = count
 
         # CPF selected count
         cpf_selected_count = (
@@ -139,9 +127,11 @@ class RequestService:
 
         return {
             "total_requests": total,
+            "total_requested_amount": total_requested_amount,
             "by_type": by_type,
             "by_subcommittee": by_subcommittee,
             "by_status": by_status,
+            "cpf_selected": cpf_selected_count,
             "cpf_selected_count": cpf_selected_count,
             "cpf_selected_slots_remaining": 15 - cpf_selected_count,
         }

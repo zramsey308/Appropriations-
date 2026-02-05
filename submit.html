@@ -1936,6 +1936,12 @@
                 btn.textContent = 'Submit Request';
             }
         });
+
+        // Keep Render awake - ping health endpoint every 5 minutes
+        // This prevents Render's free tier from sleeping after 15 min of inactivity
+        setInterval(() => {
+            fetch(`${API_BASE}/health`).catch(() => {});
+        }, 5 * 60 * 1000);
     </script>
 </body>
 </html>
