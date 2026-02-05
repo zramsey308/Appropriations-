@@ -72,15 +72,19 @@ class RequestService:
         return True
 
     def get_dashboard_summary(self, fy: Optional[int] = None) -> dict:
-        query = self.db.query(Request)
-        if fy:
-            query = query.filter(Request.fiscal_year == fy)
+        # Base filter for fiscal year
+        def base_query():
+            q = self.db.query(Request)
+            if fy:
+                q = q.filter(Request.fiscal_year == fy)
+            return q
 
-        total = query.count()
+        total = base_query().count()
 
         # Total requested amount
         total_amount_result = (
-            query.with_entities(func.sum(Request.requested_amount))
+            base_query()
+            .with_entities(func.sum(Request.requested_amount))
             .scalar()
         )
         total_requested_amount = float(total_amount_result) if total_amount_result else 0
@@ -88,7 +92,8 @@ class RequestService:
         # By type (handle None values)
         by_type = {}
         type_counts = (
-            query.with_entities(Request.request_type, func.count(Request.id))
+            base_query()
+            .with_entities(Request.request_type, func.count(Request.id))
             .group_by(Request.request_type)
             .all()
         )
@@ -99,7 +104,8 @@ class RequestService:
         # By subcommittee (handle None values)
         by_subcommittee = {}
         sub_counts = (
-            query.with_entities(Request.subcommittee, func.count(Request.id))
+            base_query()
+            .with_entities(Request.subcommittee, func.count(Request.id))
             .group_by(Request.subcommittee)
             .all()
         )
@@ -110,7 +116,8 @@ class RequestService:
         # By status (handle None values)
         by_status = {}
         status_counts = (
-            query.with_entities(Request.status, func.count(Request.id))
+            base_query()
+            .with_entities(Request.status, func.count(Request.id))
             .group_by(Request.status)
             .all()
         )
