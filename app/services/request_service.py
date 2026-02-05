@@ -118,12 +118,16 @@ class RequestService:
             if st is not None:
                 by_status[st.value] = count
 
-        # CPF selected count
-        cpf_selected_count = (
-            self.db.query(CPFDetails)
-            .filter(CPFDetails.selected == True)
-            .count()
-        )
+        # CPF selected count (handle case where table/column doesn't exist)
+        cpf_selected_count = 0
+        try:
+            cpf_selected_count = (
+                self.db.query(CPFDetails)
+                .filter(CPFDetails.selected == True)
+                .count()
+            )
+        except Exception as e:
+            logger.warning(f"Could not query CPF selected count: {e}")
 
         return {
             "total_requests": total,
