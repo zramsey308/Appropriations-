@@ -1420,7 +1420,7 @@
         // Auto-detect API URL: use Render backend in production, localhost for development
         const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
             ? 'http://localhost:8080'
-            : 'https://tx11-appropriations-api.onrender.com';
+            : 'https://appropriations.onrender.com';
 
         document.querySelectorAll('.nav-btn').forEach(btn => {
             btn.addEventListener('click', () => showPanel(btn.dataset.panel));
