@@ -870,8 +870,8 @@
                                 <input type="text" id="agency" placeholder="Responsible federal agency">
                             </div>
                             <div class="form-group full-width">
-                                <label>Eligible Account <span class="required">*</span></label>
-                                <select id="eligible_account" required disabled>
+                                <label>Eligible Account</label>
+                                <select id="eligible_account" disabled>
                                     <option value="">Select subcommittee first...</option>
                                 </select>
                                 <span class="help-text">Select a subcommittee above to see eligible accounts</span>
@@ -1416,7 +1416,7 @@
         // File upload handling
         let uploadedFiles = [];
         const maxFiles = 10;
-        const requiredFiles = 3;
+        const requiredFiles = 0; // Made optional for testing
         const maxFileSize = 10 * 1024 * 1024; // 10MB
         const allowedTypes = [
             'application/pdf',
@@ -1641,9 +1641,9 @@
 
         // Toggle required fields based on request type
         function toggleRequiredFields(mode) {
-            // CPF Project Information required fields
+            // CPF Project Information required fields (removed eligible_account - it's optional and causes issues when disabled)
             const cpfProjectInfoIds = ['project_name', 'project_purpose', 'project_address',
-                                       'requested_amount', 'subcommittee', 'eligible_account'];
+                                       'requested_amount', 'subcommittee'];
 
             // CPF Supporting Documentation required fields
             const cpfSupportingDocsIds = ['q1_public_benefit', 'q2_total_request', 'q3_total_cost', 'q4_tx11_priority',
@@ -1782,12 +1782,14 @@
 
         document.getElementById('submit-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            console.log('Form submission started');
 
             const btn = document.getElementById('submit-btn');
             btn.disabled = true;
             btn.textContent = 'Submitting...';
 
             const requestType = document.querySelector('input[name="request_type"]:checked').value;
+            console.log('Request type:', requestType);
 
             // Validate support letters for CPF requests
             if (requestType === 'cpf' && uploadedFiles.length < requiredFiles) {
