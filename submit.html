@@ -1290,7 +1290,7 @@
                                 </label>
                                 <div class="radio-group" style="margin-bottom: 1rem;">
                                     <label class="radio-option">
-                                        <input type="radio" name="pl_prior_year" value="yes" required>
+                                        <input type="radio" name="pl_prior_year" value="yes">
                                         <span>Yes</span>
                                     </label>
                                     <label class="radio-option">
@@ -1562,6 +1562,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             initFileUpload();
             updateUploadStatus();
+            // Set initial required fields for CPF mode
+            toggleRequiredFields('cpf');
         });
 
         // Update eligible accounts dropdown when subcommittee changes
