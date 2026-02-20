@@ -1,9 +1,11 @@
-from typing import Optional
+from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from app.db import get_db
 from app.models.enums import RequestType, Subcommittee, RequestStatus, AttachmentType
+from app.models import Attachment
 from app.schemas import (
     RequestCreate,
     RequestUpdate,
@@ -128,6 +130,13 @@ def select_cpf(
         raise HTTPException(status_code=400, detail=str(e))
 
 
+@router.get("/{request_id}/attachments", response_model=List[AttachmentResponse])
+def list_attachments(request_id: int, db: Session = Depends(get_db)):
+    """List all attachments for a request."""
+    attachments = db.query(Attachment).filter(Attachment.request_id == request_id).all()
+    return attachments
+
+
 @router.post("/{request_id}/attachments", response_model=AttachmentResponse, status_code=201)
 def upload_attachment(
     request_id: int,
@@ -141,3 +150,34 @@ def upload_attachment(
     if not attachment:
         raise HTTPException(status_code=404, detail="Request not found")
     return attachment
+
+
+@router.get("/{request_id}/attachments/{attachment_id}/download")
+def download_attachment(request_id: int, attachment_id: int, db: Session = Depends(get_db)):
+    """Download an attachment file."""
+    attachment = db.query(Attachment).filter(
+        Attachment.id == attachment_id,
+        Attachment.request_id == request_id
+    ).first()
+    if not attachment:
+        raise HTTPException(status_code=404, detail="Attachment not found")
+
+    import os
+    if not os.path.exists(attachment.file_path):
+        raise HTTPException(status_code=404, detail="File not found on disk")
+
+    return FileResponse(
+        path=attachment.file_path,
+        filename=attachment.original_filename,
+        media_type=attachment.content_type or "application/octet-stream"
+    )
+
+
+@router.delete("/{request_id}/attachments/{attachment_id}", status_code=204)
+def delete_attachment(request_id: int, attachment_id: int, db: Session = Depends(get_db)):
+    """Delete an attachment."""
+    service = AttachmentService(db)
+    attachment = service.get(attachment_id)
+    if not attachment or attachment.request_id != request_id:
+        raise HTTPException(status_code=404, detail="Attachment not found")
+    service.delete(attachment_id)

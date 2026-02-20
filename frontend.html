@@ -1386,6 +1386,34 @@
                         </div>
                     </div>
 
+                    <!-- Attachments Section -->
+                    <div id="edit-attachments-section" style="margin-top: 1.5rem;">
+                        <h3 style="font-size: 1rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                            Support Letters & Attachments
+                            <span id="attachment-count" class="badge badge-cpf" style="font-size: 0.75rem;">0 files</span>
+                        </h3>
+
+                        <!-- Existing Attachments List -->
+                        <div id="attachments-list" style="margin-bottom: 1rem;">
+                            <p style="color: var(--text-muted); font-size: 0.85rem;">No attachments yet.</p>
+                        </div>
+
+                        <!-- Upload New Attachment -->
+                        <div style="background: var(--surface-alt); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem;">
+                            <div style="font-size: 0.85rem; font-weight: 600; margin-bottom: 0.75rem;">Upload Support Letter (PDF)</div>
+                            <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+                                <input type="file" id="attachment-file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" style="flex: 1; min-width: 200px;">
+                                <select id="attachment-type" style="padding: 0.5rem; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 0.85rem;">
+                                    <option value="cpf_support_letter">Support Letter</option>
+                                    <option value="budget_document">Budget Document</option>
+                                    <option value="project_description">Project Description</option>
+                                    <option value="other">Other</option>
+                                </select>
+                                <button type="button" class="btn btn-primary" onclick="uploadAttachment()" style="padding: 0.5rem 1rem;">Upload</button>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="form-actions" style="margin-top: 1.5rem;">
                         <button type="submit" class="btn btn-accent">Save Changes</button>
                         <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
@@ -1664,9 +1692,113 @@
                     currentCpfDetails = null;
                 }
 
+                // Load attachments
+                await loadAttachments(id);
+
                 document.getElementById('edit-modal').style.display = 'flex';
             } catch (error) {
                 showToast('Failed to load request details', 'error');
+            }
+        }
+
+        async function loadAttachments(requestId) {
+            try {
+                const response = await fetch(`${API_BASE}/api/requests/${requestId}/attachments`);
+                const attachments = await response.json();
+
+                const container = document.getElementById('attachments-list');
+                const countBadge = document.getElementById('attachment-count');
+                countBadge.textContent = `${attachments.length} file${attachments.length !== 1 ? 's' : ''}`;
+
+                if (attachments.length === 0) {
+                    container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">No attachments yet.</p>';
+                    return;
+                }
+
+                const typeLabels = {
+                    'cpf_support_letter': 'Support Letter',
+                    'budget_document': 'Budget Doc',
+                    'project_description': 'Project Desc',
+                    'authorization_citation': 'Authorization',
+                    'other': 'Other'
+                };
+
+                container.innerHTML = attachments.map(att => `
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); margin-bottom: 0.5rem;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span style="font-size: 1.5rem;">${att.content_type?.includes('pdf') ? '📄' : '📎'}</span>
+                            <div>
+                                <div style="font-size: 0.85rem; font-weight: 500;">${att.original_filename}</div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted);">
+                                    ${typeLabels[att.attachment_type] || 'Other'} · ${(att.file_size / 1024).toFixed(1)} KB
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <a href="${API_BASE}/api/requests/${requestId}/attachments/${att.id}/download"
+                               target="_blank"
+                               class="btn btn-secondary"
+                               style="padding: 0.4rem 0.75rem; font-size: 0.75rem;">
+                                View
+                            </a>
+                            <button onclick="deleteAttachment(${requestId}, ${att.id})"
+                                    class="btn btn-secondary"
+                                    style="padding: 0.4rem 0.75rem; font-size: 0.75rem; color: var(--danger);">
+                                &#128465;
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Failed to load attachments:', error);
+            }
+        }
+
+        async function uploadAttachment() {
+            if (!currentEditId) return;
+
+            const fileInput = document.getElementById('attachment-file');
+            const typeSelect = document.getElementById('attachment-type');
+
+            if (!fileInput.files.length) {
+                showToast('Please select a file to upload', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('attachment_type', typeSelect.value);
+
+            try {
+                const response = await fetch(`${API_BASE}/api/requests/${currentEditId}/attachments`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) throw new Error('Upload failed');
+
+                showToast('File uploaded successfully', 'success');
+                fileInput.value = '';
+                await loadAttachments(currentEditId);
+            } catch (error) {
+                showToast('Failed to upload file', 'error');
+            }
+        }
+
+        async function deleteAttachment(requestId, attachmentId) {
+            if (!confirm('Delete this attachment?')) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/requests/${requestId}/attachments/${attachmentId}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) throw new Error('Delete failed');
+
+                showToast('Attachment deleted', 'success');
+                await loadAttachments(requestId);
+            } catch (error) {
+                showToast('Failed to delete attachment', 'error');
             }
         }
 
