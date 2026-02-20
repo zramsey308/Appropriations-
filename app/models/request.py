@@ -42,4 +42,5 @@ class Request(Base):
 
     # Relationships
     cpf_details = relationship("CPFDetails", back_populates="request", uselist=False, cascade="all, delete-orphan")
+    ndaa_details = relationship("NdaaDetails", back_populates="request", uselist=False, cascade="all, delete-orphan")
     attachments = relationship("Attachment", back_populates="request", cascade="all, delete-orphan")

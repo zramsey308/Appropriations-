@@ -661,6 +661,7 @@
         .badge-cpf { background: rgba(217, 119, 6, 0.1); color: var(--primary-dark); }
         .badge-programmatic { background: rgba(5, 150, 105, 0.1); color: var(--accent); }
         .badge-language { background: rgba(12, 74, 110, 0.1); color: var(--secondary); }
+        .badge-ndaa { background: rgba(220, 38, 38, 0.1); color: #dc2626; }
         .badge-draft { background: var(--surface-alt); color: var(--text-muted); border: 1px solid var(--border); }
         .badge-submitted { background: rgba(12, 74, 110, 0.1); color: var(--secondary); }
         .badge-selected { background: rgba(5, 150, 105, 0.1); color: var(--accent); }
@@ -779,6 +780,7 @@
     <div class="nav-container">
         <nav class="nav">
             <button class="nav-btn active" data-panel="dashboard">Dashboard</button>
+            <button class="nav-btn" data-panel="upload-docs">Upload Docs</button>
             <button class="nav-btn" data-panel="new-request">New Request</button>
             <button class="nav-btn" data-panel="requests">All Requests</button>
             <button class="nav-btn" data-panel="accounts">Eligible Accounts</button>
@@ -860,6 +862,17 @@
                     </div>
                 </div>
 
+                <div class="bento-card bento-stat">
+                    <div class="stat-header">
+                        <div class="stat-icon amount">&#127941;</div>
+                        <span class="stat-trend up">Active</span>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="stat-ndaa">0</div>
+                        <div class="stat-label">NDAA Requests</div>
+                    </div>
+                </div>
+
                 <!-- Activity Card -->
                 <div class="bento-card bento-activity">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
@@ -897,6 +910,56 @@
                     <div class="stat-content">
                         <div class="stat-value" id="stat-amount" style="font-size: 1.5rem;">$0</div>
                         <div class="stat-label">Total Funding Requested</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Documents Panel -->
+        <div id="upload-docs" class="panel">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Upload Word Documents</h2>
+                </div>
+                <div class="card-body">
+                    <div style="background: linear-gradient(135deg, rgba(217, 119, 6, 0.08) 0%, rgba(251, 191, 36, 0.08) 100%); border: 1px solid rgba(217, 119, 6, 0.2); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 2rem;">
+                        <h3 style="font-size: 0.9rem; font-weight: 600; color: var(--primary-dark); margin-bottom: 0.5rem;">Supported Document Types</h3>
+                        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Upload completed Word forms and they will be automatically parsed and added to the tracker.</p>
+                        <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 0.75rem;">
+                            <span class="badge badge-cpf">CPF Requests</span>
+                            <span class="badge badge-programmatic">Programmatic / Language</span>
+                            <span style="padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; display: inline-block; text-transform: uppercase; letter-spacing: 0.02em; background: rgba(220, 38, 38, 0.1); color: #dc2626;">NDAA</span>
+                        </div>
+                    </div>
+
+                    <div id="upload-zone" style="border: 2px dashed var(--border-dark); border-radius: var(--radius-lg); padding: 3rem 2rem; text-align: center; cursor: pointer; transition: all 0.2s ease; margin-bottom: 1.5rem;" ondragover="event.preventDefault(); this.style.borderColor='var(--primary)'; this.style.background='rgba(217,119,6,0.05)'" ondragleave="this.style.borderColor='var(--border-dark)'; this.style.background=''" ondrop="handleDrop(event)">
+                        <div style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.4;">&#128196;</div>
+                        <p style="font-size: 1rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem;">Drag & drop Word documents here</p>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">or click to browse files</p>
+                        <input type="file" id="file-input" accept=".docx" multiple style="display: none;" onchange="handleFiles(this.files)">
+                        <button class="btn btn-accent" onclick="document.getElementById('file-input').click()" type="button">Select Files</button>
+                    </div>
+
+                    <!-- Upload Queue -->
+                    <div id="upload-queue" style="display: none;">
+                        <h3 style="font-size: 0.9rem; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 10px;">
+                            <span style="width: 3px; height: 16px; background: var(--primary); border-radius: 2px; display: inline-block;"></span>
+                            Upload Queue
+                        </h3>
+                        <div id="upload-items"></div>
+                        <div style="margin-top: 1rem; display: flex; gap: 0.75rem;">
+                            <button class="btn btn-accent" onclick="processUploads()">Process All</button>
+                            <button class="btn btn-secondary" onclick="clearUploads()">Clear</button>
+                        </div>
+                    </div>
+
+                    <!-- Upload Results -->
+                    <div id="upload-results" style="display: none; margin-top: 2rem;">
+                        <h3 style="font-size: 0.9rem; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 10px;">
+                            <span style="width: 3px; height: 16px; background: var(--accent); border-radius: 2px; display: inline-block;"></span>
+                            Results
+                        </h3>
+                        <div id="result-items"></div>
                     </div>
                 </div>
             </div>
@@ -1487,6 +1550,7 @@
                 document.getElementById('stat-cpf').textContent = data.by_type?.cpf || 0;
                 document.getElementById('stat-programmatic').textContent = data.by_type?.programmatic || 0;
                 document.getElementById('stat-language').textContent = data.by_type?.language || 0;
+                document.getElementById('stat-ndaa').textContent = data.by_type?.ndaa || 0;
                 document.getElementById('stat-amount').textContent = formatCurrency(data.total_requested_amount);
                 loadRecentRequests();
             } catch (error) {
@@ -1782,6 +1846,133 @@
                 showPanel('dashboard');
             } catch (error) {
                 showToast(error.message, 'error');
+            }
+        });
+
+        // === Document Upload Functionality ===
+        let uploadFiles = [];
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.target.closest('#upload-zone').style.borderColor = 'var(--border-dark)';
+            e.target.closest('#upload-zone').style.background = '';
+            handleFiles(e.dataTransfer.files);
+        }
+
+        function handleFiles(fileList) {
+            for (const file of fileList) {
+                if (file.name.endsWith('.docx')) {
+                    uploadFiles.push(file);
+                } else {
+                    showToast(`Skipped ${file.name} - only .docx files supported`, 'error');
+                }
+            }
+            renderUploadQueue();
+        }
+
+        function renderUploadQueue() {
+            const queue = document.getElementById('upload-queue');
+            const items = document.getElementById('upload-items');
+            if (uploadFiles.length === 0) {
+                queue.style.display = 'none';
+                return;
+            }
+            queue.style.display = 'block';
+            items.innerHTML = uploadFiles.map((f, i) => `
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; background: var(--surface-alt); border: 1px solid var(--border); border-radius: var(--radius-md); margin-bottom: 0.5rem;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 1.25rem;">&#128196;</span>
+                        <div>
+                            <div style="font-size: 0.875rem; font-weight: 500;">${f.name}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">${(f.size / 1024).toFixed(1)} KB</div>
+                        </div>
+                    </div>
+                    <button onclick="removeUpload(${i})" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.25rem;">&times;</button>
+                </div>
+            `).join('');
+        }
+
+        function removeUpload(index) {
+            uploadFiles.splice(index, 1);
+            renderUploadQueue();
+        }
+
+        function clearUploads() {
+            uploadFiles = [];
+            renderUploadQueue();
+            document.getElementById('upload-results').style.display = 'none';
+        }
+
+        async function processUploads() {
+            if (uploadFiles.length === 0) return;
+
+            const resultsDiv = document.getElementById('upload-results');
+            const resultItems = document.getElementById('result-items');
+            resultsDiv.style.display = 'block';
+            resultItems.innerHTML = '';
+
+            for (const file of uploadFiles) {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                const itemDiv = document.createElement('div');
+                itemDiv.style.cssText = 'padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius-md); margin-bottom: 0.5rem;';
+                itemDiv.innerHTML = `<div style="display: flex; align-items: center; gap: 8px;"><span>&#9203;</span> Processing ${file.name}...</div>`;
+                resultItems.appendChild(itemDiv);
+
+                try {
+                    const response = await fetch(`${API_BASE}/api/upload/docx`, {
+                        method: 'POST',
+                        body: formData,
+                    });
+
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.detail || 'Upload failed');
+                    }
+
+                    const result = await response.json();
+                    const typeColors = { cpf: 'var(--primary)', programmatic: 'var(--accent)', language: 'var(--secondary)', ndaa: '#dc2626' };
+                    const color = typeColors[result.doc_type] || 'var(--text-muted)';
+
+                    itemDiv.style.borderColor = 'var(--accent)';
+                    itemDiv.style.background = 'rgba(5, 150, 105, 0.05)';
+                    itemDiv.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <div>
+                                <div style="font-size: 0.9rem; font-weight: 600; margin-bottom: 4px;">
+                                    &#10003; ${file.name}
+                                    <span style="background: ${color}20; color: ${color}; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; margin-left: 8px; text-transform: uppercase;">${result.doc_type}</span>
+                                </div>
+                                <div style="font-size: 0.85rem; color: var(--text-secondary);">${result.message}</div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
+                                    ${result.organization ? 'Org: ' + result.organization + ' | ' : ''}
+                                    ${result.amount ? 'Amount: ' + formatCurrency(result.amount) + ' | ' : ''}
+                                    Request #${result.id}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } catch (error) {
+                    itemDiv.style.borderColor = 'var(--danger)';
+                    itemDiv.style.background = 'rgba(220, 38, 38, 0.05)';
+                    itemDiv.innerHTML = `
+                        <div style="font-size: 0.9rem; font-weight: 600; color: var(--danger); margin-bottom: 4px;">&#10007; ${file.name}</div>
+                        <div style="font-size: 0.85rem; color: var(--text-secondary);">${error.message}</div>
+                    `;
+                }
+            }
+
+            uploadFiles = [];
+            renderUploadQueue();
+            showToast('Upload processing complete', 'success');
+            // Refresh dashboard data
+            loadDashboard();
+        }
+
+        document.getElementById('upload-zone').addEventListener('click', function(e) {
+            if (e.target.tagName !== 'BUTTON') {
+                document.getElementById('file-input').click();
             }
         });
 

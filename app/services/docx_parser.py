@@ -1,0 +1,407 @@
+"""
+Word document parser for appropriations request forms.
+Handles three document types: CPF, Programmatic/Language, and NDAA.
+"""
+import re
+import logging
+from typing import Optional
+
+from docx import Document
+
+logger = logging.getLogger(__name__)
+
+
+def parse_docx(file_bytes: bytes) -> dict:
+    """
+    Parse a Word document and return structured data.
+
+    Returns a dict with:
+        - doc_type: "cpf", "programmatic", or "ndaa"
+        - fields: dict of extracted field values
+    """
+    from io import BytesIO
+    doc = Document(BytesIO(file_bytes))
+
+    # Extract all text from paragraphs and tables
+    all_text = _extract_all_text(doc)
+    full_text = "\n".join(all_text)
+
+    # Detect document type
+    doc_type = _detect_type(full_text)
+
+    if doc_type == "cpf":
+        fields = _parse_cpf(all_text, full_text)
+    elif doc_type == "programmatic":
+        fields = _parse_programmatic(all_text, full_text)
+    elif doc_type == "ndaa":
+        fields = _parse_ndaa(all_text, full_text)
+    else:
+        raise ValueError("Could not determine document type. Expected CPF, Programmatic/Language, or NDAA form.")
+
+    fields["_doc_type"] = doc_type
+    return fields
+
+
+def _extract_all_text(doc: Document) -> list[str]:
+    """Extract text from both paragraphs and tables."""
+    lines = []
+
+    for element in doc.element.body:
+        tag = element.tag.split("}")[-1] if "}" in element.tag else element.tag
+
+        if tag == "p":
+            # It's a paragraph
+            for para in doc.paragraphs:
+                if para._element is element:
+                    text = para.text.strip()
+                    if text:
+                        lines.append(text)
+                    break
+
+        elif tag == "tbl":
+            # It's a table
+            for table in doc.tables:
+                if table._element is element:
+                    for row in table.rows:
+                        row_texts = [cell.text.strip() for cell in row.cells]
+                        # Join row cells, filtering empty ones
+                        combined = "\t".join(t for t in row_texts if t)
+                        if combined:
+                            lines.append(combined)
+                    break
+
+    return lines
+
+
+def _detect_type(full_text: str) -> Optional[str]:
+    """Detect the document type from content."""
+    text_lower = full_text.lower()
+
+    if "community project funding" in text_lower or "cpf request" in text_lower or "request form" in text_lower and "project name" in text_lower and "entity" in text_lower:
+        return "cpf"
+    elif "national defense authorization" in text_lower or "ndaa" in text_lower or "budgetary legislative proposal" in text_lower or "hasc subcommittee" in text_lower:
+        return "ndaa"
+    elif "programmatic" in text_lower or "section: 1 (organization information)" in text_lower or "section 3: request details" in text_lower:
+        return "programmatic"
+
+    return None
+
+
+def _find_value(lines: list[str], label: str, stop_labels: list[str] = None) -> str:
+    """
+    Find the value for a given label in the document lines.
+    Looks for the label, then returns subsequent non-label text.
+    """
+    label_lower = label.lower().strip().rstrip(":")
+    found = False
+    values = []
+
+    for line in lines:
+        line_stripped = line.strip()
+        if not line_stripped:
+            continue
+
+        # Check if this line contains or matches the label
+        if not found:
+            line_lower = line_stripped.lower()
+            if label_lower in line_lower:
+                # Check if value is on the same line after the label
+                # Try splitting on tab first (table cells)
+                parts = line_stripped.split("\t")
+                if len(parts) > 1:
+                    # Value might be in a subsequent cell
+                    for i, part in enumerate(parts):
+                        if label_lower in part.lower():
+                            remaining = "\t".join(parts[i+1:]).strip()
+                            if remaining and remaining.lower() != "click here to enter text." and remaining.lower() != "click here to enter text":
+                                return remaining
+                            break
+
+                # Try splitting on colon
+                colon_idx = line_lower.find(label_lower) + len(label_lower)
+                remaining = line_stripped[colon_idx:].strip().lstrip(":")
+                if remaining and remaining.lower() not in ("click here to enter text.", "click here to enter text"):
+                    return remaining
+
+                found = True
+                continue
+
+        if found:
+            # Check if we hit a stop label
+            if stop_labels:
+                line_lower = line_stripped.lower()
+                for sl in stop_labels:
+                    if sl.lower() in line_lower:
+                        return "\n".join(values).strip()
+
+            # Check if it looks like a new label (ends with colon or starts with number.)
+            if (line_stripped.endswith(":") and len(line_stripped) < 80) or re.match(r"^\d+[\.\)]\s", line_stripped):
+                if values:
+                    return "\n".join(values).strip()
+                # Might be a sub-label, continue
+                continue
+
+            text = line_stripped
+            if text.lower() not in ("click here to enter text.", "click here to enter text", ""):
+                values.append(text)
+            elif values:
+                # Found placeholder after collecting some values, stop
+                return "\n".join(values).strip()
+
+            # Only collect a few lines max for single-value fields
+            if len(values) >= 1 and not stop_labels:
+                return "\n".join(values).strip()
+
+    return "\n".join(values).strip()
+
+
+def _find_multiline_value(lines: list[str], label: str, stop_labels: list[str]) -> str:
+    """Find a multi-line value between a label and the next stop label."""
+    label_lower = label.lower().strip()
+    found = False
+    values = []
+
+    for line in lines:
+        line_stripped = line.strip()
+        if not line_stripped:
+            if found and values:
+                values.append("")
+            continue
+
+        line_lower = line_stripped.lower()
+
+        if not found:
+            if label_lower in line_lower:
+                # Check for value on same line after label
+                colon_idx = line_lower.find(label_lower) + len(label_lower)
+                remaining = line_stripped[colon_idx:].strip().lstrip(":")
+                if remaining and remaining.lower() not in ("click here to enter text.", "click here to enter text"):
+                    values.append(remaining)
+                found = True
+                continue
+        else:
+            # Check stop labels
+            for sl in stop_labels:
+                if sl.lower() in line_lower:
+                    return "\n".join(values).strip()
+
+            if line_stripped.lower() not in ("click here to enter text.", "click here to enter text"):
+                values.append(line_stripped)
+
+    return "\n".join(values).strip()
+
+
+def _parse_amount(text: str) -> Optional[int]:
+    """Parse a dollar amount from text."""
+    if not text:
+        return None
+    # Remove $, commas, spaces
+    cleaned = re.sub(r'[,$\s]', '', text)
+    try:
+        return int(float(cleaned))
+    except (ValueError, TypeError):
+        return None
+
+
+def _parse_cpf(lines: list[str], full_text: str) -> dict:
+    """Parse a CPF request form."""
+    fields = {}
+
+    # Organization info
+    fields["entity_name"] = _find_value(lines, "Name of Requesting Organization")
+    fields["entity_address"] = _find_value(lines, "Address of Organization")
+    fields["website"] = _find_value(lines, "Website")
+
+    # Entity type detection
+    entity_text = full_text.lower()
+    if "501(c" in entity_text or "nonprofit" in entity_text.lower():
+        fields["entity_type"] = "nonprofit"
+    elif "tribal" in entity_text:
+        fields["entity_type"] = "tribal_government"
+    elif "local" in entity_text and "government" in entity_text:
+        fields["entity_type"] = "local_government"
+    elif "state" in entity_text and "government" in entity_text:
+        fields["entity_type"] = "state_government"
+
+    # Contact info
+    fields["requester_name"] = _find_value(lines, "Name:", ["Title:"])
+    fields["requester_title"] = _find_value(lines, "Title:", ["Phone"])
+    fields["requester_phone"] = _find_value(lines, "Phone", ["Email"])
+    fields["requester_email"] = _find_value(lines, "Email Address:", ["Project"])
+
+    # Project info
+    fields["project_name"] = _find_value(lines, "Project Name:", ["Purpose"])
+    fields["project_description"] = _find_multiline_value(lines, "Purpose of Project:", ["Postal Address"])
+    fields["project_address"] = _find_value(lines, "Postal Address", ["Requested"])
+    fields["requested_amount"] = _parse_amount(_find_value(lines, "Requested FY", ["Subcommittee"]))
+    fields["subcommittee"] = _find_value(lines, "Subcommittee:", ["Agency"])
+    fields["agency"] = _find_value(lines, "Agency:", ["Eligible Account"])
+    fields["eligible_account"] = _find_value(lines, "Eligible Account", ["Supporting"])
+
+    # Supporting documentation (19 questions)
+    fields["public_benefit"] = _find_multiline_value(lines, "benefit the public", ["2."])
+    fields["total_funding_request"] = _parse_amount(_find_multiline_value(lines, "2.\tTotal funding request", ["3."]))
+    fields["total_project_cost"] = _parse_amount(_find_multiline_value(lines, "3.\tTotal project cost", ["4."]))
+    fields["tx11_priority"] = _find_multiline_value(lines, "priority for the people of Texas", ["5."])
+    fields["stakeholders"] = _find_multiline_value(lines, "stakeholders that support", ["6."])
+    fields["funding_breakdown"] = _find_multiline_value(lines, "breakdown here of how", ["7."])
+    fields["new_or_ongoing"] = _find_multiline_value(lines, "new or ongoing", ["8."])
+    fields["eligible_purpose"] = _find_multiline_value(lines, "eligible purpose", ["9."])
+    fields["eligibility_justification"] = _find_multiline_value(lines, "justify the project", ["10."])
+    fields["timeline"] = _find_multiline_value(lines, "timeline of completion", ["11."])
+    fields["future_federal_funding"] = _find_multiline_value(lines, "additional federal dollars", ["12."])
+    fields["partial_funding"] = _find_multiline_value(lines, "limited capacity", ["13."])
+    fields["authorized_in_law"] = _find_multiline_value(lines, "currently authorized in law", ["14."])
+    fields["presidential_budget"] = _find_multiline_value(lines, "presidential budget request", ["15."])
+    fields["prior_funding"] = _find_multiline_value(lines, "received any funding in the past", ["16."])
+    fields["cost_share"] = _find_multiline_value(lines, "non-federal cost share", ["17."])
+    fields["derogatory_info"] = _find_multiline_value(lines, "derogatory information", ["18."])
+    fields["priority_ranking"] = _find_value(lines, "rank this request", ["19."])
+    fields["members_receiving"] = _find_multiline_value(lines, "Members of both the United States", [])
+
+    return fields
+
+
+def _parse_programmatic(lines: list[str], full_text: str) -> dict:
+    """Parse a Programmatic/Language request form."""
+    fields = {}
+
+    # Section 1 - Organization
+    fields["organization_name"] = _find_value(lines, "Organization Name:")
+    fields["street_address"] = _find_value(lines, "Street Address:")
+    fields["city"] = _find_value(lines, "City:")
+    fields["state"] = _find_value(lines, "State:")
+    fields["zip_code"] = _find_value(lines, "Zip Code:")
+    fields["phone"] = _find_value(lines, "Phone Number:")
+    fields["website"] = _find_value(lines, "Website:")
+    fields["entity_type"] = _find_value(lines, "Type of Entity:")
+    fields["co_sponsors"] = _find_value(lines, "Co-sponsoring Organizations:")
+
+    # Section 2 - Contact
+    fields["first_name"] = _find_value(lines, "First Name:")
+    fields["last_name"] = _find_value(lines, "Last Name:")
+    fields["contact_address"] = _find_value(lines, "Street Address:", ["City:"])
+    fields["contact_city"] = _find_value(lines, "City:", ["State:"])
+    fields["business_phone"] = _find_value(lines, "Business Phone Number:")
+    fields["cell_phone"] = _find_value(lines, "Cell Phone Number:")
+    fields["email"] = _find_value(lines, "E-mail Address:")
+
+    # Section 3 - Request Details
+    fields["title"] = _find_multiline_value(lines, "short title to your request", ["2)"])
+    fields["priority"] = _find_value(lines, "priority of this request", ["3)"])
+    fields["problem_statement"] = _find_multiline_value(lines, "Problem/Issue Statement", ["4)"])
+    fields["request_description"] = _find_multiline_value(lines, "Request description", ["5)"])
+    fields["goals_outcomes"] = _find_multiline_value(lines, "goals and expected outcomes", ["6)"])
+
+    # Programmatic fields
+    fields["program_name"] = _find_value(lines, "Program Name and Agency")
+    fields["last_fy_amount"] = _parse_amount(_find_value(lines, "Amount included last fiscal year"))
+    fields["presidents_budget_amount"] = _parse_amount(_find_value(lines, "Amount included in the President"))
+
+    # Language fields
+    fields["proposed_language"] = _find_multiline_value(lines, "requesting bill, report", ["8)"])
+
+    # Bill info
+    fields["appropriations_bill"] = _find_value(lines, "appropriations bill and section")
+    fields["bill_section"] = _find_value(lines, "Section:")
+    fields["other_members"] = _find_multiline_value(lines, "other Representatives or Senators", ["10)"])
+    fields["prior_submissions"] = _find_multiline_value(lines, "submitted in prior years", [])
+
+    return fields
+
+
+def _parse_ndaa(lines: list[str], full_text: str) -> dict:
+    """Parse an NDAA request form."""
+    fields = {}
+
+    # Section I - General Information
+    fields["company_organization"] = _find_value(lines, "Company/Organization:", ["Address:"])
+    fields["address"] = _find_value(lines, "Address:", ["City:"])
+    fields["city"] = _find_value(lines, "City:", ["State:"])
+    fields["state"] = _find_value(lines, "State:", ["Zip:"])
+    fields["zip_code"] = _find_value(lines, "Zip:", ["Point of Contact"])
+    fields["poc_name"] = _find_value(lines, "Point of Contact", ["Is POC"])
+    fields["poc_is_lobbyist"] = "yes" in _find_value(lines, "Is POC a lobbyist", ["Lobbyist"]).lower() if _find_value(lines, "Is POC a lobbyist", ["Lobbyist"]) else False
+    fields["lobbyist_organization"] = _find_value(lines, "Lobbyist Company", ["Phone:"])
+    fields["phone"] = _find_value(lines, "Phone:", ["E-mail:"])
+    fields["email"] = _find_value(lines, "E-mail:", ["Did you meet"])
+    fields["met_with_congressman"] = _find_value(lines, "Did you meet with Congressman", ["Date of meeting"])
+    fields["meeting_date"] = _find_value(lines, "Date of meeting", ["Is your Company"])
+    fields["multiple_requests"] = "yes" in _find_value(lines, "multiple requests", ["If Yes"]).lower() if _find_value(lines, "multiple requests", ["If Yes"]) else False
+    fields["request_priority"] = _find_value(lines, "this request's priority", ["Section II"])
+
+    # Section II - Budgetary Legislative Proposal
+    fields["official_project_name"] = _find_value(lines, "Official Project Name:", ["Proposed Funding"])
+    fields["funding_agency"] = _find_value(lines, "Proposed Funding Agency:", ["Budget Account"])
+    fields["budget_account"] = _find_value(lines, "Budget Account:", ["Sub Account"])
+    fields["sub_account_1"] = _find_value(lines, "Sub Account 1:", ["Sub Account 2"])
+    fields["sub_account_2"] = _find_value(lines, "Sub Account 2:", ["Line Title"])
+    fields["line_title"] = _find_value(lines, "Line Title:", ["Line Number"])
+    fields["line_number"] = _find_value(lines, "Line Number:", ["HASC"])
+    fields["hasc_subcommittee"] = _find_value(lines, "HASC Subcommittee:", ["Is"])
+    fields["funded_in_pb"] = "yes" in _find_value(lines, "funded in the President", ["Program Element"]).lower() if _find_value(lines, "funded in the President", ["Program Element"]) else False
+    fields["program_element"] = _find_value(lines, "Program Element:", ["Additional funding"])
+    fields["additional_funding_amount"] = _parse_amount(_find_value(lines, "Additional funding", ["Is funding"]))
+    fields["is_scalable"] = "yes" in _find_value(lines, "scalable", ["If Yes"]).lower() if _find_value(lines, "scalable", ["If Yes"]) else False
+    fields["scalable_amount"] = _parse_amount(_find_value(lines, "If Yes, amount:", ["Amount included"]))
+    fields["fy26_bill_amount"] = _parse_amount(_find_value(lines, "Amount included in the FY26", ["Is the project"]))
+    fields["unfunded_priority_list"] = "yes" in _find_value(lines, "Unfunded Priority", ["If Yes"]).lower() if _find_value(lines, "Unfunded Priority", ["If Yes"]) else False
+    fields["unfunded_ranking"] = _find_value(lines, "Ranking:", ["Amount:"])
+    fields["unfunded_amount"] = _parse_amount(_find_value(lines, "Amount:", ["Section III"]))
+
+    # Section III - Policy Legislative Proposal
+    fields["proposed_bill_language"] = _find_multiline_value(lines, "Proposed Bill Language", ["Section IV", "Proposed Report Language"])
+    fields["proposed_report_language"] = _find_multiline_value(lines, "Report Language", ["Section IV", "Items of Special Interest"])
+    fields["items_of_special_interest"] = _find_multiline_value(lines, "Items of Special Interest", ["Section IV"])
+
+    # Section IV - Proposal Explanation
+    fields["justification"] = _find_multiline_value(lines, "Justification statement", ["Please describe"])
+    fields["program_description"] = _find_multiline_value(lines, "describe your program/project in no more than three sentences", ["Military value"])
+    fields["military_value"] = _find_multiline_value(lines, "Military value", ["Impact for Texas"])
+    fields["tx11_impact"] = _find_multiline_value(lines, "Impact for Texas-11", ["Industrial"])
+    fields["partners"] = _find_multiline_value(lines, "Industrial, Academic", ["Additional House"])
+    fields["other_offices_engaged"] = _find_multiline_value(lines, "Additional House of Representatives", ["Which Professional"])
+    fields["committee_staff_engaged"] = _find_multiline_value(lines, "Professional Staff Members", ["Additional notes"])
+    fields["additional_notes"] = _find_multiline_value(lines, "Additional notes", [])
+
+    return fields
+
+
+def map_subcommittee(raw: str) -> Optional[str]:
+    """Map raw subcommittee text to enum value."""
+    if not raw:
+        return None
+
+    raw_lower = raw.lower()
+    mapping = {
+        "agriculture": "agriculture",
+        "commerce": "commerce_justice_science",
+        "justice": "commerce_justice_science",
+        "science": "commerce_justice_science",
+        "defense": "defense",
+        "energy": "energy_water",
+        "water": "energy_water",
+        "financial": "financial_services_general_government",
+        "homeland": "homeland_security",
+        "interior": "interior_environment",
+        "environment": "interior_environment",
+        "labor": "labor_hhs_education",
+        "hhs": "labor_hhs_education",
+        "health": "labor_hhs_education",
+        "education": "labor_hhs_education",
+        "legislative": "legislative_branch",
+        "milcon": "milcon_va",
+        "military construction": "milcon_va",
+        "veterans": "milcon_va",
+        "state": "state_foreign_operations",
+        "foreign": "state_foreign_operations",
+        "transportation": "transportation_hud",
+        "hud": "transportation_hud",
+        "housing": "transportation_hud",
+    }
+
+    for key, value in mapping.items():
+        if key in raw_lower:
+            return value
+
+    return None

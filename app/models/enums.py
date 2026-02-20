@@ -5,6 +5,7 @@ class RequestType(str, enum.Enum):
     cpf = "cpf"
     programmatic = "programmatic"
     language = "language"
+    ndaa = "ndaa"
 
 
 class Subcommittee(str, enum.Enum):

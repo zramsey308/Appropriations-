@@ -2,6 +2,7 @@ from app.models.enums import RequestType, Subcommittee, RequestStatus, EntityTyp
 from app.models.eligible_account import EligibleAccount
 from app.models.request import Request
 from app.models.cpf_details import CPFDetails
+from app.models.ndaa_details import NdaaDetails
 from app.models.attachment import Attachment
 
 __all__ = [
@@ -13,5 +14,6 @@ __all__ = [
     "EligibleAccount",
     "Request",
     "CPFDetails",
+    "NdaaDetails",
     "Attachment",
 ]
