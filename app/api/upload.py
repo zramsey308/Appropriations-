@@ -146,6 +146,12 @@ def _create_programmatic_request(fields: dict, db: Session) -> dict:
         bill_section=fields.get("bill_section") or "",
         proposed_language=fields.get("proposed_language") or "",
         language_justification=fields.get("problem_statement") or "",
+        priority_rank=fields.get("priority") or None,
+        problem_statement=fields.get("problem_statement") or None,
+        goals_outcomes=fields.get("goals_outcomes") or None,
+        other_members=fields.get("other_members") or None,
+        prior_year_submission=bool(fields.get("prior_submissions")),
+        prior_year_details=fields.get("prior_submissions") or None,
     )
     db.add(request)
     db.commit()

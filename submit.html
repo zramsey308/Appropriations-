@@ -1825,13 +1825,14 @@
             // Build request data
             const data = {
                 request_type: requestType,
+                status: 'submitted',
                 subcommittee: document.getElementById('subcommittee').value,
                 title: document.getElementById('project_name').value,
                 description: document.getElementById('project_purpose').value,
                 requester_name: document.getElementById('contact_name').value,
                 requester_email: document.getElementById('contact_email').value,
                 requester_organization: document.getElementById('organization_name').value,
-                requested_amount: parseFloat(document.getElementById('requested_amount').value) || null
+                requested_amount: parseInt(document.getElementById('requested_amount').value) || null
             };
 
             // Add programmatic/language fields if not CPF
@@ -1849,7 +1850,7 @@
                 if (requestType === 'programmatic') {
                     data.program_name = document.getElementById('pl_program_name').value || null;
                     data.agency = document.getElementById('pl_agency').value || null;
-                    data.requested_amount = parseFloat(document.getElementById('pl_funding_level').value) || null;
+                    data.requested_amount = parseInt(document.getElementById('pl_funding_level').value) || null;
                 } else if (requestType === 'language') {
                     data.proposed_language = document.getElementById('pl_proposed_language').value || null;
                     data.language_location = document.getElementById('pl_language_location').value || null;
