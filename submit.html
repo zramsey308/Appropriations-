@@ -1335,6 +1335,44 @@
             ? 'http://localhost:8080'
             : 'https://appropriations.onrender.com';
 
+        // Resilient fetch with retries — handles Render cold starts (can take 30+ seconds)
+        async function fetchRetry(url, options = {}, retries = 3) {
+            for (let i = 0; i <= retries; i++) {
+                try {
+                    const response = await fetch(url, { ...options, signal: AbortSignal.timeout(45000) });
+                    return response;
+                } catch (err) {
+                    if (i === retries) throw err;
+                    const delay = Math.pow(2, i) * 1500;
+                    await new Promise(r => setTimeout(r, delay));
+                }
+            }
+        }
+
+        // Wake-up: ping server on page load, show a banner if it's cold-starting
+        (async function wakeUpServer() {
+            const banner = document.createElement('div');
+            banner.id = 'wake-banner';
+            banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#1e40af;color:#fff;text-align:center;padding:10px 16px;font-size:0.9rem;display:none;';
+            banner.innerHTML = 'Connecting to server — this may take a moment on first load...';
+            document.body.prepend(banner);
+
+            try {
+                const quick = await fetch(`${API_BASE}/health`, { signal: AbortSignal.timeout(4000) });
+                if (quick.ok) return;
+            } catch (_) { /* cold start */ }
+
+            banner.style.display = 'block';
+            try {
+                await fetchRetry(`${API_BASE}/health`, {}, 5);
+                banner.textContent = 'Connected!';
+                setTimeout(() => banner.remove(), 1500);
+            } catch (_) {
+                banner.style.background = '#dc2626';
+                banner.textContent = 'Could not reach server. Please refresh the page to try again.';
+            }
+        })();
+
         // Eligible accounts by subcommittee
         const eligibleAccounts = {
             agriculture: [
@@ -1539,7 +1577,7 @@
                 formData.append('attachment_type', 'cpf_support_letter');
 
                 try {
-                    const response = await fetch(`${API_BASE}/api/requests/${requestId}/attachments`, {
+                    const response = await fetchRetry(`${API_BASE}/api/requests/${requestId}/attachments`, {
                         method: 'POST',
                         body: formData
                     });
@@ -1862,7 +1900,7 @@
             }
 
             try {
-                const response = await fetch(`${API_BASE}/api/requests`, {
+                const response = await fetchRetry(`${API_BASE}/api/requests`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
@@ -1908,7 +1946,7 @@
                         tx11_priority_justification: document.getElementById('q4_tx11_priority').value || null
                     };
 
-                    await fetch(`${API_BASE}/api/requests/${request.id}/cpf`, {
+                    await fetchRetry(`${API_BASE}/api/requests/${request.id}/cpf`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(cpfData)
@@ -1942,11 +1980,11 @@
             }
         });
 
-        // Keep Render awake - ping health endpoint every 5 minutes
-        // This prevents Render's free tier from sleeping after 15 min of inactivity
+        // Keep Render awake - ping health endpoint every 2 minutes
+        // Render free tier sleeps after 15 min of inactivity; 2-min interval gives plenty of margin
         setInterval(() => {
             fetch(`${API_BASE}/health`).catch(() => {});
-        }, 5 * 60 * 1000);
+        }, 2 * 60 * 1000);
     </script>
 </body>
 </html>
