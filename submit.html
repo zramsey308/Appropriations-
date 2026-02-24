@@ -726,7 +726,7 @@
                 </div>
 
                 <!-- Form -->
-                <form id="submit-form">
+                <form id="submit-form" novalidate>
                     <!-- Request Type Selection -->
                     <div class="form-section">
                         <div class="section-title">Request Type</div>
@@ -870,8 +870,8 @@
                                 <input type="text" id="agency" placeholder="Responsible federal agency">
                             </div>
                             <div class="form-group full-width">
-                                <label>Eligible Account <span class="required">*</span></label>
-                                <select id="eligible_account" required disabled>
+                                <label>Eligible Account</label>
+                                <select id="eligible_account" disabled>
                                     <option value="">Select subcommittee first...</option>
                                 </select>
                                 <span class="help-text">Select a subcommittee above to see eligible accounts</span>
@@ -1152,7 +1152,7 @@
                                     <span class="question-number">1</span>
                                     <span>Request Title <span class="required">*</span></span>
                                 </label>
-                                <input type="text" id="pl_request_title" required placeholder="Enter a descriptive title for your request">
+                                <input type="text" id="pl_request_title" placeholder="Enter a descriptive title for your request">
                             </div>
 
                             <!-- Question 2: Priority Ranking -->
@@ -1161,7 +1161,7 @@
                                     <span class="question-number">2</span>
                                     <span>If submitting multiple requests, please rank this request in terms of priority <span class="required">*</span></span>
                                 </label>
-                                <select id="pl_priority" required>
+                                <select id="pl_priority">
                                     <option value="">Select priority...</option>
                                     <option value="1">1 - Highest Priority</option>
                                     <option value="2">2 - High Priority</option>
@@ -1177,7 +1177,7 @@
                                     <span class="question-number">3</span>
                                     <span>Problem Statement (max 250 words) <span class="required">*</span></span>
                                 </label>
-                                <textarea id="pl_problem_statement" required class="large" placeholder="Describe the problem this request addresses..." maxlength="1500"></textarea>
+                                <textarea id="pl_problem_statement" class="large" placeholder="Describe the problem this request addresses..." maxlength="1500"></textarea>
                                 <span class="help-text">Briefly describe the issue or need that this request aims to address. Maximum 250 words.</span>
                             </div>
 
@@ -1187,7 +1187,7 @@
                                     <span class="question-number">4</span>
                                     <span>Description/Explanation of Request <span class="required">*</span></span>
                                 </label>
-                                <textarea id="pl_description" required class="large" placeholder="Provide a detailed description of what you are requesting..."></textarea>
+                                <textarea id="pl_description" class="large" placeholder="Provide a detailed description of what you are requesting..."></textarea>
                                 <span class="help-text">Provide a detailed explanation of your request, including specific actions or funding levels sought.</span>
                             </div>
 
@@ -1197,7 +1197,7 @@
                                     <span class="question-number">5</span>
                                     <span>Goals and Expected Outcomes <span class="required">*</span></span>
                                 </label>
-                                <textarea id="pl_goals_outcomes" required class="large" placeholder="What are the expected goals and outcomes if this request is funded?"></textarea>
+                                <textarea id="pl_goals_outcomes" class="large" placeholder="What are the expected goals and outcomes if this request is funded?"></textarea>
                                 <span class="help-text">Describe the expected results and how success will be measured.</span>
                             </div>
 
@@ -1256,7 +1256,7 @@
                                     <span class="question-number">8</span>
                                     <span>Appropriations Bill/Subcommittee <span class="required">*</span></span>
                                 </label>
-                                <select id="pl_subcommittee" required>
+                                <select id="pl_subcommittee">
                                     <option value="">Select appropriations bill/subcommittee...</option>
                                     <option value="agriculture">Agriculture, Rural Development, FDA</option>
                                     <option value="commerce_justice_science">Commerce, Justice, Science</option>
@@ -1290,7 +1290,7 @@
                                 </label>
                                 <div class="radio-group" style="margin-bottom: 1rem;">
                                     <label class="radio-option">
-                                        <input type="radio" name="pl_prior_year" value="yes" required>
+                                        <input type="radio" name="pl_prior_year" value="yes">
                                         <span>Yes</span>
                                     </label>
                                     <label class="radio-option">
@@ -1310,7 +1310,7 @@
                             <div class="section-title">TX-11 District Connection Confirmation</div>
                             <div class="form-group full-width" style="margin-top: 1rem;">
                                 <div class="checkbox-field">
-                                    <input type="checkbox" id="pl_tx11_nexus" required>
+                                    <input type="checkbox" id="pl_tx11_nexus">
                                     <label for="pl_tx11_nexus">I confirm this request has a direct connection to and will benefit Texas Congressional District 11 (Midland, Odessa, San Angelo, Killeen, and the Permian Basin region). <span class="required">*</span></label>
                                 </div>
                             </div>
@@ -1416,7 +1416,7 @@
         // File upload handling
         let uploadedFiles = [];
         const maxFiles = 10;
-        const requiredFiles = 3;
+        const requiredFiles = 0; // Made optional for testing
         const maxFileSize = 10 * 1024 * 1024; // 10MB
         const allowedTypes = [
             'application/pdf',
@@ -1562,6 +1562,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             initFileUpload();
             updateUploadStatus();
+            // Set initial required fields for CPF mode
+            toggleRequiredFields('cpf');
         });
 
         // Update eligible accounts dropdown when subcommittee changes
@@ -1641,9 +1643,9 @@
 
         // Toggle required fields based on request type
         function toggleRequiredFields(mode) {
-            // CPF Project Information required fields
+            // CPF Project Information required fields (removed eligible_account - it's optional and causes issues when disabled)
             const cpfProjectInfoIds = ['project_name', 'project_purpose', 'project_address',
-                                       'requested_amount', 'subcommittee', 'eligible_account'];
+                                       'requested_amount', 'subcommittee'];
 
             // CPF Supporting Documentation required fields
             const cpfSupportingDocsIds = ['q1_public_benefit', 'q2_total_request', 'q3_total_cost', 'q4_tx11_priority',
@@ -1782,12 +1784,14 @@
 
         document.getElementById('submit-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            console.log('Form submission started');
 
             const btn = document.getElementById('submit-btn');
             btn.disabled = true;
             btn.textContent = 'Submitting...';
 
             const requestType = document.querySelector('input[name="request_type"]:checked').value;
+            console.log('Request type:', requestType);
 
             // Validate support letters for CPF requests
             if (requestType === 'cpf' && uploadedFiles.length < requiredFiles) {

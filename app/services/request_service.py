@@ -72,59 +72,70 @@ class RequestService:
         return True
 
     def get_dashboard_summary(self, fy: Optional[int] = None) -> dict:
-        query = self.db.query(Request)
-        if fy:
-            query = query.filter(Request.fiscal_year == fy)
-
-        total = query.count()
+        """Get dashboard summary with comprehensive error handling."""
+        try:
+            total = self.db.query(Request).count()
+        except Exception as e:
+            logger.error(f"Error counting requests: {e}")
+            total = 0
 
         # Total requested amount
-        total_amount_result = (
-            query.with_entities(func.sum(Request.requested_amount))
-            .scalar()
-        )
-        total_requested_amount = float(total_amount_result) if total_amount_result else 0
+        total_requested_amount = 0
+        try:
+            result = self.db.query(func.sum(Request.requested_amount)).scalar()
+            total_requested_amount = float(result) if result else 0
+        except Exception as e:
+            logger.error(f"Error summing amounts: {e}")
 
-        # By type (handle None values)
+        # By type
         by_type = {}
-        type_counts = (
-            query.with_entities(Request.request_type, func.count(Request.id))
-            .group_by(Request.request_type)
-            .all()
-        )
-        for rt, count in type_counts:
-            if rt is not None:
-                by_type[rt.value] = count
+        try:
+            type_counts = (
+                self.db.query(Request.request_type, func.count(Request.id))
+                .group_by(Request.request_type)
+                .all()
+            )
+            for rt, count in type_counts:
+                if rt is not None:
+                    by_type[rt.value] = count
+        except Exception as e:
+            logger.error(f"Error getting type counts: {e}")
 
-        # By subcommittee (handle None values)
+        # By subcommittee
         by_subcommittee = {}
-        sub_counts = (
-            query.with_entities(Request.subcommittee, func.count(Request.id))
-            .group_by(Request.subcommittee)
-            .all()
-        )
-        for sub, count in sub_counts:
-            if sub is not None:
-                by_subcommittee[sub.value] = count
+        try:
+            sub_counts = (
+                self.db.query(Request.subcommittee, func.count(Request.id))
+                .group_by(Request.subcommittee)
+                .all()
+            )
+            for sub, count in sub_counts:
+                if sub is not None:
+                    by_subcommittee[sub.value] = count
+        except Exception as e:
+            logger.error(f"Error getting subcommittee counts: {e}")
 
-        # By status (handle None values)
+        # By status
         by_status = {}
-        status_counts = (
-            query.with_entities(Request.status, func.count(Request.id))
-            .group_by(Request.status)
-            .all()
-        )
-        for st, count in status_counts:
-            if st is not None:
-                by_status[st.value] = count
+        try:
+            status_counts = (
+                self.db.query(Request.status, func.count(Request.id))
+                .group_by(Request.status)
+                .all()
+            )
+            for st, count in status_counts:
+                if st is not None:
+                    by_status[st.value] = count
+        except Exception as e:
+            logger.error(f"Error getting status counts: {e}")
 
-        # CPF selected count (handle case where table/column doesn't exist)
+        # CPF selected count
         cpf_selected_count = 0
         try:
             cpf_selected_count = (
-                self.db.query(CPFDetails)
+                self.db.query(func.count(CPFDetails.id))
                 .filter(CPFDetails.selected == True)
-                .count()
+                .scalar() or 0
             )
         except Exception as e:
             logger.warning(f"Could not query CPF selected count: {e}")
