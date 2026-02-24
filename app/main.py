@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import api_router
+from app.db import Base, engine
+import app.models  # noqa: F401 — ensure all models are registered before create_all
 
 app = FastAPI(
     title="FY27 Appropriations Tracker",
@@ -25,6 +27,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Create database tables on startup (safe no-op if they already exist)
+Base.metadata.create_all(bind=engine)
 
 app.include_router(api_router, prefix="/api")
 
