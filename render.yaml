@@ -7,6 +7,10 @@ services:
     envVars:
       - key: DATABASE_URL
         sync: false  # Set this manually in Render dashboard with your Supabase URL
+      - key: SUPABASE_URL
+        sync: false  # Set this manually in Render dashboard (e.g. https://xxxx.supabase.co)
+      - key: SUPABASE_SERVICE_KEY
+        sync: false  # Set this manually in Render dashboard (service_role key from Supabase)
       - key: GOOGLE_SHEETS_ENABLED
         value: "false"  # Set to "true" and add other env vars to enable
       - key: PYTHON_VERSION

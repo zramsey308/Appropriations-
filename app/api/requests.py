@@ -1,6 +1,6 @@
 from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from sqlalchemy.orm import Session
 
 from app.db import get_db
@@ -162,14 +162,17 @@ def download_attachment(request_id: int, attachment_id: int, db: Session = Depen
     if not attachment:
         raise HTTPException(status_code=404, detail="Attachment not found")
 
-    import os
-    if not os.path.exists(attachment.file_path):
-        raise HTTPException(status_code=404, detail="File not found on disk")
+    service = AttachmentService(db)
+    content = service.download(attachment)
+    if content is None:
+        raise HTTPException(status_code=404, detail="File not found in storage")
 
-    return FileResponse(
-        path=attachment.file_path,
-        filename=attachment.original_filename,
-        media_type=attachment.content_type or "application/octet-stream"
+    return Response(
+        content=content,
+        media_type=attachment.content_type or "application/octet-stream",
+        headers={
+            "Content-Disposition": f'attachment; filename="{attachment.original_filename}"'
+        },
     )
 
 

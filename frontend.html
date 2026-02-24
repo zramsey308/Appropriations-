@@ -2098,8 +2098,9 @@
             uploadFiles = [];
             renderUploadQueue();
             showToast('Upload processing complete', 'success');
-            // Refresh dashboard data
+            // Refresh dashboard and requests data
             loadDashboard();
+            loadRequests();
         }
 
         document.getElementById('upload-zone').addEventListener('click', function(e) {

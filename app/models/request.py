@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, BigInteger, String, DateTime, Text
+from sqlalchemy import Column, Integer, BigInteger, String, Boolean, DateTime, Text
 from sqlalchemy.orm import relationship
 
 from app.db import Base
@@ -22,15 +22,27 @@ class Request(Base):
     requester_phone = Column(String(50), nullable=True)
     requester_organization = Column(String(255), nullable=True)
 
+    # Shared funding field
+    requested_amount = Column(BigInteger, nullable=True)
+
     # Programmatic fields
     program_name = Column(String(500), nullable=True)
-    requested_amount = Column(BigInteger, nullable=True)  # Changed to BigInteger for large funding amounts
+    agency = Column(String(500), nullable=True)
     programmatic_justification = Column(Text, nullable=True)
 
     # Language fields
     bill_section = Column(String(255), nullable=True)
     proposed_language = Column(Text, nullable=True)
     language_justification = Column(Text, nullable=True)
+    language_location = Column(String(500), nullable=True)
+
+    # Programmatic / Language shared fields
+    priority_rank = Column(String(50), nullable=True)
+    problem_statement = Column(Text, nullable=True)
+    goals_outcomes = Column(Text, nullable=True)
+    other_members = Column(Text, nullable=True)
+    prior_year_submission = Column(Boolean, nullable=True)
+    prior_year_details = Column(Text, nullable=True)
 
     # Routing
     assigned_to = Column(String(255), nullable=True)

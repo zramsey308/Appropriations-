@@ -17,18 +17,26 @@ class RequestBase(BaseModel):
     requester_email: Optional[str] = None
     requester_phone: Optional[str] = None
     requester_organization: Optional[str] = None
-    program_name: Optional[str] = None
     requested_amount: Optional[int] = None
+    program_name: Optional[str] = None
+    agency: Optional[str] = None
     programmatic_justification: Optional[str] = None
     bill_section: Optional[str] = None
     proposed_language: Optional[str] = None
     language_justification: Optional[str] = None
+    language_location: Optional[str] = None
+    priority_rank: Optional[str] = None
+    problem_statement: Optional[str] = None
+    goals_outcomes: Optional[str] = None
+    other_members: Optional[str] = None
+    prior_year_submission: Optional[bool] = None
+    prior_year_details: Optional[str] = None
     assigned_to: Optional[str] = None
     notes: Optional[str] = None
 
 
 class RequestCreate(RequestBase):
-    pass
+    status: Optional[RequestStatus] = RequestStatus.submitted
 
 
 class RequestUpdate(BaseModel):
@@ -42,12 +50,20 @@ class RequestUpdate(BaseModel):
     requester_email: Optional[str] = None
     requester_phone: Optional[str] = None
     requester_organization: Optional[str] = None
-    program_name: Optional[str] = None
     requested_amount: Optional[int] = None
+    program_name: Optional[str] = None
+    agency: Optional[str] = None
     programmatic_justification: Optional[str] = None
     bill_section: Optional[str] = None
     proposed_language: Optional[str] = None
     language_justification: Optional[str] = None
+    language_location: Optional[str] = None
+    priority_rank: Optional[str] = None
+    problem_statement: Optional[str] = None
+    goals_outcomes: Optional[str] = None
+    other_members: Optional[str] = None
+    prior_year_submission: Optional[bool] = None
+    prior_year_details: Optional[str] = None
     assigned_to: Optional[str] = None
     notes: Optional[str] = None
 

@@ -8,6 +8,7 @@ from app.config import settings
 from app.models import Request, Attachment
 from app.models.enums import AttachmentType
 from app.services.cpf_service import CPFService
+from app.services import storage
 
 
 class AttachmentService:
@@ -24,19 +25,18 @@ class AttachmentService:
         if not request:
             return None
 
-        # Create directory for this request
-        request_dir = os.path.join(settings.attachments_dir, str(request_id))
-        os.makedirs(request_dir, exist_ok=True)
-
-        # Generate unique filename
-        ext = os.path.splitext(file.filename)[1] if file.filename else ""
-        unique_filename = f"{uuid.uuid4()}{ext}"
-        file_path = os.path.join(request_dir, unique_filename)
-
-        # Save file
+        # Read file content
         content = file.file.read()
-        with open(file_path, "wb") as f:
-            f.write(content)
+
+        # Generate unique filename and storage path
+        unique_filename, storage_path = storage.generate_storage_path(
+            request_id, file.filename or "unknown"
+        )
+
+        # Upload to storage (Supabase or local filesystem)
+        file_path = storage.upload_file(
+            storage_path, content, file.content_type or "application/octet-stream"
+        )
 
         # Create attachment record
         attachment = Attachment(
@@ -62,14 +62,17 @@ class AttachmentService:
     def get(self, attachment_id: int) -> Optional[Attachment]:
         return self.db.query(Attachment).filter(Attachment.id == attachment_id).first()
 
+    def download(self, attachment: Attachment) -> Optional[bytes]:
+        """Download file content from storage."""
+        return storage.download_file(attachment.file_path)
+
     def delete(self, attachment_id: int) -> bool:
         attachment = self.get(attachment_id)
         if not attachment:
             return False
 
-        # Delete file
-        if os.path.exists(attachment.file_path):
-            os.remove(attachment.file_path)
+        # Delete file from storage (Supabase or local filesystem)
+        storage.delete_file(attachment.file_path)
 
         self.db.delete(attachment)
         self.db.commit()
