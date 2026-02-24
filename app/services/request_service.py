@@ -97,7 +97,7 @@ class RequestService:
             )
             for rt, count in type_counts:
                 if rt is not None:
-                    by_type[rt.value] = count
+                    by_type[rt] = count
         except Exception as e:
             logger.error(f"Error getting type counts: {e}")
 
@@ -111,7 +111,7 @@ class RequestService:
             )
             for sub, count in sub_counts:
                 if sub is not None:
-                    by_subcommittee[sub.value] = count
+                    by_subcommittee[sub] = count
         except Exception as e:
             logger.error(f"Error getting subcommittee counts: {e}")
 
@@ -125,7 +125,7 @@ class RequestService:
             )
             for st, count in status_counts:
                 if st is not None:
-                    by_status[st.value] = count
+                    by_status[st] = count
         except Exception as e:
             logger.error(f"Error getting status counts: {e}")
 
