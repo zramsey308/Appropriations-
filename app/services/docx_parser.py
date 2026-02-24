@@ -43,32 +43,54 @@ def parse_docx(file_bytes: bytes) -> dict:
 
 
 def _extract_all_text(doc: Document) -> list[str]:
-    """Extract text from both paragraphs and tables."""
+    """Extract text from paragraphs, tables, and content controls (SDTs).
+
+    Real Word forms use Structured Document Tags (SDTs / content controls)
+    at both the body level (wrapping tables) and cell level (fillable fields).
+    This function walks the XML tree directly to capture all text.
+    """
+    from docx.oxml.ns import qn
+
     lines = []
 
-    for element in doc.element.body:
+    def _get_element_text(el) -> str:
+        """Extract all text from an XML element, including SDT content."""
+        texts = []
+        for node in el.iter():
+            if node.tag == qn('w:t') and node.text:
+                texts.append(node.text)
+        return "".join(texts).strip()
+
+    def _process_table(tbl_element):
+        """Extract text from a table element row by row."""
+        for tr in tbl_element.findall(qn('w:tr')):
+            cells = tr.findall(qn('w:tc'))
+            row_texts = [_get_element_text(tc) for tc in cells]
+            combined = "\t".join(t for t in row_texts if t)
+            if combined:
+                lines.append(combined)
+
+    def _process_body_element(element):
+        """Process a single body-level element (paragraph, table, or SDT)."""
         tag = element.tag.split("}")[-1] if "}" in element.tag else element.tag
 
         if tag == "p":
-            # It's a paragraph
-            for para in doc.paragraphs:
-                if para._element is element:
-                    text = para.text.strip()
-                    if text:
-                        lines.append(text)
-                    break
+            text = _get_element_text(element)
+            if text:
+                lines.append(text)
 
         elif tag == "tbl":
-            # It's a table
-            for table in doc.tables:
-                if table._element is element:
-                    for row in table.rows:
-                        row_texts = [cell.text.strip() for cell in row.cells]
-                        # Join row cells, filtering empty ones
-                        combined = "\t".join(t for t in row_texts if t)
-                        if combined:
-                            lines.append(combined)
-                    break
+            _process_table(element)
+
+        elif tag == "sdt":
+            # Content control — recurse into sdtContent to find paragraphs/tables
+            sdt_content = element.find(qn('w:sdtContent'))
+            if sdt_content is not None:
+                for child in sdt_content:
+                    _process_body_element(child)
+
+    for element in doc.element.body:
+        _process_body_element(element)
 
     return lines
 
@@ -77,14 +99,39 @@ def _detect_type(full_text: str) -> Optional[str]:
     """Detect the document type from content."""
     text_lower = full_text.lower()
 
-    if "community project funding" in text_lower or "cpf request" in text_lower or "request form" in text_lower and "project name" in text_lower and "entity" in text_lower:
+    if "community project funding" in text_lower or "cpf request" in text_lower:
         return "cpf"
     elif "national defense authorization" in text_lower or "ndaa" in text_lower or "budgetary legislative proposal" in text_lower or "hasc subcommittee" in text_lower:
         return "ndaa"
     elif "programmatic" in text_lower or "section: 1 (organization information)" in text_lower or "section 3: request details" in text_lower:
         return "programmatic"
 
+    # Fallback heuristics for forms without exact header text
+    if ("request form" in text_lower and "project name" in text_lower and "entity" in text_lower):
+        return "cpf"
+    if ("request form" in text_lower or "appropriation" in text_lower) and "project name" in text_lower:
+        return "cpf"
+    if "organization name" in text_lower and ("program name" in text_lower or "appropriations bill" in text_lower):
+        return "programmatic"
+
     return None
+
+
+_PLACEHOLDER_TEXTS = {
+    "click here to enter text.",
+    "click here to enter text",
+    "click or tap here to enter text.",
+    "click or tap here to enter text",
+    "type here",
+    "enter text here",
+    "[enter text]",
+    "",
+}
+
+
+def _is_placeholder(text: str) -> bool:
+    """Check if text is a Word form placeholder."""
+    return text.strip().lower() in _PLACEHOLDER_TEXTS
 
 
 def _find_value(lines: list[str], label: str, stop_labels: list[str] = None) -> str:
@@ -113,14 +160,14 @@ def _find_value(lines: list[str], label: str, stop_labels: list[str] = None) -> 
                     for i, part in enumerate(parts):
                         if label_lower in part.lower():
                             remaining = "\t".join(parts[i+1:]).strip()
-                            if remaining and remaining.lower() != "click here to enter text." and remaining.lower() != "click here to enter text":
+                            if remaining and not _is_placeholder(remaining):
                                 return remaining
                             break
 
                 # Try splitting on colon
                 colon_idx = line_lower.find(label_lower) + len(label_lower)
                 remaining = line_stripped[colon_idx:].strip().lstrip(":")
-                if remaining and remaining.lower() not in ("click here to enter text.", "click here to enter text"):
+                if remaining and not _is_placeholder(remaining):
                     return remaining
 
                 found = True
@@ -142,7 +189,7 @@ def _find_value(lines: list[str], label: str, stop_labels: list[str] = None) -> 
                 continue
 
             text = line_stripped
-            if text.lower() not in ("click here to enter text.", "click here to enter text", ""):
+            if not _is_placeholder(text):
                 values.append(text)
             elif values:
                 # Found placeholder after collecting some values, stop
@@ -175,7 +222,7 @@ def _find_multiline_value(lines: list[str], label: str, stop_labels: list[str]) 
                 # Check for value on same line after label
                 colon_idx = line_lower.find(label_lower) + len(label_lower)
                 remaining = line_stripped[colon_idx:].strip().lstrip(":")
-                if remaining and remaining.lower() not in ("click here to enter text.", "click here to enter text"):
+                if remaining and not _is_placeholder(remaining):
                     values.append(remaining)
                 found = True
                 continue
@@ -185,7 +232,7 @@ def _find_multiline_value(lines: list[str], label: str, stop_labels: list[str]) 
                 if sl.lower() in line_lower:
                     return "\n".join(values).strip()
 
-            if line_stripped.lower() not in ("click here to enter text.", "click here to enter text"):
+            if not _is_placeholder(line_stripped):
                 values.append(line_stripped)
 
     return "\n".join(values).strip()

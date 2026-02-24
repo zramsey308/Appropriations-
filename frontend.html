@@ -2059,8 +2059,14 @@
                     });
 
                     if (!response.ok) {
-                        const error = await response.json();
-                        throw new Error(error.detail || 'Upload failed');
+                        let errorMsg = `Server error (${response.status})`;
+                        try {
+                            const error = await response.json();
+                            errorMsg = error.detail || errorMsg;
+                        } catch (_) {
+                            // Response wasn't JSON
+                        }
+                        throw new Error(errorMsg);
                     }
 
                     const result = await response.json();
