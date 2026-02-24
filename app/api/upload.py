@@ -25,13 +25,24 @@ async def upload_docx(
 
     try:
         contents = await file.read()
+        if not contents:
+            raise HTTPException(status_code=400, detail="Empty file uploaded")
         fields = parse_docx(contents)
+    except HTTPException:
+        raise
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
+        import logging
+        logging.getLogger(__name__).exception("Failed to parse document")
         raise HTTPException(status_code=400, detail=f"Failed to parse document: {str(e)}")
 
-    doc_type = fields.pop("_doc_type")
+    doc_type = fields.pop("_doc_type", None)
+    if not doc_type:
+        raise HTTPException(
+            status_code=400,
+            detail="Could not determine document type. Please upload a CPF, Programmatic/Language, or NDAA request form (.docx).",
+        )
 
     if doc_type == "cpf":
         return _create_cpf_request(fields, db)
