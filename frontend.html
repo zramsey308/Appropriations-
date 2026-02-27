@@ -784,6 +784,7 @@
             <button class="nav-btn" data-panel="new-request">New Request</button>
             <button class="nav-btn" data-panel="requests">All Requests</button>
             <button class="nav-btn" data-panel="accounts">Eligible Accounts</button>
+            <button class="nav-btn" data-panel="intelligence">Intelligence</button>
         </nav>
     </div>
 
@@ -1241,6 +1242,134 @@
                 </div>
             </div>
         </div>
+
+        <!-- Intelligence Panel -->
+        <div id="intelligence" class="panel">
+            <!-- Stats Row -->
+            <div class="intel-stats">
+                <div class="intel-stat-card">
+                    <div class="stat-value" id="intel-total">0</div>
+                    <div class="stat-label">Total Articles</div>
+                </div>
+                <div class="intel-stat-card highlight">
+                    <div class="stat-value" id="intel-high-rel">0</div>
+                    <div class="stat-label">High Relevance</div>
+                </div>
+                <div class="intel-stat-card warning">
+                    <div class="stat-value" id="intel-endorsements">0</div>
+                    <div class="stat-label">Endorsements</div>
+                </div>
+                <div class="intel-stat-card">
+                    <div class="stat-value" id="intel-avg-score">0</div>
+                    <div class="stat-label">Avg Relevance</div>
+                </div>
+                <div class="intel-stat-card">
+                    <div class="stat-value" id="intel-positive">0</div>
+                    <div class="stat-label">Positive</div>
+                </div>
+                <div class="intel-stat-card danger">
+                    <div class="stat-value" id="intel-negative">0</div>
+                    <div class="stat-label">Negative</div>
+                </div>
+            </div>
+
+            <!-- Endorsement Alerts -->
+            <div class="endorsement-alerts" id="endorsement-alerts" style="display: none;">
+                <h3>&#9888; Endorsement Alerts</h3>
+                <div id="endorsement-items"></div>
+            </div>
+
+            <!-- Add Article Toggle -->
+            <div class="card" style="margin-bottom: 16px;">
+                <div class="card-header" style="cursor: pointer;" onclick="document.getElementById('add-article-form').style.display = document.getElementById('add-article-form').style.display === 'none' ? 'block' : 'none'">
+                    <h2>+ Add Article</h2>
+                </div>
+                <div id="add-article-form" style="display: none;">
+                    <div class="intel-add-form">
+                        <input type="text" id="intel-title" placeholder="Article title *" class="full-width">
+                        <input type="text" id="intel-source" placeholder="Source (e.g. Texas Tribune)">
+                        <input type="text" id="intel-url" placeholder="URL (optional)">
+                        <input type="text" id="intel-district" placeholder="District (e.g. TX-11)">
+                        <select id="intel-category">
+                            <option value="campaign">Campaign</option>
+                            <option value="endorsement">Endorsement</option>
+                            <option value="policy">Policy</option>
+                            <option value="appropriations">Appropriations</option>
+                            <option value="polling">Polling</option>
+                            <option value="scandal">Scandal</option>
+                            <option value="fundraising">Fundraising</option>
+                        </select>
+                        <select id="intel-sentiment">
+                            <option value="neutral">Neutral</option>
+                            <option value="positive">Positive</option>
+                            <option value="negative">Negative</option>
+                            <option value="mixed">Mixed</option>
+                        </select>
+                        <input type="text" id="intel-members" placeholder="Members mentioned (comma-separated)">
+                        <textarea id="intel-summary" placeholder="Summary / key takeaways" class="full-width"></textarea>
+                        <div class="full-width" style="display: flex; gap: 8px;">
+                            <button type="button" class="btn btn-primary" onclick="submitArticle()">Add Article</button>
+                            <button type="button" class="btn" onclick="document.getElementById('add-article-form').style.display='none'" style="background:var(--surface-alt);">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="intel-filters">
+                <select id="intel-filter-district" onchange="loadArticles()">
+                    <option value="">All Districts</option>
+                    <option value="TX-11">TX-11</option>
+                    <option value="TX-19">TX-19</option>
+                    <option value="TX-21">TX-21</option>
+                    <option value="TX-32">TX-32</option>
+                    <option value="TX-35">TX-35</option>
+                    <option value="TX-38">TX-38</option>
+                </select>
+                <select id="intel-filter-category" onchange="loadArticles()">
+                    <option value="">All Categories</option>
+                    <option value="campaign">Campaign</option>
+                    <option value="endorsement">Endorsement</option>
+                    <option value="policy">Policy</option>
+                    <option value="appropriations">Appropriations</option>
+                    <option value="polling">Polling</option>
+                    <option value="scandal">Scandal</option>
+                    <option value="fundraising">Fundraising</option>
+                </select>
+                <select id="intel-filter-sentiment" onchange="loadArticles()">
+                    <option value="">All Sentiment</option>
+                    <option value="positive">Positive</option>
+                    <option value="negative">Negative</option>
+                    <option value="neutral">Neutral</option>
+                    <option value="mixed">Mixed</option>
+                </select>
+                <select id="intel-filter-relevance" onchange="loadArticles()">
+                    <option value="">Any Relevance</option>
+                    <option value="3">Score 3+</option>
+                    <option value="5">Score 5+ (High)</option>
+                    <option value="7">Score 7+ (Very High)</option>
+                </select>
+                <label style="display:flex;align-items:center;gap:4px;font-size:0.8rem;cursor:pointer;">
+                    <input type="checkbox" id="intel-filter-endorsements" onchange="loadArticles()"> Endorsements only
+                </label>
+            </div>
+
+            <!-- Article Feed -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>Article Feed <span id="intel-feed-count" style="font-weight:400;color:var(--text-muted);font-size:0.85rem;"></span></h2>
+                </div>
+                <div class="card-body">
+                    <div class="article-feed" id="article-feed">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">&#128240;</div>
+                            <p>No articles yet. Add your first article above.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </main>
 
     <!-- Edit Modal -->
@@ -1503,6 +1632,186 @@
         tr.clickable:hover {
             background: var(--surface-alt);
         }
+
+        /* Intelligence Panel */
+        .intel-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .intel-stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            text-align: center;
+        }
+        .intel-stat-card .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        .intel-stat-card .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .intel-stat-card.highlight {
+            border-color: var(--accent);
+            background: rgba(5, 150, 105, 0.04);
+        }
+        .intel-stat-card.highlight .stat-value { color: var(--accent); }
+        .intel-stat-card.warning { border-color: #f59e0b; }
+        .intel-stat-card.warning .stat-value { color: #f59e0b; }
+        .intel-stat-card.danger { border-color: var(--danger); }
+        .intel-stat-card.danger .stat-value { color: var(--danger); }
+
+        .intel-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 16px;
+            padding: 12px 16px;
+            background: var(--surface-alt);
+            border-radius: var(--radius-md);
+            align-items: center;
+        }
+        .intel-filters select, .intel-filters input {
+            padding: 6px 10px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--surface);
+            color: var(--text-primary);
+            font-size: 0.8rem;
+        }
+
+        .endorsement-alerts {
+            border: 2px solid #f59e0b;
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            margin-bottom: 20px;
+            background: rgba(245, 158, 11, 0.04);
+        }
+        .endorsement-alerts h3 {
+            color: #f59e0b;
+            margin: 0 0 12px 0;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .endorsement-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            margin-bottom: 8px;
+        }
+        .endorsement-item:last-child { margin-bottom: 0; }
+        .endorsement-item .endorse-title {
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        .endorsement-item .endorse-meta {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        .endorsement-item .endorse-score {
+            background: #f59e0b;
+            color: #fff;
+            padding: 2px 10px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .article-feed {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .article-card {
+            padding: 14px 16px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            background: var(--surface);
+            transition: border-color 0.2s;
+        }
+        .article-card:hover { border-color: var(--primary); }
+        .article-card.high-rel { border-left: 4px solid var(--accent); }
+        .article-card .article-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 6px;
+        }
+        .article-card .article-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            flex: 1;
+            margin-right: 12px;
+        }
+        .article-card .article-title a {
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+        .article-card .article-title a:hover { color: var(--primary); }
+        .article-card .article-summary {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .article-card .article-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            font-size: 0.7rem;
+        }
+        .article-card .article-meta .badge { font-size: 0.65rem; }
+        .rel-score {
+            background: var(--primary);
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+        .rel-score.low { background: var(--text-muted); }
+        .rel-score.med { background: #3b82f6; }
+        .rel-score.high { background: var(--accent); }
+
+        .intel-add-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 16px;
+            padding: 16px;
+            background: var(--surface-alt);
+            border-radius: var(--radius-md);
+        }
+        .intel-add-form .full-width { grid-column: 1 / -1; }
+        .intel-add-form input, .intel-add-form select, .intel-add-form textarea {
+            padding: 8px 10px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--surface);
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .intel-add-form textarea { resize: vertical; min-height: 60px; }
     </style>
 
     <div class="toast-container" id="toast-container"></div>
@@ -1568,6 +1877,7 @@
             if (panelId === 'dashboard') loadDashboard();
             if (panelId === 'requests') loadRequests();
             if (panelId === 'accounts') loadAccounts();
+            if (panelId === 'intelligence') loadIntelligence();
         }
 
         document.querySelectorAll('.type-tab').forEach(tab => {
@@ -2160,6 +2470,150 @@
 
         loadDashboard();
         loadAccounts();
+
+        // === Intelligence Panel Functions ===
+        async function loadIntelligence() {
+            await Promise.all([loadIntelSummary(), loadArticles()]);
+        }
+
+        async function loadIntelSummary() {
+            try {
+                const response = await fetchRetry(`${API_BASE}/api/intelligence/summary`);
+                const data = await response.json();
+                document.getElementById('intel-total').textContent = data.total_articles;
+                document.getElementById('intel-high-rel').textContent = data.high_relevance_count;
+                document.getElementById('intel-endorsements').textContent = data.endorsement_count;
+                document.getElementById('intel-avg-score').textContent = data.avg_relevance;
+                document.getElementById('intel-positive').textContent = data.by_sentiment?.positive || 0;
+                document.getElementById('intel-negative').textContent = data.by_sentiment?.negative || 0;
+
+                // Endorsement alerts
+                const alertsDiv = document.getElementById('endorsement-alerts');
+                const itemsDiv = document.getElementById('endorsement-items');
+                if (data.recent_endorsements && data.recent_endorsements.length > 0) {
+                    alertsDiv.style.display = 'block';
+                    itemsDiv.innerHTML = data.recent_endorsements.map(e => `
+                        <div class="endorsement-item">
+                            <div>
+                                <div class="endorse-title">${e.title}</div>
+                                <div class="endorse-meta">${e.source} ${e.district ? '| ' + e.district : ''} ${e.mentioned_members ? '| ' + e.mentioned_members : ''} ${e.published_at ? '| ' + new Date(e.published_at).toLocaleDateString() : ''}</div>
+                            </div>
+                            <div class="endorse-score">REL ${e.relevance_score}</div>
+                        </div>
+                    `).join('');
+                } else {
+                    alertsDiv.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Intel summary error:', error);
+            }
+        }
+
+        async function loadArticles() {
+            try {
+                const district = document.getElementById('intel-filter-district').value;
+                const category = document.getElementById('intel-filter-category').value;
+                const sentiment = document.getElementById('intel-filter-sentiment').value;
+                const minRel = document.getElementById('intel-filter-relevance').value;
+                const endorseOnly = document.getElementById('intel-filter-endorsements').checked;
+
+                let url = `${API_BASE}/api/intelligence/articles?limit=50`;
+                if (district) url += `&district=${district}`;
+                if (category) url += `&category=${category}`;
+                if (sentiment) url += `&sentiment=${sentiment}`;
+                if (minRel) url += `&min_relevance=${minRel}`;
+                if (endorseOnly) url += `&endorsements_only=true`;
+
+                const response = await fetchRetry(url);
+                const data = await response.json();
+                const feed = document.getElementById('article-feed');
+                document.getElementById('intel-feed-count').textContent = `(${data.total} articles)`;
+
+                if (data.items.length === 0) {
+                    feed.innerHTML = '<div class="empty-state"><div class="empty-state-icon">&#128240;</div><p>No articles match your filters. Add articles above or adjust filters.</p></div>';
+                    return;
+                }
+
+                feed.innerHTML = data.items.map(renderArticleCard).join('');
+            } catch (error) {
+                console.error('Articles load error:', error);
+                showToast('Failed to load articles', 'error');
+            }
+        }
+
+        function renderArticleCard(a) {
+            const scoreClass = a.relevance_score >= 7 ? 'high' : a.relevance_score >= 4 ? 'med' : 'low';
+            const highRel = a.relevance_score >= 5 ? 'high-rel' : '';
+            const sentColors = { positive: 'var(--accent)', negative: 'var(--danger)', neutral: 'var(--text-muted)', mixed: '#f59e0b' };
+            const catColors = { endorsement: '#f59e0b', appropriations: 'var(--primary)', policy: 'var(--secondary)', campaign: '#6366f1', polling: '#8b5cf6', scandal: 'var(--danger)', fundraising: 'var(--accent)' };
+            const flags = a.relevance_flags || [];
+            const pubDate = a.published_at ? new Date(a.published_at).toLocaleDateString() : '';
+
+            return `
+                <div class="article-card ${highRel}">
+                    <div class="article-header">
+                        <div class="article-title">${a.url ? `<a href="${a.url}" target="_blank" rel="noopener">${a.title}</a>` : a.title}</div>
+                        <span class="rel-score ${scoreClass}">REL ${a.relevance_score}</span>
+                    </div>
+                    ${a.summary ? `<div class="article-summary">${a.summary}</div>` : ''}
+                    <div class="article-meta">
+                        <span style="color:var(--text-muted)">${a.source}</span>
+                        ${pubDate ? `<span style="color:var(--text-muted)">${pubDate}</span>` : ''}
+                        ${a.district ? `<span class="badge" style="background:rgba(12,74,110,0.1);color:var(--secondary)">${a.district}</span>` : ''}
+                        <span class="badge" style="background:${catColors[a.category] || 'var(--text-muted)'}20;color:${catColors[a.category] || 'var(--text-muted)'}">${a.category}</span>
+                        <span style="color:${sentColors[a.sentiment] || 'var(--text-muted)'};font-weight:600">${a.sentiment}</span>
+                        ${a.is_endorsement ? '<span class="badge" style="background:#f59e0b20;color:#f59e0b;font-weight:700">ENDORSEMENT</span>' : ''}
+                        ${flags.slice(0, 2).map(f => `<span style="color:var(--text-muted);font-style:italic">${f}</span>`).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        async function submitArticle() {
+            const title = document.getElementById('intel-title').value.trim();
+            const source = document.getElementById('intel-source').value.trim();
+            if (!title || !source) {
+                showToast('Title and source are required', 'error');
+                return;
+            }
+
+            const data = {
+                title,
+                source,
+                url: document.getElementById('intel-url').value.trim() || null,
+                district: document.getElementById('intel-district').value.trim().toUpperCase() || null,
+                category: document.getElementById('intel-category').value,
+                sentiment: document.getElementById('intel-sentiment').value,
+                summary: document.getElementById('intel-summary').value.trim() || null,
+                mentioned_members: document.getElementById('intel-members').value.trim() || null,
+                published_at: new Date().toISOString(),
+            };
+
+            try {
+                const response = await fetchRetry(`${API_BASE}/api/intelligence/articles`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data),
+                });
+                if (!response.ok) {
+                    const err = await response.json().catch(() => ({}));
+                    throw new Error(err.detail || 'Failed to add article');
+                }
+                const result = await response.json();
+                showToast(`Article added (relevance: ${result.relevance_score})`, 'success');
+                // Clear form
+                document.getElementById('intel-title').value = '';
+                document.getElementById('intel-source').value = '';
+                document.getElementById('intel-url').value = '';
+                document.getElementById('intel-district').value = '';
+                document.getElementById('intel-summary').value = '';
+                document.getElementById('intel-members').value = '';
+                document.getElementById('add-article-form').style.display = 'none';
+                loadIntelligence();
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
 
         // Keep Render awake - ping health endpoint every 2 minutes
         // Render free tier sleeps after 15 min of inactivity; 2-min interval gives plenty of margin
