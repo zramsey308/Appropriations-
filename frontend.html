@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TX-11 FY27 Appropriations Tracker</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         * {
             margin: 0;
@@ -759,6 +761,157 @@
             .form-grid { grid-template-columns: 1fr; }
             .nav { flex-wrap: wrap; }
         }
+
+        /* CPF Project Cards - Drag & Reorder */
+        .cpf-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.15s ease, box-shadow 0.15s ease;
+            cursor: grab;
+            user-select: none;
+        }
+        .cpf-item:last-child { border-bottom: none; }
+        .cpf-item:hover { background: var(--surface-alt); }
+        .cpf-item.dragging {
+            background: rgba(217, 119, 6, 0.06);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            opacity: 0.9;
+        }
+        .cpf-item.drag-over {
+            border-top: 2px solid var(--primary);
+        }
+        .cpf-drag-handle {
+            color: var(--text-muted);
+            font-size: 1.25rem;
+            cursor: grab;
+            flex-shrink: 0;
+            width: 24px;
+            text-align: center;
+        }
+        .cpf-priority-num {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--dark);
+            color: white;
+            font-size: 0.8rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .cpf-item-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .cpf-item-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .cpf-item-org {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+        .cpf-item-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+        .cpf-item-amount {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            white-space: nowrap;
+        }
+        .cpf-item-sub {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 12px;
+            background: rgba(12, 74, 110, 0.1);
+            color: var(--secondary);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .cpf-item-actions {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .cpf-item-btn {
+            width: 32px;
+            height: 32px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            transition: all 0.15s ease;
+        }
+        .cpf-item-btn:hover {
+            background: var(--surface-alt);
+            border-color: var(--border-dark);
+            color: var(--text-primary);
+        }
+        .cpf-item-btn.delete:hover {
+            background: rgba(220, 38, 38, 0.08);
+            border-color: rgba(220, 38, 38, 0.3);
+            color: var(--danger);
+        }
+
+        /* Subcommittee funding cards */
+        .sub-funding-card {
+            background: var(--surface-alt);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .sub-funding-card .sub-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .sub-funding-card .sub-count {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+        .sub-funding-card .sub-amount {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+        }
+        .sub-funding-bar {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        .sub-funding-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light) 100%);
+            border-radius: 2px;
+            transition: width 0.5s ease;
+        }
     </style>
 </head>
 <body>
@@ -780,6 +933,8 @@
     <div class="nav-container">
         <nav class="nav">
             <button class="nav-btn active" data-panel="dashboard">Dashboard</button>
+            <button class="nav-btn" data-panel="cpf-projects">CPF Projects</button>
+            <button class="nav-btn" data-panel="tx11-map">TX-11 Map</button>
             <button class="nav-btn" data-panel="upload-docs">Upload Docs</button>
             <button class="nav-btn" data-panel="new-request">New Request</button>
             <button class="nav-btn" data-panel="requests">All Requests</button>
@@ -910,6 +1065,74 @@
                     <div class="stat-content">
                         <div class="stat-value" id="stat-amount" style="font-size: 1.5rem;">$0</div>
                         <div class="stat-label">Total Funding Requested</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Funding by Subcommittee -->
+            <div class="card" style="margin-top: 1.25rem;">
+                <div class="card-header">
+                    <h2>Funding Requested by Subcommittee</h2>
+                </div>
+                <div class="card-body">
+                    <div id="subcommittee-funding" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;">
+                        <div class="empty-state">Loading...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CPF Projects Panel -->
+        <div id="cpf-projects" class="panel">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Community Funded Projects</h2>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <span id="cpf-count-badge" class="badge badge-cpf" style="font-size: 0.8rem;">0 projects</span>
+                        <span id="cpf-slots-badge" class="badge badge-draft" style="font-size: 0.8rem;">15 slots remaining</span>
+                    </div>
+                </div>
+                <div class="card-body" style="padding: 0;">
+                    <div id="cpf-project-list" style="min-height: 200px;">
+                        <div class="empty-state" style="padding: 3rem;">Loading CPF projects...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TX-11 Map Panel -->
+        <div id="tx11-map" class="panel">
+            <div class="card">
+                <div class="card-header">
+                    <h2>TX-11 District Map</h2>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <span id="map-count-badge" class="badge badge-cpf" style="font-size: 0.8rem;">0 locations</span>
+                    </div>
+                </div>
+                <div class="card-body" style="padding: 0;">
+                    <div id="tx11-map-container" style="height: 600px; width: 100%; border-radius: 0 0 var(--radius-xl) var(--radius-xl); overflow: hidden;"></div>
+                </div>
+            </div>
+            <div class="card" style="margin-top: 1.25rem;">
+                <div class="card-header">
+                    <h2>Project Locations</h2>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Project</th>
+                                    <th>Organization</th>
+                                    <th>Location</th>
+                                    <th>Amount</th>
+                                    <th>Subcommittee</th>
+                                </tr>
+                            </thead>
+                            <tbody id="map-locations-list">
+                                <tr><td colspan="5" class="empty-state">Loading locations...</td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -1590,6 +1813,8 @@ Description: Expand engineering research facilities.' style="width: 100%; border
             if (panelId === 'dashboard') loadDashboard();
             if (panelId === 'requests') loadRequests();
             if (panelId === 'accounts') loadAccounts();
+            if (panelId === 'cpf-projects') loadCpfProjects();
+            if (panelId === 'tx11-map') loadTx11Map();
         }
 
         document.querySelectorAll('.type-tab').forEach(tab => {
@@ -1850,6 +2075,7 @@ Description: Expand engineering research facilities.' style="width: 100%; border
                 document.getElementById('stat-language').textContent = data.by_type?.language || 0;
                 document.getElementById('stat-ndaa').textContent = data.by_type?.ndaa || 0;
                 document.getElementById('stat-amount').textContent = formatCurrency(data.total_requested_amount);
+                renderSubcommitteeFunding(data.amount_by_subcommittee || {}, data.by_subcommittee || {});
                 loadRecentRequests();
             } catch (error) {
                 console.error('Dashboard load error:', error);
@@ -2405,6 +2631,348 @@ Description: Expand engineering research facilities.' style="width: 100%; border
                 document.getElementById('file-input').click();
             }
         });
+
+        // ── Subcommittee Funding Chart ─────────────────────────────
+        function renderSubcommitteeFunding(amountBySub, countBySub) {
+            const container = document.getElementById('subcommittee-funding');
+            const entries = Object.entries(amountBySub).sort((a, b) => b[1] - a[1]);
+            if (entries.length === 0) {
+                container.innerHTML = '<div class="empty-state">No funding data yet. Import requests to see breakdowns.</div>';
+                return;
+            }
+            const maxAmount = Math.max(...entries.map(e => e[1]));
+            container.innerHTML = entries.map(([sub, amount]) => {
+                const count = countBySub[sub] || 0;
+                const pct = maxAmount > 0 ? (amount / maxAmount * 100) : 0;
+                return `
+                    <div class="sub-funding-card">
+                        <div style="flex:1;">
+                            <div class="sub-name">${formatSubcommittee(sub)}</div>
+                            <div class="sub-count">${count} request${count !== 1 ? 's' : ''}</div>
+                            <div class="sub-funding-bar">
+                                <div class="sub-funding-bar-fill" style="width: ${pct}%;"></div>
+                            </div>
+                        </div>
+                        <div class="sub-amount">${formatCurrency(amount)}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ── CPF Projects Panel (Drag & Reorder) ────────────────────
+        let cpfProjectsData = [];
+
+        async function loadCpfProjects() {
+            try {
+                const response = await fetch(`${API_BASE}/api/requests?type=cpf&limit=500`);
+                const data = await response.json();
+                const requests = data.items || data;
+                // Sort by priority_order (nulls last), then by id
+                cpfProjectsData = [...requests].sort((a, b) => {
+                    const aOrd = a.priority_order != null ? a.priority_order : 99999;
+                    const bOrd = b.priority_order != null ? b.priority_order : 99999;
+                    if (aOrd !== bOrd) return aOrd - bOrd;
+                    return a.id - b.id;
+                });
+                renderCpfProjects();
+                // Update badges
+                document.getElementById('cpf-count-badge').textContent = `${cpfProjectsData.length} project${cpfProjectsData.length !== 1 ? 's' : ''}`;
+            } catch (error) {
+                document.getElementById('cpf-project-list').innerHTML =
+                    '<div class="empty-state" style="padding: 3rem;">Failed to load CPF projects</div>';
+            }
+        }
+
+        function renderCpfProjects() {
+            const container = document.getElementById('cpf-project-list');
+            if (cpfProjectsData.length === 0) {
+                container.innerHTML = '<div class="empty-state" style="padding: 3rem;">No CPF projects yet. Upload or create CPF requests to see them here.</div>';
+                return;
+            }
+            container.innerHTML = cpfProjectsData.map((r, idx) => `
+                <div class="cpf-item" draggable="true" data-id="${r.id}" data-idx="${idx}">
+                    <div class="cpf-drag-handle" title="Drag to reorder">&#9776;</div>
+                    <div class="cpf-priority-num">${idx + 1}</div>
+                    <div class="cpf-item-info">
+                        <div class="cpf-item-title">${r.title}</div>
+                        <div class="cpf-item-org">${r.requester_organization || r.requester_name || 'Unknown'}</div>
+                    </div>
+                    <div class="cpf-item-meta">
+                        <div class="cpf-item-amount">${formatCurrency(r.requested_amount)}</div>
+                        <div class="cpf-item-sub">${formatSubcommittee(r.subcommittee)}</div>
+                        <span class="badge badge-${r.status}" style="font-size: 0.65rem;">${r.status}</span>
+                    </div>
+                    <div class="cpf-item-actions">
+                        <button class="cpf-item-btn" onclick="event.stopPropagation(); openEditModal(${r.id})" title="Edit">&#9998;</button>
+                        <button class="cpf-item-btn delete" onclick="event.stopPropagation(); deleteCpfProject(${r.id})" title="Delete">&#128465;</button>
+                    </div>
+                </div>
+            `).join('');
+            attachDragListeners();
+        }
+
+        function attachDragListeners() {
+            const items = document.querySelectorAll('.cpf-item[draggable]');
+            let dragSrcEl = null;
+
+            items.forEach(item => {
+                item.addEventListener('dragstart', function(e) {
+                    dragSrcEl = this;
+                    this.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/plain', this.dataset.idx);
+                });
+
+                item.addEventListener('dragend', function() {
+                    this.classList.remove('dragging');
+                    document.querySelectorAll('.cpf-item').forEach(i => i.classList.remove('drag-over'));
+                });
+
+                item.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    this.classList.add('drag-over');
+                });
+
+                item.addEventListener('dragleave', function() {
+                    this.classList.remove('drag-over');
+                });
+
+                item.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    this.classList.remove('drag-over');
+                    if (dragSrcEl === this) return;
+
+                    const fromIdx = parseInt(e.dataTransfer.getData('text/plain'));
+                    const toIdx = parseInt(this.dataset.idx);
+
+                    // Reorder the array
+                    const [moved] = cpfProjectsData.splice(fromIdx, 1);
+                    cpfProjectsData.splice(toIdx, 0, moved);
+
+                    // Re-render and save order
+                    renderCpfProjects();
+                    saveCpfOrder();
+                });
+            });
+        }
+
+        async function saveCpfOrder() {
+            const reorderItems = cpfProjectsData.map((r, idx) => ({
+                id: r.id,
+                priority_order: idx + 1
+            }));
+            try {
+                await fetch(`${API_BASE}/api/requests/reorder`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(reorderItems)
+                });
+                // Update local data too
+                cpfProjectsData.forEach((r, idx) => r.priority_order = idx + 1);
+                showToast('Priority order saved', 'success');
+            } catch (error) {
+                showToast('Failed to save order', 'error');
+            }
+        }
+
+        async function deleteCpfProject(id) {
+            if (!confirm('Delete this CPF project? This cannot be undone.')) return;
+            try {
+                const response = await fetch(`${API_BASE}/api/requests/${id}`, { method: 'DELETE' });
+                if (!response.ok) throw new Error('Delete failed');
+                showToast('Project deleted', 'success');
+                loadCpfProjects();
+                loadDashboard();
+            } catch (error) {
+                showToast('Failed to delete project', 'error');
+            }
+        }
+
+        // ── TX-11 Map ──────────────────────────────────────────────
+        let tx11Map = null;
+        let mapMarkers = [];
+
+        // Known TX-11 city coordinates for geocoding fallback
+        const TX11_CITIES = {
+            'midland': [31.9973, -102.0779],
+            'odessa': [31.8457, -102.3676],
+            'san angelo': [31.4638, -100.4370],
+            'big spring': [32.2504, -101.4787],
+            'sweetwater': [32.4710, -100.4059],
+            'snyder': [32.7179, -100.9176],
+            'brownwood': [31.7093, -98.9912],
+            'stephenville': [32.2207, -98.2023],
+            'mineral wells': [32.8084, -98.1128],
+            'granbury': [32.4419, -97.7942],
+            'weatherford': [32.7593, -97.7972],
+            'andrews': [32.3187, -102.5454],
+            'fort stockton': [30.8941, -102.8791],
+            'pecos': [31.4229, -103.4932],
+            'monahans': [31.5943, -102.8927],
+            'crane': [31.3973, -102.3501],
+            'mccamey': [31.1362, -102.2243],
+            'kermit': [31.8579, -103.0927],
+            'stanton': [32.1290, -101.7884],
+            'lamesa': [32.7376, -101.9512],
+            'sonora': [30.5668, -100.6487],
+            'ozona': [30.7132, -101.2001],
+            'abilene': [32.4487, -99.7331],
+            'brownfield': [33.1812, -102.2743],
+            'seminole': [32.7190, -102.6449],
+            'alpine': [30.3585, -103.6610],
+            'marfa': [30.3099, -104.0213],
+            'brady': [31.1351, -99.3351],
+            'mason': [30.7485, -99.2306],
+            'llano': [30.7502, -98.6826],
+            'bell county': [31.0569, -97.5106],
+            'killeen': [31.1171, -97.7278],
+            'temple': [31.0982, -97.3428],
+            'belton': [31.0560, -97.4642],
+            'copperas cove': [31.1238, -97.9031],
+            'harker heights': [31.0838, -97.6595],
+            'arlington': [32.7357, -97.1081],
+            'texas': [31.9686, -99.9018],
+        };
+
+        function geocodeAddress(address) {
+            if (!address) return null;
+            const lower = address.toLowerCase();
+
+            // Try to match known cities
+            for (const [city, coords] of Object.entries(TX11_CITIES)) {
+                if (lower.includes(city)) return coords;
+            }
+
+            // Try to extract a city from common patterns
+            const patterns = [
+                /(?:city of|town of)\s+([a-z\s]+)/i,
+                /([a-z\s]+),?\s*(?:tx|texas)/i,
+                /([a-z\s]+)\s+county/i,
+            ];
+            for (const pat of patterns) {
+                const m = lower.match(pat);
+                if (m) {
+                    const candidate = m[1].trim();
+                    for (const [city, coords] of Object.entries(TX11_CITIES)) {
+                        if (candidate.includes(city) || city.includes(candidate)) return coords;
+                    }
+                }
+            }
+            return null;
+        }
+
+        function geocodeRequest(r) {
+            // Try project_address from CPF details first
+            const cpfAddr = r.cpf_details?.project_address;
+            const entityAddr = r.cpf_details?.entity_address;
+            const orgName = r.requester_organization || '';
+            const title = r.title || '';
+            const desc = r.description || '';
+
+            const coords = geocodeAddress(cpfAddr)
+                || geocodeAddress(entityAddr)
+                || geocodeAddress(orgName)
+                || geocodeAddress(title)
+                || geocodeAddress(desc);
+            return coords;
+        }
+
+        async function loadTx11Map() {
+            // Initialize map if not already done
+            if (!tx11Map) {
+                tx11Map = L.map('tx11-map-container').setView([31.5, -101.0], 7);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap contributors',
+                    maxZoom: 18,
+                }).addTo(tx11Map);
+
+                // Invalidate size after a short delay (panel may not be visible yet)
+                setTimeout(() => tx11Map.invalidateSize(), 200);
+            } else {
+                setTimeout(() => tx11Map.invalidateSize(), 100);
+            }
+
+            // Clear existing markers
+            mapMarkers.forEach(m => tx11Map.removeLayer(m));
+            mapMarkers = [];
+
+            try {
+                const response = await fetch(`${API_BASE}/api/requests?limit=500`);
+                const data = await response.json();
+                const requests = data.items || data;
+
+                let locatedCount = 0;
+                const locationRows = [];
+
+                for (const r of requests) {
+                    const coords = geocodeRequest(r);
+                    if (!coords) continue;
+
+                    locatedCount++;
+                    // Add jitter so overlapping points don't stack exactly
+                    const lat = coords[0] + (Math.random() - 0.5) * 0.02;
+                    const lng = coords[1] + (Math.random() - 0.5) * 0.02;
+
+                    const typeColors = {
+                        cpf: '#d97706',
+                        programmatic: '#059669',
+                        language: '#0c4a6e',
+                        ndaa: '#dc2626'
+                    };
+                    const color = typeColors[r.request_type] || '#6b7280';
+
+                    const marker = L.circleMarker([lat, lng], {
+                        radius: 8,
+                        fillColor: color,
+                        color: '#fff',
+                        weight: 2,
+                        opacity: 1,
+                        fillOpacity: 0.85,
+                    }).addTo(tx11Map);
+
+                    marker.bindPopup(`
+                        <div style="min-width: 200px;">
+                            <strong>${r.title}</strong><br>
+                            <span style="color: #666;">${r.requester_organization || ''}</span><br>
+                            <span style="font-weight: 600;">${formatCurrency(r.requested_amount)}</span><br>
+                            <span style="text-transform: uppercase; font-size: 0.7rem; color: ${color}; font-weight: 700;">${r.request_type}</span>
+                            &middot; ${formatSubcommittee(r.subcommittee)}
+                        </div>
+                    `);
+                    mapMarkers.push(marker);
+
+                    const addrDisplay = r.cpf_details?.project_address || r.cpf_details?.entity_address || r.requester_organization || '-';
+                    locationRows.push(`
+                        <tr class="clickable" onclick="openEditModal(${r.id})">
+                            <td>${r.title}</td>
+                            <td>${r.requester_organization || '-'}</td>
+                            <td>${addrDisplay}</td>
+                            <td class="amount">${formatCurrency(r.requested_amount)}</td>
+                            <td><span class="badge badge-${r.request_type}">${formatSubcommittee(r.subcommittee)}</span></td>
+                        </tr>
+                    `);
+                }
+
+                document.getElementById('map-count-badge').textContent = `${locatedCount} location${locatedCount !== 1 ? 's' : ''}`;
+
+                const locationsTbody = document.getElementById('map-locations-list');
+                if (locationRows.length === 0) {
+                    locationsTbody.innerHTML = '<tr><td colspan="5" class="empty-state">No geocodable locations found. Add project addresses to requests.</td></tr>';
+                } else {
+                    locationsTbody.innerHTML = locationRows.join('');
+                }
+
+                // Fit bounds if we have markers
+                if (mapMarkers.length > 0) {
+                    const group = L.featureGroup(mapMarkers);
+                    tx11Map.fitBounds(group.getBounds().pad(0.1));
+                }
+            } catch (error) {
+                console.error('Map load error:', error);
+                showToast('Failed to load map data', 'error');
+            }
+        }
 
         loadDashboard();
         loadAccounts();

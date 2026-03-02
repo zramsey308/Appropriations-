@@ -128,10 +128,43 @@ _PLACEHOLDER_TEXTS = {
     "",
 }
 
+# Section headers that should never be treated as field values
+_SECTION_HEADERS = {
+    "section 1", "section 2", "section 3", "section 4", "section 5",
+    "section: 1", "section: 2", "section: 3", "section: 4",
+    "section 1 (organization information)",
+    "section: 1 (organization information)",
+    "section: 2 (contact information)",
+    "section 2 (contact information)",
+    "section 3: request details",
+    "section: 3 (request details)",
+    "organization information",
+    "contact information",
+    "request details",
+}
+
 
 def _is_placeholder(text: str) -> bool:
-    """Check if text is a Word form placeholder."""
-    return text.strip().lower() in _PLACEHOLDER_TEXTS
+    """Check if text is a Word form placeholder or section header."""
+    normalized = text.strip().lower()
+    if normalized in _PLACEHOLDER_TEXTS:
+        return True
+    # Check for section headers
+    for header in _SECTION_HEADERS:
+        if normalized == header or normalized.startswith(header + " "):
+            return True
+    return False
+
+
+def _is_section_header(text: str) -> bool:
+    """Check if text is a section header that should not be a field value."""
+    normalized = text.strip().lower()
+    for header in _SECTION_HEADERS:
+        if normalized == header or normalized.startswith(header):
+            return True
+    if re.match(r"^section\s*:?\s*\d", normalized):
+        return True
+    return False
 
 
 def _find_value(lines: list[str], label: str, stop_labels: list[str] = None) -> str:
@@ -400,6 +433,32 @@ def _parse_cpf(lines: list[str], full_text: str) -> dict:
     return fields
 
 
+def _clean_programmatic_field(value: str, max_len: int = 500) -> str:
+    """Clean a programmatic field: remove section headers, placeholders, and truncate."""
+    if not value:
+        return ""
+    cleaned = value.strip()
+    # Remove section header lines
+    cleaned_lines = []
+    for line in cleaned.split("\n"):
+        stripped = line.strip()
+        if _is_section_header(stripped):
+            continue
+        if stripped.lower().startswith("please ") and len(stripped) < 100 and ":" in stripped:
+            continue  # Skip instruction lines like "Please provide a short title..."
+        cleaned_lines.append(stripped)
+    cleaned = "\n".join(cleaned_lines).strip()
+    # Truncate excessively long values (likely a parser bleed-through)
+    if len(cleaned) > max_len:
+        # Try to find a natural break point
+        truncated = cleaned[:max_len]
+        last_period = truncated.rfind(".")
+        if last_period > max_len // 2:
+            truncated = truncated[:last_period + 1]
+        cleaned = truncated
+    return cleaned
+
+
 def _parse_programmatic(lines: list[str], full_text: str) -> dict:
     """Parse a Programmatic/Language request form."""
     fields = {}
@@ -425,11 +484,11 @@ def _parse_programmatic(lines: list[str], full_text: str) -> dict:
     fields["email"] = _find_value(lines, "E-mail Address:")
 
     # Section 3 - Request Details
-    fields["title"] = _find_multiline_value(lines, "short title to your request", ["2)"])
-    fields["priority"] = _find_value(lines, "priority of this request", ["3)"])
-    fields["problem_statement"] = _find_multiline_value(lines, "Problem/Issue Statement", ["4)"])
-    fields["request_description"] = _find_multiline_value(lines, "Request description", ["5)"])
-    fields["goals_outcomes"] = _find_multiline_value(lines, "goals and expected outcomes", ["6)"])
+    fields["title"] = _find_multiline_value(lines, "short title to your request", ["2)", "Please list"])
+    fields["priority"] = _find_value(lines, "priority of this request", ["3)", "Problem"])
+    fields["problem_statement"] = _find_multiline_value(lines, "Problem/Issue Statement", ["4)", "Request description"])
+    fields["request_description"] = _find_multiline_value(lines, "Request description", ["5)", "goals and expected"])
+    fields["goals_outcomes"] = _find_multiline_value(lines, "goals and expected outcomes", ["6)", "Program Name"])
 
     # Programmatic fields
     fields["program_name"] = _find_value(lines, "Program Name and Agency")
@@ -437,13 +496,30 @@ def _parse_programmatic(lines: list[str], full_text: str) -> dict:
     fields["presidents_budget_amount"] = _parse_amount(_find_value(lines, "Amount included in the President"))
 
     # Language fields
-    fields["proposed_language"] = _find_multiline_value(lines, "requesting bill, report", ["8)"])
+    fields["proposed_language"] = _find_multiline_value(lines, "requesting bill, report", ["8)", "appropriations bill"])
 
     # Bill info
     fields["appropriations_bill"] = _find_value(lines, "appropriations bill and section")
     fields["bill_section"] = _find_value(lines, "Section:")
-    fields["other_members"] = _find_multiline_value(lines, "other Representatives or Senators", ["10)"])
+    fields["other_members"] = _find_multiline_value(lines, "other Representatives or Senators", ["10)", "submitted in prior"])
     fields["prior_submissions"] = _find_multiline_value(lines, "submitted in prior years", [])
+
+    # Clean all text fields to remove section headers and truncate excessively long values
+    for key in ["organization_name", "first_name", "last_name", "email",
+                "business_phone", "cell_phone", "phone"]:
+        val = fields.get(key, "")
+        if _is_section_header(val):
+            fields[key] = ""
+        elif len(val) > 255:
+            fields[key] = val[:255]
+
+    fields["title"] = _clean_programmatic_field(fields.get("title", ""), max_len=500)
+    fields["problem_statement"] = _clean_programmatic_field(fields.get("problem_statement", ""), max_len=5000)
+    fields["request_description"] = _clean_programmatic_field(fields.get("request_description", ""), max_len=5000)
+    fields["goals_outcomes"] = _clean_programmatic_field(fields.get("goals_outcomes", ""), max_len=5000)
+    fields["proposed_language"] = _clean_programmatic_field(fields.get("proposed_language", ""), max_len=5000)
+    fields["other_members"] = _clean_programmatic_field(fields.get("other_members", ""), max_len=2000)
+    fields["prior_submissions"] = _clean_programmatic_field(fields.get("prior_submissions", ""), max_len=2000)
 
     return fields
 

@@ -204,20 +204,59 @@ def _create_programmatic_request(fields: dict, db: Session) -> dict:
     subcommittee = map_subcommittee(raw_bill) or "agriculture"
 
     requester_name = " ".join(filter(None, [fields.get("first_name"), fields.get("last_name")]))
+    # Cleanup: reject section-header-like names
+    if requester_name and re.match(r"^section\s*:?\s*\d", requester_name, re.IGNORECASE):
+        requester_name = ""
+
+    # Cleanup title: ensure it's a real title, not the full document
+    title = (fields.get("title") or "").strip()
+    if len(title) > 500 or not title:
+        title = title[:500] if title else ""
+    if not title or re.match(r"^section\s*:?\s*\d", title, re.IGNORECASE):
+        title = fields.get("program_name") or "Programmatic Request"
+
+    # Try to extract requested amount from description text if not already set
+    amount = fields.get("last_fy_amount") or fields.get("presidents_budget_amount")
+    if not amount:
+        # Look for dollar amounts in the description/problem statement
+        desc_text = (fields.get("request_description") or "") + " " + (fields.get("problem_statement") or "")
+        amount_match = re.search(r'\$\s*([\d,]+(?:\.\d+)?)\s*(?:million|M)?', desc_text)
+        if amount_match:
+            raw_num = amount_match.group(1).replace(",", "")
+            try:
+                parsed = float(raw_num)
+                text_after = desc_text[amount_match.end():amount_match.end() + 10].lower()
+                if "million" in text_after or "m" in text_after[:3]:
+                    parsed *= 1_000_000
+                if parsed >= 1000:
+                    amount = int(parsed)
+            except ValueError:
+                pass
+
+    # Clean email/phone — reject section-header-like values
+    email = (fields.get("email") or "").strip()
+    if re.match(r"^section\s*:?\s*\d", email, re.IGNORECASE):
+        email = ""
+    phone = (fields.get("business_phone") or fields.get("cell_phone") or "").strip()
+    if re.match(r"^section\s*:?\s*\d", phone, re.IGNORECASE):
+        phone = ""
+    org = (fields.get("organization_name") or "").strip()
+    if re.match(r"^section\s*:?\s*\d", org, re.IGNORECASE):
+        org = ""
 
     request = Request(
         fiscal_year=2027,
         request_type=request_type,
         subcommittee=subcommittee,
         status="submitted",
-        title=fields.get("title") or "Programmatic Request",
+        title=title,
         description=fields.get("request_description") or fields.get("problem_statement") or "",
         requester_name=requester_name,
-        requester_email=fields.get("email") or "",
-        requester_phone=fields.get("business_phone") or fields.get("cell_phone") or "",
-        requester_organization=fields.get("organization_name") or "",
+        requester_email=email,
+        requester_phone=phone,
+        requester_organization=org,
         program_name=fields.get("program_name") or "",
-        requested_amount=fields.get("last_fy_amount") or fields.get("presidents_budget_amount"),
+        requested_amount=amount,
         programmatic_justification=fields.get("goals_outcomes") or "",
         bill_section=fields.get("bill_section") or "",
         proposed_language=fields.get("proposed_language") or "",
