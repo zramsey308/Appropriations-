@@ -879,6 +879,74 @@
             color: var(--danger);
         }
 
+        /* CPF Expanded Detail Panel */
+        .cpf-detail-panel {
+            display: none;
+            background: var(--surface-alt);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 1.25rem 1rem 5.5rem;
+            animation: cpfSlideDown 0.2s ease;
+        }
+        .cpf-detail-panel.open { display: block; }
+        @keyframes cpfSlideDown {
+            from { opacity: 0; max-height: 0; }
+            to { opacity: 1; max-height: 500px; }
+        }
+        .cpf-detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        @media (max-width: 768px) {
+            .cpf-detail-grid { grid-template-columns: 1fr; }
+            .cpf-detail-panel { padding-left: 1.25rem; }
+        }
+        .cpf-detail-section h4 {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin: 0 0 4px 0;
+            font-weight: 700;
+        }
+        .cpf-detail-section p {
+            font-size: 0.82rem;
+            color: var(--text-primary);
+            margin: 0 0 0.75rem 0;
+            line-height: 1.5;
+        }
+        .cpf-detail-section .detail-badge {
+            display: inline-block;
+            font-size: 0.75rem;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+            margin-right: 6px;
+            margin-bottom: 4px;
+        }
+        .cpf-detail-section .stakeholder-tag {
+            background: rgba(5, 150, 105, 0.1);
+            color: #059669;
+        }
+        .cpf-detail-section .letters-badge {
+            background: rgba(217, 119, 6, 0.1);
+            color: #d97706;
+        }
+        .cpf-item.expanded {
+            background: var(--surface-alt);
+            border-left: 3px solid var(--primary);
+        }
+        .cpf-item .cpf-expand-indicator {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            transition: transform 0.2s ease;
+            flex-shrink: 0;
+            margin-right: 4px;
+        }
+        .cpf-item.expanded .cpf-expand-indicator {
+            transform: rotate(90deg);
+        }
+
         /* Subcommittee funding cards */
         .sub-funding-card {
             background: var(--surface-alt);
@@ -1115,8 +1183,16 @@
                         <span id="map-count-badge" class="badge badge-cpf" style="font-size: 0.8rem;">0 locations</span>
                     </div>
                 </div>
-                <div class="card-body" style="padding: 0;">
+                <div class="card-body" style="padding: 0; position: relative;">
                     <div id="tx11-map-container" style="height: 600px; width: 100%; border-radius: 0 0 var(--radius-xl) var(--radius-xl); overflow: hidden;"></div>
+                    <div id="map-legend" style="position: absolute; bottom: 16px; left: 16px; z-index: 1000; background: rgba(255,255,255,0.95); border-radius: 8px; padding: 10px 14px; font-size: 0.75rem; box-shadow: 0 2px 8px rgba(0,0,0,0.15); line-height: 1.8;">
+                        <div style="font-weight: 700; margin-bottom: 4px; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; color: #555;">Legend</div>
+                        <div><span style="display:inline-block; width:12px; height:12px; border-radius:50%; background:#d97706; margin-right:6px; vertical-align:middle;"></span>CPF</div>
+                        <div><span style="display:inline-block; width:12px; height:12px; border-radius:50%; background:#059669; margin-right:6px; vertical-align:middle;"></span>Programmatic</div>
+                        <div><span style="display:inline-block; width:12px; height:12px; border-radius:50%; background:#0c4a6e; margin-right:6px; vertical-align:middle;"></span>Language</div>
+                        <div><span style="display:inline-block; width:12px; height:12px; border-radius:50%; background:#dc2626; margin-right:6px; vertical-align:middle;"></span>NDAA</div>
+                        <div style="margin-top:4px; border-top: 1px solid #e5e7eb; padding-top: 4px;"><span style="display:inline-block; width:16px; height:2px; border-top: 2.5px dashed #1e3a5f; margin-right:6px; vertical-align:middle;"></span>TX-11 Boundary</div>
+                    </div>
                 </div>
             </div>
             <div class="card" style="margin-top: 1.25rem;">
@@ -2708,13 +2784,25 @@ Description: Expand engineering research facilities.' style="width: 100%; border
                 container.innerHTML = '<div class="empty-state" style="padding: 3rem;">No CPF projects yet. Upload or create CPF requests to see them here.</div>';
                 return;
             }
-            container.innerHTML = cpfProjectsData.map((r, idx) => `
-                <div class="cpf-item" draggable="true" data-id="${r.id}" data-idx="${idx}">
+            container.innerHTML = cpfProjectsData.map((r, idx) => {
+                const cpf = r.cpf_details || {};
+                const stakeholders = cpf.stakeholders_support || '';
+                const stakeholderList = stakeholders ? stakeholders.split(/;\s*/).filter(s => s.trim()) : [];
+                const lettersCount = cpf.support_letters_received || 0;
+                const desc = cpf.project_description || r.description || '';
+                const timeline = cpf.timeline || '';
+                const publicBenefit = cpf.public_benefit_justification || '';
+                const totalCost = cpf.total_project_cost;
+                const projectAddr = cpf.project_address || '';
+
+                return `
+                <div class="cpf-item" draggable="true" data-id="${r.id}" data-idx="${idx}" onclick="toggleCpfDetail(${r.id})">
+                    <span class="cpf-expand-indicator">&#9654;</span>
                     <div class="cpf-drag-handle" title="Drag to reorder">&#9776;</div>
                     <div class="cpf-priority-num">${idx + 1}</div>
                     <div class="cpf-item-info">
                         <div class="cpf-item-title">${r.title}</div>
-                        <div class="cpf-item-org">${r.cpf_details?.entity_name || r.requester_organization || 'Unknown Entity'}${r.cpf_details?.entity_type ? ` <span style="opacity:0.5; font-size:0.7rem;">(${formatEntityType(r.cpf_details.entity_type)})</span>` : ''}</div>
+                        <div class="cpf-item-org">${cpf.entity_name || r.requester_organization || 'Unknown Entity'}${cpf.entity_type ? ` <span style="opacity:0.5; font-size:0.7rem;">(${formatEntityType(cpf.entity_type)})</span>` : ''}</div>
                         ${r.requester_name ? `<div class="cpf-item-contact">POC: ${r.requester_name}</div>` : ''}
                     </div>
                     <div class="cpf-item-meta">
@@ -2727,8 +2815,42 @@ Description: Expand engineering research facilities.' style="width: 100%; border
                         <button class="cpf-item-btn delete" onclick="event.stopPropagation(); deleteCpfProject(${r.id})" title="Delete">&#128465;</button>
                     </div>
                 </div>
-            `).join('');
+                <div class="cpf-detail-panel" id="cpf-detail-${r.id}">
+                    <div class="cpf-detail-grid">
+                        <div class="cpf-detail-section">
+                            <h4>Project Description</h4>
+                            <p>${desc || '<em style="color:var(--text-muted);">No description provided</em>'}</p>
+                            ${projectAddr ? `<h4>Project Location</h4><p>${projectAddr}</p>` : ''}
+                            ${timeline ? `<h4>Timeline</h4><p>${timeline}</p>` : ''}
+                        </div>
+                        <div class="cpf-detail-section">
+                            <h4>Letters of Support</h4>
+                            <p><span class="detail-badge letters-badge">${lettersCount} letter${lettersCount !== 1 ? 's' : ''} received</span></p>
+                            <h4>Stakeholders</h4>
+                            ${stakeholderList.length > 0
+                                ? `<p>${stakeholderList.map(s => `<span class="detail-badge stakeholder-tag">${s.trim()}</span>`).join(' ')}</p>`
+                                : `<p><em style="color:var(--text-muted);">No stakeholders listed</em></p>`}
+                            ${totalCost ? `<h4>Total Project Cost</h4><p>${formatCurrency(totalCost)}</p>` : ''}
+                            ${publicBenefit ? `<h4>Public Benefit</h4><p>${publicBenefit}</p>` : ''}
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
             attachDragListeners();
+        }
+
+        function toggleCpfDetail(id) {
+            const panel = document.getElementById(`cpf-detail-${id}`);
+            const item = document.querySelector(`.cpf-item[data-id="${id}"]`);
+            if (!panel || !item) return;
+            const isOpen = panel.classList.contains('open');
+            // Close all other panels first
+            document.querySelectorAll('.cpf-detail-panel.open').forEach(p => p.classList.remove('open'));
+            document.querySelectorAll('.cpf-item.expanded').forEach(i => i.classList.remove('expanded'));
+            if (!isOpen) {
+                panel.classList.add('open');
+                item.classList.add('expanded');
+            }
         }
 
         function attachDragListeners() {
@@ -2898,6 +3020,39 @@ Description: Expand engineering research facilities.' style="width: 100%; border
             return coords;
         }
 
+        // TX-11 Congressional District boundary (simplified polygon)
+        // Covers: Midland, Ector, Tom Green, Howard, Andrews, Martin, Crane, Upton,
+        // Reagan, Irion, Sterling, Glasscock, Ward, Winkler, Loving, Reeves, Pecos,
+        // Crockett, Schleicher, Sutton, Concho, McCulloch, San Saba, Mills, Brown,
+        // Coleman, Runnels, Coke, Nolan, Mitchell, Scurry, Dawson, Gaines, Terry,
+        // Lynn, Borden, Fisher, Jones, Taylor, Callahan, Eastland, Stephens, Shackelford
+        const TX11_BOUNDARY = {
+            "type": "Feature",
+            "properties": { "district": "TX-11", "name": "Texas 11th Congressional District" },
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [[
+                    [-103.064, 32.959], [-103.064, 32.522], [-103.328, 32.522],
+                    [-103.328, 32.087], [-103.723, 32.087], [-103.723, 31.651],
+                    [-103.980, 31.651], [-103.980, 31.434], [-104.024, 31.174],
+                    [-103.980, 30.856], [-103.723, 30.632], [-103.471, 30.632],
+                    [-103.111, 30.641], [-102.567, 30.750], [-102.340, 30.594],
+                    [-101.767, 30.500], [-101.421, 30.500], [-101.268, 30.364],
+                    [-100.960, 30.290], [-100.700, 30.290], [-100.700, 30.560],
+                    [-100.116, 30.710], [-99.754, 30.942], [-99.600, 31.087],
+                    [-99.200, 31.087], [-99.096, 31.421], [-98.924, 31.709],
+                    [-98.668, 31.891], [-98.564, 32.080], [-98.564, 32.261],
+                    [-98.780, 32.513], [-99.096, 32.737], [-99.096, 32.960],
+                    [-99.600, 32.960], [-99.690, 32.960], [-100.048, 32.960],
+                    [-100.518, 32.960], [-100.821, 32.960], [-101.041, 32.960],
+                    [-101.557, 32.960], [-101.690, 32.960], [-102.076, 32.959],
+                    [-102.211, 32.959], [-102.615, 32.959], [-103.064, 32.959]
+                ]]
+            }
+        };
+
+        let tx11BoundaryLayer = null;
+
         async function loadTx11Map() {
             // Initialize map if not already done
             if (!tx11Map) {
@@ -2906,6 +3061,22 @@ Description: Expand engineering research facilities.' style="width: 100%; border
                     attribution: '&copy; OpenStreetMap contributors',
                     maxZoom: 18,
                 }).addTo(tx11Map);
+
+                // Add district boundary
+                tx11BoundaryLayer = L.geoJSON(TX11_BOUNDARY, {
+                    style: {
+                        color: '#1e3a5f',
+                        weight: 2.5,
+                        opacity: 0.8,
+                        fillColor: '#1e3a5f',
+                        fillOpacity: 0.06,
+                        dashArray: '6, 4',
+                    }
+                }).addTo(tx11Map);
+                tx11BoundaryLayer.bindTooltip('TX-11 District Boundary', {
+                    sticky: true,
+                    className: 'district-tooltip'
+                });
 
                 // Invalidate size after a short delay (panel may not be visible yet)
                 setTimeout(() => tx11Map.invalidateSize(), 200);
