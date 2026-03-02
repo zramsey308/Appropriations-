@@ -37,6 +37,8 @@ If using Supabase manually, your DATABASE_URL (or SUPABASE_DB_URL fallback) will
 postgresql://postgres.[project-ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres
 ```
 
+Note: if your provider gives a `postgres://...` URL, this app normalizes it to `postgresql://...` at runtime.
+
 ---
 
 ## Step 2: Set Up Google Sheets Backup (Optional but Recommended)
