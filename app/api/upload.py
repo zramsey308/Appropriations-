@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.db import get_db
 from app.services.docx_parser import parse_docx, map_subcommittee
-from app.models import Request, CPFDetails, NdaaDetails
+from app.models import Request, CPFDetails, NdaaDetails, EligibleAccount
 
 router = APIRouter()
 
@@ -56,6 +56,24 @@ def _create_cpf_request(fields: dict, db: Session) -> dict:
     """Create a CPF request from parsed fields."""
     subcommittee = map_subcommittee(fields.get("subcommittee", "")) or "agriculture"
 
+    cpf_account_id = None
+    eligible_account_raw = (fields.get("eligible_account") or "").strip().lower()
+    if eligible_account_raw:
+        accounts = db.query(EligibleAccount).filter(EligibleAccount.subcommittee == subcommittee).all()
+        for account in accounts:
+            account_name = (account.account_name or "").lower()
+            agency_name = (account.agency or "").lower()
+            if account_name in eligible_account_raw or eligible_account_raw in account_name:
+                cpf_account_id = account.id
+                break
+            # handle abbreviations commonly present in forms (e.g., STRS)
+            if "strs" in eligible_account_raw and "scientific and technical research and services" in account_name:
+                cpf_account_id = account.id
+                break
+            if agency_name and agency_name in eligible_account_raw:
+                cpf_account_id = account.id
+                break
+
     request = Request(
         fiscal_year=2027,
         request_type="cpf",
@@ -74,6 +92,7 @@ def _create_cpf_request(fields: dict, db: Session) -> dict:
 
     cpf = CPFDetails(
         request_id=request.id,
+        cpf_account_id=cpf_account_id,
         tx11_nexus=True,
         tx11_nexus_explanation=fields.get("tx11_priority") or "",
         entity_type=fields.get("entity_type"),
