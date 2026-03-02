@@ -946,6 +946,39 @@
         .cpf-item.expanded .cpf-expand-indicator {
             transform: rotate(90deg);
         }
+        .support-drop-zone {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            text-align: center;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin: 6px 0;
+        }
+        .support-drop-zone:hover {
+            border-color: var(--primary);
+            background: rgba(217, 119, 6, 0.04);
+        }
+        .support-drop-zone.drag-active {
+            border-color: var(--primary);
+            background: rgba(217, 119, 6, 0.08);
+            color: var(--primary);
+        }
+        .support-file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 4px 8px;
+            font-size: 0.75rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            margin-bottom: 4px;
+        }
+        .support-file-item .file-name { font-weight: 500; color: var(--text-primary); }
+        .support-file-item .file-meta { color: var(--text-muted); font-size: 0.7rem; }
 
         /* Subcommittee funding cards */
         .sub-funding-card {
@@ -1323,6 +1356,41 @@ Description: Expand engineering research facilities.' style="width: 100%; border
                             <button class="btn btn-secondary" type="button" onclick="downloadCpfCsv()">Download CSV</button>
                             <button class="btn btn-secondary" type="button" onclick="document.getElementById('cpf-schema-text').value=''; document.getElementById('cpf-schema-result').style.display='none';">Clear</button>
                             <span id="cpf-schema-spinner" style="display: none; font-size: 0.85rem; color: var(--text-muted);">Processing...</span>
+                        </div>
+                    </div>
+
+                    <!-- Programmatic / Language JSON Upload Section -->
+                    <div style="margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 2rem;">
+                        <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem;">Programmatic / Language JSON Upload</h3>
+                        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
+                            Paste <strong>programmatic or language request JSON</strong> from ChatGPT doc parsing. Accepts a single <code>{&nbsp;}</code> object or an array <code>[&nbsp;]</code> for bulk import.
+                            Auto-detects whether each record is programmatic or language based on fields present.
+                        </p>
+                        <textarea id="prog-lang-schema-text" rows="14" placeholder='Paste ChatGPT programmatic/language JSON here...
+
+{
+  "metadata": { "fiscal_year": 2027, "request_type": "programmatic" },
+  "organization": { "name": "City of Midland" },
+  "point_of_contact": { "name": "John Doe", "email": "jdoe@midlandtx.gov" },
+  "request_details": {
+    "program_name": "Rural Water Infrastructure",
+    "requested_amount": "$2,000,000",
+    "agency": "EPA",
+    "subcommittee": "Interior, Environment"
+  },
+  "justification": { "problem_statement": "...", "goals_outcomes": "..." },
+  "prior_history": { "prior_submissions": "FY26 - similar request" },
+  "other_offices": { "other_members": "Rep. Smith" }
+}
+
+Or for language requests include:
+  "proposed_language": { "text": "SEC. XXX. ..." },
+  "bill_details": { "section": "Title II", "appropriations_bill": "Commerce, Justice, Science" }' style="width: 100%; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.75rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.82rem; color: var(--text-primary); background: var(--surface); resize: vertical;"></textarea>
+                        <div id="prog-lang-schema-result" style="display: none; margin-top: 0.75rem; padding: 0.75rem; border-radius: var(--radius-md); font-size: 0.85rem;"></div>
+                        <div style="margin-top: 0.75rem; display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+                            <button class="btn btn-accent" type="button" onclick="submitProgLangSchema()">Import to DB</button>
+                            <button class="btn btn-secondary" type="button" onclick="document.getElementById('prog-lang-schema-text').value=''; document.getElementById('prog-lang-schema-result').style.display='none';">Clear</button>
+                            <span id="prog-lang-schema-spinner" style="display: none; font-size: 0.85rem; color: var(--text-muted);">Processing...</span>
                         </div>
                     </div>
                 </div>
@@ -1930,6 +1998,27 @@ Description: Expand engineering research facilities.' style="width: 100%; border
             return formatCurrency(amount);
         }
 
+        const SUBCOMMITTEE_COLORS = {
+            agriculture: { bg: 'rgba(34,139,34,0.12)', color: '#228b22' },
+            commerce_justice_science: { bg: 'rgba(70,130,180,0.12)', color: '#4682b4' },
+            defense: { bg: 'rgba(139,0,0,0.12)', color: '#8b0000' },
+            energy_water: { bg: 'rgba(218,165,32,0.12)', color: '#b8860b' },
+            financial_services: { bg: 'rgba(75,0,130,0.12)', color: '#4b0082' },
+            financial_services_general_government: { bg: 'rgba(75,0,130,0.12)', color: '#4b0082' },
+            homeland_security: { bg: 'rgba(0,0,128,0.12)', color: '#000080' },
+            interior_environment: { bg: 'rgba(34,139,34,0.12)', color: '#2e8b57' },
+            labor_hhs_education: { bg: 'rgba(220,20,60,0.12)', color: '#dc143c' },
+            legislative_branch: { bg: 'rgba(105,105,105,0.12)', color: '#696969' },
+            milcon_va: { bg: 'rgba(128,0,0,0.12)', color: '#800000' },
+            state_foreign_operations: { bg: 'rgba(0,128,128,0.12)', color: '#008080' },
+            transportation_hud: { bg: 'rgba(255,140,0,0.12)', color: '#e07000' },
+        };
+
+        function subcommitteeStyle(sub) {
+            const c = SUBCOMMITTEE_COLORS[sub] || { bg: 'rgba(107,114,128,0.12)', color: '#6b7280' };
+            return `background:${c.bg}; color:${c.color}; font-weight:600;`;
+        }
+
         function formatSubcommittee(sub) {
             if (!sub) return '-';
             return sub.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
@@ -2024,7 +2113,7 @@ Description: Expand engineering research facilities.' style="width: 100%; border
                     for (const r of result.requests) {
                         html += `<div style="padding: 6px 10px; background: var(--surface-alt); border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">`;
                         html += `<span><strong>#${r.id}</strong> ${r.title}</span>`;
-                        html += `<span><span class="badge badge-${r.request_type}">${r.request_type.toUpperCase()}</span> <span style="color: var(--text-muted); font-size: 0.8rem;">${formatSubcommittee(r.subcommittee)}</span></span>`;
+                        html += `<span><span class="badge badge-${r.request_type}">${r.request_type.toUpperCase()}</span> <span style="font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; ${subcommitteeStyle(r.subcommittee)}">${formatSubcommittee(r.subcommittee)}</span></span>`;
                         html += `</div>`;
                     }
                     html += '</div>';
@@ -2089,7 +2178,7 @@ Description: Expand engineering research facilities.' style="width: 100%; border
                         const amountStr = r.amount ? `$${r.amount.toLocaleString()}` : '';
                         html += `<div style="padding: 6px 10px; background: var(--surface-alt); border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">`;
                         html += `<span><strong>#${r.id}</strong> ${r.title}</span>`;
-                        html += `<span>${amountStr ? `<span style="color: var(--text-muted); font-size: 0.8rem; margin-right: 8px;">${amountStr}</span>` : ''}<span class="badge badge-cpf">CPF</span> <span style="color: var(--text-muted); font-size: 0.8rem;">${formatSubcommittee(r.subcommittee)}</span></span>`;
+                        html += `<span>${amountStr ? `<span style="color: var(--text-muted); font-size: 0.8rem; margin-right: 8px;">${amountStr}</span>` : ''}<span class="badge badge-cpf">CPF</span> <span style="font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; ${subcommitteeStyle(r.subcommittee)}">${formatSubcommittee(r.subcommittee)}</span></span>`;
                         html += `</div>`;
                     }
                     html += '</div>';
@@ -2105,6 +2194,71 @@ Description: Expand engineering research facilities.' style="width: 100%; border
                 if (result.created > 0) {
                     showToast(`Imported ${result.created} CPF request(s)`, 'success');
                     document.getElementById('cpf-schema-text').value = '';
+                    await loadDashboard();
+                    await loadRequests();
+                }
+            } catch (error) {
+                showToast(error.message, 'error');
+            } finally {
+                spinner.style.display = 'none';
+            }
+        }
+
+        async function submitProgLangSchema() {
+            const raw = document.getElementById('prog-lang-schema-text').value.trim();
+            if (!raw) {
+                showToast('Please paste programmatic/language JSON first.', 'error');
+                return;
+            }
+            let parsed;
+            try {
+                parsed = JSON.parse(raw);
+            } catch (e) {
+                showToast('Invalid JSON. Please paste a valid JSON object or array.', 'error');
+                return;
+            }
+
+            const spinner = document.getElementById('prog-lang-schema-spinner');
+            const resultDiv = document.getElementById('prog-lang-schema-result');
+            spinner.style.display = 'inline';
+            resultDiv.style.display = 'none';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/upload/programmatic-json`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(parsed)
+                });
+                if (!response.ok) {
+                    const error = await response.json().catch(() => ({}));
+                    throw new Error(error.detail || 'Failed to import records');
+                }
+                const result = await response.json();
+
+                let html = '';
+                if (result.created > 0) {
+                    html += `<div style="color: var(--accent); font-weight: 600; margin-bottom: 0.5rem;">Created ${result.created} request(s)</div>`;
+                    html += '<div style="display: flex; flex-direction: column; gap: 4px;">';
+                    for (const r of result.requests) {
+                        const amountStr = r.amount ? `$${r.amount.toLocaleString()}` : '';
+                        html += `<div style="padding: 6px 10px; background: var(--surface-alt); border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">`;
+                        html += `<span><strong>#${r.id}</strong> ${r.title}</span>`;
+                        html += `<span>${amountStr ? `<span style="color: var(--text-muted); font-size: 0.8rem; margin-right: 8px;">${amountStr}</span>` : ''}<span class="badge badge-${r.request_type}">${r.request_type.toUpperCase()}</span> <span style="font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; ${subcommitteeStyle(r.subcommittee)}">${formatSubcommittee(r.subcommittee)}</span></span>`;
+                        html += `</div>`;
+                    }
+                    html += '</div>';
+                }
+                if (result.errors.length > 0) {
+                    html += `<div style="color: var(--danger); margin-top: 0.5rem;">${result.errors.join('<br>')}</div>`;
+                }
+                resultDiv.innerHTML = html;
+                resultDiv.style.display = 'block';
+                resultDiv.style.background = result.created > 0 ? 'rgba(5,150,105,0.05)' : 'rgba(220,38,38,0.05)';
+                resultDiv.style.border = `1px solid ${result.created > 0 ? 'rgba(5,150,105,0.2)' : 'rgba(220,38,38,0.2)'}`;
+
+                if (result.created > 0) {
+                    showToast(`Imported ${result.created} request(s)`, 'success');
+                    document.getElementById('prog-lang-schema-text').value = '';
                     await loadDashboard();
                     await loadRequests();
                 }
@@ -2193,7 +2347,7 @@ Description: Expand engineering research facilities.' style="width: 100%; border
                         <td><strong>#${r.id}</strong></td>
                         <td>${r.title}</td>
                         <td><span class="badge badge-${r.request_type}">${r.request_type.toUpperCase()}</span></td>
-                        <td>${formatSubcommittee(r.subcommittee)}</td>
+                        <td><span style="font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; ${subcommitteeStyle(r.subcommittee)}">${formatSubcommittee(r.subcommittee)}</span></td>
                         <td class="amount">${formatCurrency(r.requested_amount)}</td>
                         <td><span class="badge badge-${r.status}">${r.status}</span></td>
                     </tr>
@@ -2239,7 +2393,7 @@ Description: Expand engineering research facilities.' style="width: 100%; border
                         <td><strong>#${r.id}</strong></td>
                         <td>${r.title}</td>
                         <td><span class="badge badge-${r.request_type}">${r.request_type.toUpperCase()}</span></td>
-                        <td>${formatSubcommittee(r.subcommittee)}</td>
+                        <td><span style="font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; ${subcommitteeStyle(r.subcommittee)}">${formatSubcommittee(r.subcommittee)}</span></td>
                         <td>${r.requester_name || '-'}</td>
                         <td class="amount">${formatCurrency(r.requested_amount)}</td>
                         <td><span class="badge badge-${r.status}">${r.status}</span></td>
@@ -2515,7 +2669,7 @@ Description: Expand engineering research facilities.' style="width: 100%; border
                 tbody.innerHTML = accounts.map(a => `
                     <tr>
                         <td>${a.id}</td>
-                        <td>${formatSubcommittee(a.subcommittee)}</td>
+                        <td><span style="font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; ${subcommitteeStyle(a.subcommittee)}">${formatSubcommittee(a.subcommittee)}</span></td>
                         <td>${a.agency}</td>
                         <td>${a.account_name}</td>
                         <td>${a.subcategory || '-'}</td>
@@ -2742,7 +2896,7 @@ Description: Expand engineering research facilities.' style="width: 100%; border
                 return `
                     <div class="sub-funding-card">
                         <div style="flex:1;">
-                            <div class="sub-name">${formatSubcommittee(sub)}</div>
+                            <div class="sub-name"><span style="padding: 2px 10px; border-radius: 12px; ${subcommitteeStyle(sub)}">${formatSubcommittee(sub)}</span></div>
                             <div class="sub-count">${count} request${count !== 1 ? 's' : ''}</div>
                             <div class="sub-funding-bar">
                                 <div class="sub-funding-bar-fill" style="width: ${pct}%;"></div>
@@ -2807,7 +2961,7 @@ Description: Expand engineering research facilities.' style="width: 100%; border
                     </div>
                     <div class="cpf-item-meta">
                         <div class="cpf-item-amount">${formatCurrency(r.requested_amount)}</div>
-                        <div class="cpf-item-sub">${formatSubcommittee(r.subcommittee)}</div>
+                        <div class="cpf-item-sub" style="${subcommitteeStyle(r.subcommittee)}">${formatSubcommittee(r.subcommittee)}</div>
                         <span class="badge badge-${r.status}" style="font-size: 0.65rem;">${r.status}</span>
                     </div>
                     <div class="cpf-item-actions">
@@ -2826,6 +2980,18 @@ Description: Expand engineering research facilities.' style="width: 100%; border
                         <div class="cpf-detail-section">
                             <h4>Letters of Support</h4>
                             <p><span class="detail-badge letters-badge">${lettersCount} letter${lettersCount !== 1 ? 's' : ''} received</span></p>
+                            <div class="support-drop-zone" id="support-drop-${r.id}"
+                                ondrop="handleSupportDrop(event, ${r.id})"
+                                ondragover="event.preventDefault(); this.classList.add('drag-active')"
+                                ondragleave="this.classList.remove('drag-active')"
+                                onclick="document.getElementById('support-file-${r.id}').click()">
+                                <input type="file" id="support-file-${r.id}" multiple accept=".pdf,.docx,.doc,.png,.jpg,.jpeg"
+                                    style="display:none" onchange="handleSupportFiles(this.files, ${r.id})">
+                                <div style="font-size:1.25rem; margin-bottom:4px;">&#128206;</div>
+                                <div>Drop support letters here or click to upload</div>
+                                <div style="font-size:0.7rem; color:var(--text-muted); margin-top:2px;">PDF, DOCX, images &mdash; multi-letter docs will be counted separately</div>
+                            </div>
+                            <div id="support-files-list-${r.id}" style="margin-top: 6px;"></div>
                             <h4>Stakeholders</h4>
                             ${stakeholderList.length > 0
                                 ? `<p>${stakeholderList.map(s => `<span class="detail-badge stakeholder-tag">${s.trim()}</span>`).join(' ')}</p>`
@@ -2850,6 +3016,85 @@ Description: Expand engineering research facilities.' style="width: 100%; border
             if (!isOpen) {
                 panel.classList.add('open');
                 item.classList.add('expanded');
+                // Load existing attachments for this request
+                loadSupportLetters(id);
+            }
+        }
+
+        function handleSupportDrop(e, requestId) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-active');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) handleSupportFiles(files, requestId);
+        }
+
+        async function handleSupportFiles(files, requestId) {
+            const listEl = document.getElementById(`support-files-list-${requestId}`);
+            for (const file of files) {
+                // Ask how many letters are in this document
+                let letterCount = 1;
+                const name = file.name.toLowerCase();
+                if (name.endsWith('.pdf') || name.endsWith('.docx') || name.endsWith('.doc')) {
+                    const countStr = prompt(
+                        `"${file.name}" may contain multiple letters of support.\n\nHow many separate letters are in this document?`,
+                        '1'
+                    );
+                    if (countStr === null) continue; // cancelled
+                    letterCount = Math.max(1, parseInt(countStr) || 1);
+                }
+
+                // Upload each "letter" (same file, multiple attachment records)
+                for (let i = 0; i < letterCount; i++) {
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('attachment_type', 'cpf_support_letter');
+
+                    try {
+                        const resp = await fetch(`${API_BASE}/api/requests/${requestId}/attachments`, {
+                            method: 'POST',
+                            body: formData,
+                        });
+                        if (!resp.ok) throw new Error('Upload failed');
+                        const att = await resp.json();
+
+                        // Show uploaded file in the list
+                        const itemDiv = document.createElement('div');
+                        itemDiv.className = 'support-file-item';
+                        itemDiv.innerHTML = `
+                            <span class="file-name">${att.original_filename}${letterCount > 1 ? ` (letter ${i + 1} of ${letterCount})` : ''}</span>
+                            <span class="file-meta">${(att.file_size / 1024).toFixed(0)} KB</span>
+                        `;
+                        listEl.appendChild(itemDiv);
+                    } catch (err) {
+                        showToast(`Failed to upload ${file.name}`, 'error');
+                    }
+                }
+            }
+            // Refresh to update letter counts
+            showToast('Support letters uploaded', 'success');
+            loadCpfProjects();
+        }
+
+        async function loadSupportLetters(requestId) {
+            const listEl = document.getElementById(`support-files-list-${requestId}`);
+            if (!listEl) return;
+            try {
+                const resp = await fetch(`${API_BASE}/api/requests/${requestId}/attachments`);
+                if (!resp.ok) return;
+                const attachments = await resp.json();
+                const letters = attachments.filter(a => a.attachment_type === 'cpf_support_letter');
+                if (letters.length === 0) {
+                    listEl.innerHTML = '';
+                    return;
+                }
+                listEl.innerHTML = letters.map(a => `
+                    <div class="support-file-item">
+                        <span class="file-name">${a.original_filename}</span>
+                        <span class="file-meta">${a.file_size ? (a.file_size / 1024).toFixed(0) + ' KB' : ''}</span>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.warn('Could not load attachments:', err);
             }
         }
 
@@ -3020,38 +3265,39 @@ Description: Expand engineering research facilities.' style="width: 100%; border
             return coords;
         }
 
-        // TX-11 Congressional District boundary (simplified polygon)
-        // Covers: Midland, Ector, Tom Green, Howard, Andrews, Martin, Crane, Upton,
-        // Reagan, Irion, Sterling, Glasscock, Ward, Winkler, Loving, Reeves, Pecos,
-        // Crockett, Schleicher, Sutton, Concho, McCulloch, San Saba, Mills, Brown,
-        // Coleman, Runnels, Coke, Nolan, Mitchell, Scurry, Dawson, Gaines, Terry,
-        // Lynn, Borden, Fisher, Jones, Taylor, Callahan, Eastland, Stephens, Shackelford
-        const TX11_BOUNDARY = {
-            "type": "Feature",
-            "properties": { "district": "TX-11", "name": "Texas 11th Congressional District" },
-            "geometry": {
-                "type": "Polygon",
-                "coordinates": [[
-                    [-103.064, 32.959], [-103.064, 32.522], [-103.328, 32.522],
-                    [-103.328, 32.087], [-103.723, 32.087], [-103.723, 31.651],
-                    [-103.980, 31.651], [-103.980, 31.434], [-104.024, 31.174],
-                    [-103.980, 30.856], [-103.723, 30.632], [-103.471, 30.632],
-                    [-103.111, 30.641], [-102.567, 30.750], [-102.340, 30.594],
-                    [-101.767, 30.500], [-101.421, 30.500], [-101.268, 30.364],
-                    [-100.960, 30.290], [-100.700, 30.290], [-100.700, 30.560],
-                    [-100.116, 30.710], [-99.754, 30.942], [-99.600, 31.087],
-                    [-99.200, 31.087], [-99.096, 31.421], [-98.924, 31.709],
-                    [-98.668, 31.891], [-98.564, 32.080], [-98.564, 32.261],
-                    [-98.780, 32.513], [-99.096, 32.737], [-99.096, 32.960],
-                    [-99.600, 32.960], [-99.690, 32.960], [-100.048, 32.960],
-                    [-100.518, 32.960], [-100.821, 32.960], [-101.041, 32.960],
-                    [-101.557, 32.960], [-101.690, 32.960], [-102.076, 32.959],
-                    [-102.211, 32.959], [-102.615, 32.959], [-103.064, 32.959]
-                ]]
-            }
-        };
-
         let tx11BoundaryLayer = null;
+
+        // Fetch TX-11 boundary from Census Bureau ArcGIS REST API
+        async function loadDistrictBoundary() {
+            if (tx11BoundaryLayer) return; // already loaded
+            const url = 'https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Legislative/MapServer/0/query'
+                + '?where=' + encodeURIComponent("STATE='48' AND BASENAME='11'")
+                + '&outFields=BASENAME,STATE,NAME'
+                + '&f=geojson&outSR=4326&returnGeometry=true';
+            try {
+                const resp = await fetch(url);
+                if (!resp.ok) throw new Error('Census API returned ' + resp.status);
+                const geojson = await resp.json();
+                if (geojson.features && geojson.features.length > 0) {
+                    tx11BoundaryLayer = L.geoJSON(geojson, {
+                        style: {
+                            color: '#1e3a5f',
+                            weight: 2.5,
+                            opacity: 0.8,
+                            fillColor: '#1e3a5f',
+                            fillOpacity: 0.06,
+                            dashArray: '6, 4',
+                        }
+                    }).addTo(tx11Map);
+                    tx11BoundaryLayer.bindTooltip('TX-11 District Boundary', {
+                        sticky: true,
+                        className: 'district-tooltip'
+                    });
+                }
+            } catch (err) {
+                console.warn('Could not load district boundary from Census API:', err);
+            }
+        }
 
         async function loadTx11Map() {
             // Initialize map if not already done
@@ -3062,24 +3308,11 @@ Description: Expand engineering research facilities.' style="width: 100%; border
                     maxZoom: 18,
                 }).addTo(tx11Map);
 
-                // Add district boundary
-                tx11BoundaryLayer = L.geoJSON(TX11_BOUNDARY, {
-                    style: {
-                        color: '#1e3a5f',
-                        weight: 2.5,
-                        opacity: 0.8,
-                        fillColor: '#1e3a5f',
-                        fillOpacity: 0.06,
-                        dashArray: '6, 4',
-                    }
-                }).addTo(tx11Map);
-                tx11BoundaryLayer.bindTooltip('TX-11 District Boundary', {
-                    sticky: true,
-                    className: 'district-tooltip'
-                });
-
                 // Invalidate size after a short delay (panel may not be visible yet)
                 setTimeout(() => tx11Map.invalidateSize(), 200);
+
+                // Load official district boundary from Census Bureau
+                loadDistrictBoundary();
             } else {
                 setTimeout(() => tx11Map.invalidateSize(), 100);
             }
@@ -3128,7 +3361,7 @@ Description: Expand engineering research facilities.' style="width: 100%; border
                             <span style="color: #666;">${r.requester_organization || ''}</span><br>
                             <span style="font-weight: 600;">${formatCurrency(r.requested_amount)}</span><br>
                             <span style="text-transform: uppercase; font-size: 0.7rem; color: ${color}; font-weight: 700;">${r.request_type}</span>
-                            &middot; ${formatSubcommittee(r.subcommittee)}
+                            &middot; <span style="font-size: 0.7rem; padding: 1px 6px; border-radius: 8px; ${subcommitteeStyle(r.subcommittee)}">${formatSubcommittee(r.subcommittee)}</span>
                         </div>
                     `);
                     mapMarkers.push(marker);
@@ -3140,7 +3373,7 @@ Description: Expand engineering research facilities.' style="width: 100%; border
                             <td>${r.requester_organization || '-'}</td>
                             <td>${addrDisplay}</td>
                             <td class="amount">${formatCurrency(r.requested_amount)}</td>
-                            <td><span class="badge badge-${r.request_type}">${formatSubcommittee(r.subcommittee)}</span></td>
+                            <td><span style="font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; ${subcommitteeStyle(r.subcommittee)}">${formatSubcommittee(r.subcommittee)}</span></td>
                         </tr>
                     `);
                 }
