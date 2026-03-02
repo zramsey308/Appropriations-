@@ -1,8 +1,11 @@
+from pydantic import ConfigDict
 from pydantic_settings import BaseSettings
 from typing import Optional
 
 
 class Settings(BaseSettings):
+    model_config = ConfigDict(env_file=".env")
+
     # Database - Supabase PostgreSQL in production, SQLite for local dev
     database_url: str = "sqlite:///./data/appropriations.db"
     attachments_dir: str = "./data/attachments"
@@ -20,9 +23,6 @@ class Settings(BaseSettings):
     @property
     def use_supabase_storage(self) -> bool:
         return bool(self.supabase_url and self.supabase_service_key)
-
-    class Config:
-        env_file = ".env"
 
 
 settings = Settings()

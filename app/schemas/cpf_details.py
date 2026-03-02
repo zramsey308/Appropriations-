@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional, List
 
 from app.models.enums import EntityType
@@ -50,6 +50,8 @@ class CPFDetailsUpdate(CPFDetailsBase):
 
 
 class CPFDetailsResponse(CPFDetailsBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     request_id: int
     support_letters_received: int
@@ -59,9 +61,6 @@ class CPFDetailsResponse(CPFDetailsBase):
     eligible_account: Optional[EligibleAccountResponse] = None
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        from_attributes = True
 
 
 class CPFValidationItem(BaseModel):

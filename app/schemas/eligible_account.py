@@ -1,10 +1,12 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
 
 from app.models.enums import Subcommittee
 
 
 class EligibleAccountResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     subcommittee: Subcommittee
     subcategory: Optional[str] = None
@@ -13,6 +15,3 @@ class EligibleAccountResponse(BaseModel):
     is_new: bool
     notes: Optional[str] = None
     active: bool
-
-    class Config:
-        from_attributes = True
