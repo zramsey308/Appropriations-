@@ -818,8 +818,14 @@
         }
         .cpf-item-org {
             font-size: 0.8rem;
-            color: var(--text-muted);
+            color: var(--text-secondary);
             margin-top: 2px;
+            font-weight: 500;
+        }
+        .cpf-item-contact {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 1px;
         }
         .cpf-item-meta {
             display: flex;
@@ -2695,7 +2701,8 @@ Description: Expand engineering research facilities.' style="width: 100%; border
                     <div class="cpf-priority-num">${idx + 1}</div>
                     <div class="cpf-item-info">
                         <div class="cpf-item-title">${r.title}</div>
-                        <div class="cpf-item-org">${r.requester_organization || r.requester_name || 'Unknown'}</div>
+                        <div class="cpf-item-org">${r.cpf_details?.entity_name || r.requester_organization || 'Unknown Entity'}</div>
+                        ${r.requester_name ? `<div class="cpf-item-contact">${r.requester_name}</div>` : ''}
                     </div>
                     <div class="cpf-item-meta">
                         <div class="cpf-item-amount">${formatCurrency(r.requested_amount)}</div>
