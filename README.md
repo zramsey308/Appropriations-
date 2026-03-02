@@ -35,6 +35,11 @@ source venv/bin/activate
 # Install dependencies
 pip install -r requirements.txt
 
+# Configure environment (choose one)
+cp .env.example .env
+# Option A: set DATABASE_URL=postgresql://...
+# Option B: set SUPABASE_DB_URL=postgresql://... (fallback if DATABASE_URL is empty)
+
 # Run the app (creates DB, runs migrations, seeds data, starts server)
 python run.py
 ```
@@ -293,8 +298,10 @@ source venv/bin/activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Set database URL
+# Set database URL (either one)
 export DATABASE_URL=postgresql://user:pass@localhost:5432/appropriations_db
+# OR
+export SUPABASE_DB_URL=postgresql://postgres.[project-ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres
 
 # Run migrations
 alembic upgrade head

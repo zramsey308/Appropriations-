@@ -1,14 +1,72 @@
 """
 Upload endpoint for parsing Word documents into requests.
 """
+import re
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 
 from app.db import get_db
 from app.services.docx_parser import parse_docx, map_subcommittee
-from app.models import Request, CPFDetails, NdaaDetails
+from app.models import Request, CPFDetails, NdaaDetails, EligibleAccount
 
 router = APIRouter()
+
+
+def _normalized_tokens(text: str) -> set[str]:
+    cleaned = re.sub(r"[^a-z0-9\s]", " ", (text or "").lower())
+    words = [w for w in cleaned.split() if w not in {"and", "the", "of", "for", "services", "service", "program", "account", "grants", "grant"}]
+    return set(words)
+
+
+def _is_meaningful_text(value: str) -> bool:
+    text = (value or "").strip().lower()
+    if not text:
+        return False
+    known_labels = {
+        "project name:", "project name", "purpose of project:", "subcommittee:", "agency:",
+        "eligible account (see list above):", "eligible account:", "name:", "title:", "phone #:", "email address:"
+    }
+    if text in known_labels:
+        return False
+
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    if lines and all(line.endswith(":") for line in lines):
+        return False
+
+    label_hits = sum(1 for line in lines if line in known_labels)
+    if label_hits >= 2:
+        return False
+
+    return True
+
+
+def _best_eligible_account_match(accounts: list[EligibleAccount], eligible_account_raw: str, agency_raw: str) -> int | None:
+    target_tokens = _normalized_tokens(eligible_account_raw)
+    agency_tokens = _normalized_tokens(agency_raw)
+
+    best_id = None
+    best_score = 0.0
+    for account in accounts:
+        account_tokens = _normalized_tokens(account.account_name)
+        account_agency_tokens = _normalized_tokens(account.agency)
+
+        overlap = len(target_tokens & account_tokens)
+        union = len(target_tokens | account_tokens) or 1
+        score = overlap / union
+
+        # agency bonus helps when account label is abbreviated in form (e.g., STRS)
+        if agency_tokens and account_agency_tokens and len(agency_tokens & account_agency_tokens) > 0:
+            score += 0.2
+
+        if "strs" in (eligible_account_raw or "").lower() and "scientific" in account_tokens and "technical" in account_tokens:
+            score += 0.5
+
+        if score > best_score:
+            best_score = score
+            best_id = account.id
+
+    # keep threshold modest: forms often contain abbreviated account labels
+    return best_id if best_score >= 0.2 else None
 
 
 @router.post("/docx")
@@ -54,7 +112,24 @@ async def upload_docx(
 
 def _create_cpf_request(fields: dict, db: Session) -> dict:
     """Create a CPF request from parsed fields."""
+    meaningful_values = [
+        _is_meaningful_text(fields.get("entity_name")),
+        _is_meaningful_text(fields.get("project_name")),
+        _is_meaningful_text(fields.get("project_description")),
+        bool(fields.get("requested_amount")),
+        _is_meaningful_text(fields.get("subcommittee")),
+    ]
+    if not any(meaningful_values):
+        raise HTTPException(status_code=400, detail="CPF form appears blank or unfilled. Please provide completed form fields.")
+
     subcommittee = map_subcommittee(fields.get("subcommittee", "")) or "agriculture"
+
+    cpf_account_id = None
+    eligible_account_raw = (fields.get("eligible_account") or "").strip()
+    agency_raw = (fields.get("agency") or "").strip()
+    if eligible_account_raw or agency_raw:
+        accounts = db.query(EligibleAccount).filter(EligibleAccount.subcommittee == subcommittee).all()
+        cpf_account_id = _best_eligible_account_match(accounts, eligible_account_raw, agency_raw)
 
     request = Request(
         fiscal_year=2027,
@@ -74,6 +149,7 @@ def _create_cpf_request(fields: dict, db: Session) -> dict:
 
     cpf = CPFDetails(
         request_id=request.id,
+        cpf_account_id=cpf_account_id,
         tx11_nexus=True,
         tx11_nexus_explanation=fields.get("tx11_priority") or "",
         entity_type=fields.get("entity_type"),

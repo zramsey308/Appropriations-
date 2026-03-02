@@ -1,3 +1,4 @@
+import os
 from pydantic_settings import BaseSettings
 from typing import Optional
 
@@ -5,6 +6,7 @@ from typing import Optional
 class Settings(BaseSettings):
     # Database - Supabase PostgreSQL in production, SQLite for local dev
     database_url: str = "sqlite:///./data/appropriations.db"
+    supabase_db_url: Optional[str] = None  # Optional fallback when DATABASE_URL is not set
     attachments_dir: str = "./data/attachments"
 
     # Supabase Storage for persistent file uploads (production)
@@ -20,6 +22,29 @@ class Settings(BaseSettings):
     @property
     def use_supabase_storage(self) -> bool:
         return bool(self.supabase_url and self.supabase_service_key)
+
+    @property
+    def resolved_database_url(self) -> str:
+        """Preferred runtime DB URL.
+
+        Priority:
+        1) DATABASE_URL
+        2) SUPABASE_DB_URL
+        3) default local SQLite
+        """
+        # Respect explicit env var first (even when class default is SQLite).
+        env_database_url = os.getenv("DATABASE_URL", "").strip()
+        env_supabase_db_url = os.getenv("SUPABASE_DB_URL", "").strip()
+
+        # Prefer explicit env vars first, then resolved settings values.
+        # NOTE: self.database_url defaults to SQLite, so self.supabase_db_url must be checked before it.
+        url = env_database_url or env_supabase_db_url or self.supabase_db_url or self.database_url or "sqlite:///./data/appropriations.db"
+
+        # Render/Supabase guides sometimes provide postgres:// URLs; SQLAlchemy expects postgresql://
+        if url.lower().startswith("postgres://"):
+            url = "postgresql://" + url[len("postgres://"):]
+
+        return url
 
     class Config:
         env_file = ".env"
