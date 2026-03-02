@@ -17,47 +17,45 @@ depends_on = None
 
 
 def upgrade():
-    # Change requested_amount in requests table to BigInteger
-    op.alter_column('requests', 'requested_amount',
-                    existing_type=sa.Integer(),
-                    type_=sa.BigInteger(),
-                    existing_nullable=True)
+    # Use batch_alter_table for SQLite compatibility (SQLite doesn't support ALTER COLUMN)
+    with op.batch_alter_table('requests') as batch_op:
+        batch_op.alter_column('requested_amount',
+                              existing_type=sa.Integer(),
+                              type_=sa.BigInteger(),
+                              existing_nullable=True)
 
-    # Change funding columns in cpf_details table to BigInteger
-    op.alter_column('cpf_details', 'requested_amount',
-                    existing_type=sa.Integer(),
-                    type_=sa.BigInteger(),
-                    existing_nullable=True)
-
-    op.alter_column('cpf_details', 'total_project_cost',
-                    existing_type=sa.Integer(),
-                    type_=sa.BigInteger(),
-                    existing_nullable=True)
-
-    op.alter_column('cpf_details', 'cost_share_amount',
-                    existing_type=sa.Integer(),
-                    type_=sa.BigInteger(),
-                    existing_nullable=True)
+    with op.batch_alter_table('cpf_details') as batch_op:
+        batch_op.alter_column('requested_amount',
+                              existing_type=sa.Integer(),
+                              type_=sa.BigInteger(),
+                              existing_nullable=True)
+        batch_op.alter_column('total_project_cost',
+                              existing_type=sa.Integer(),
+                              type_=sa.BigInteger(),
+                              existing_nullable=True)
+        batch_op.alter_column('cost_share_amount',
+                              existing_type=sa.Integer(),
+                              type_=sa.BigInteger(),
+                              existing_nullable=True)
 
 
 def downgrade():
-    # Revert to Integer (may cause data loss if values exceed Integer range)
-    op.alter_column('requests', 'requested_amount',
-                    existing_type=sa.BigInteger(),
-                    type_=sa.Integer(),
-                    existing_nullable=True)
+    with op.batch_alter_table('requests') as batch_op:
+        batch_op.alter_column('requested_amount',
+                              existing_type=sa.BigInteger(),
+                              type_=sa.Integer(),
+                              existing_nullable=True)
 
-    op.alter_column('cpf_details', 'requested_amount',
-                    existing_type=sa.BigInteger(),
-                    type_=sa.Integer(),
-                    existing_nullable=True)
-
-    op.alter_column('cpf_details', 'total_project_cost',
-                    existing_type=sa.BigInteger(),
-                    type_=sa.Integer(),
-                    existing_nullable=True)
-
-    op.alter_column('cpf_details', 'cost_share_amount',
-                    existing_type=sa.BigInteger(),
-                    type_=sa.Integer(),
-                    existing_nullable=True)
+    with op.batch_alter_table('cpf_details') as batch_op:
+        batch_op.alter_column('requested_amount',
+                              existing_type=sa.BigInteger(),
+                              type_=sa.Integer(),
+                              existing_nullable=True)
+        batch_op.alter_column('total_project_cost',
+                              existing_type=sa.BigInteger(),
+                              type_=sa.Integer(),
+                              existing_nullable=True)
+        batch_op.alter_column('cost_share_amount',
+                              existing_type=sa.BigInteger(),
+                              type_=sa.Integer(),
+                              existing_nullable=True)
