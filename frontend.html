@@ -988,6 +988,38 @@ Description: Expand engineering research facilities.' style="width: 100%; border
                             <span id="intake-spinner" style="display: none; font-size: 0.85rem; color: var(--text-muted);">Processing...</span>
                         </div>
                     </div>
+
+                    <!-- CPF Schema Upload Section -->
+                    <div style="margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 2rem;">
+                        <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem;">CPF Schema Upload</h3>
+                        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
+                            Paste the <strong>full CPF JSON schema</strong> from ChatGPT doc parsing. Accepts a single <code>{&nbsp;}</code> object or an array <code>[&nbsp;]</code>.
+                            Each record creates a Request&nbsp;+&nbsp;CPF Details with citation extraction and eligible-account matching.
+                        </p>
+                        <textarea id="cpf-schema-text" rows="14" placeholder='Paste ChatGPT CPF schema JSON here...
+
+{
+  "metadata": { "fiscal_year": 2027 },
+  "requesting_organization": { "name": "City of Arlington", "entity_type_raw": "Local Government" },
+  "point_of_contact": { "name": "Jane Smith", "email": "jsmith@arlingtontx.gov" },
+  "project": {
+    "project_name": "Downtown Transit Hub",
+    "requested_amount": "$3,500,000",
+    "subcommittee": "Transportation, HUD",
+    "agency": "Department of Transportation"
+  },
+  "narratives": { ... },
+  "status_and_eligibility": { "citations": [{"citation_text": "49 U.S.C. 5309", "citation_type": "usc"}] },
+  ...
+}' style="width: 100%; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.75rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.82rem; color: var(--text-primary); background: var(--surface); resize: vertical;"></textarea>
+                        <div id="cpf-schema-result" style="display: none; margin-top: 0.75rem; padding: 0.75rem; border-radius: var(--radius-md); font-size: 0.85rem;"></div>
+                        <div style="margin-top: 0.75rem; display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+                            <button class="btn btn-accent" type="button" onclick="submitCpfSchema()">Import to DB</button>
+                            <button class="btn btn-secondary" type="button" onclick="downloadCpfCsv()">Download CSV</button>
+                            <button class="btn btn-secondary" type="button" onclick="document.getElementById('cpf-schema-text').value=''; document.getElementById('cpf-schema-result').style.display='none';">Clear</button>
+                            <span id="cpf-schema-spinner" style="display: none; font-size: 0.85rem; color: var(--text-muted);">Processing...</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1695,6 +1727,109 @@ Description: Expand engineering research facilities.' style="width: 100%; border
                 showToast(error.message, 'error');
             } finally {
                 spinner.style.display = 'none';
+            }
+        }
+
+        async function submitCpfSchema() {
+            const raw = document.getElementById('cpf-schema-text').value.trim();
+            if (!raw) {
+                showToast('Please paste CPF schema JSON first.', 'error');
+                return;
+            }
+            let parsed;
+            try {
+                parsed = JSON.parse(raw);
+            } catch (e) {
+                showToast('Invalid JSON. Please paste a valid CPF schema object or array.', 'error');
+                return;
+            }
+
+            const spinner = document.getElementById('cpf-schema-spinner');
+            const resultDiv = document.getElementById('cpf-schema-result');
+            spinner.style.display = 'inline';
+            resultDiv.style.display = 'none';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/upload/cpf-json`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(parsed)
+                });
+                if (!response.ok) {
+                    const error = await response.json().catch(() => ({}));
+                    throw new Error(error.detail || 'Failed to import CPF records');
+                }
+                const result = await response.json();
+
+                let html = '';
+                if (result.created > 0) {
+                    html += `<div style="color: var(--accent); font-weight: 600; margin-bottom: 0.5rem;">Created ${result.created} CPF request(s)</div>`;
+                    html += '<div style="display: flex; flex-direction: column; gap: 4px;">';
+                    for (const r of result.requests) {
+                        const amountStr = r.amount ? `$${r.amount.toLocaleString()}` : '';
+                        html += `<div style="padding: 6px 10px; background: var(--surface-alt); border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">`;
+                        html += `<span><strong>#${r.id}</strong> ${r.title}</span>`;
+                        html += `<span>${amountStr ? `<span style="color: var(--text-muted); font-size: 0.8rem; margin-right: 8px;">${amountStr}</span>` : ''}<span class="badge badge-cpf">CPF</span> <span style="color: var(--text-muted); font-size: 0.8rem;">${formatSubcommittee(r.subcommittee)}</span></span>`;
+                        html += `</div>`;
+                    }
+                    html += '</div>';
+                }
+                if (result.errors.length > 0) {
+                    html += `<div style="color: var(--danger); margin-top: 0.5rem;">${result.errors.join('<br>')}</div>`;
+                }
+                resultDiv.innerHTML = html;
+                resultDiv.style.display = 'block';
+                resultDiv.style.background = result.created > 0 ? 'rgba(5,150,105,0.05)' : 'rgba(220,38,38,0.05)';
+                resultDiv.style.border = `1px solid ${result.created > 0 ? 'rgba(5,150,105,0.2)' : 'rgba(220,38,38,0.2)'}`;
+
+                if (result.created > 0) {
+                    showToast(`Imported ${result.created} CPF request(s)`, 'success');
+                    document.getElementById('cpf-schema-text').value = '';
+                    await loadDashboard();
+                    await loadRequests();
+                }
+            } catch (error) {
+                showToast(error.message, 'error');
+            } finally {
+                spinner.style.display = 'none';
+            }
+        }
+
+        async function downloadCpfCsv() {
+            const raw = document.getElementById('cpf-schema-text').value.trim();
+            if (!raw) {
+                showToast('Please paste CPF schema JSON first.', 'error');
+                return;
+            }
+            let parsed;
+            try {
+                parsed = JSON.parse(raw);
+            } catch (e) {
+                showToast('Invalid JSON. Please paste a valid CPF schema object or array.', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/upload/cpf-csv`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(parsed)
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to generate CSV');
+                }
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'cpf_records.csv';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+                showToast('CSV downloaded', 'success');
+            } catch (error) {
+                showToast(error.message, 'error');
             }
         }
 

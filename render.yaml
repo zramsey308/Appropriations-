@@ -8,7 +8,7 @@ services:
     name: tx11-appropriations-api
     runtime: python
     buildCommand: pip install -r requirements.txt
-    startCommand: alembic upgrade head && python -c "from app.seed_accounts import seed_accounts; seed_accounts()" && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    startCommand: alembic upgrade head && python -c "from app.seed_accounts import seed_accounts; seed_accounts()" && gunicorn app.main:app -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --timeout 120
     envVars:
       - key: DATABASE_URL
         fromDatabase:
