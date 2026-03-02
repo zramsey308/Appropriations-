@@ -274,7 +274,24 @@ def _clean_field_value(value: str) -> str:
     cleaned = value.strip()
     cleaned = re.sub(r"^/?(?:of\s+Project|/Entity|Entity|#)\s*:\s*", "", cleaned, flags=re.IGNORECASE)
     cleaned = re.sub(r"^\(See list above\)\s*:\s*", "", cleaned, flags=re.IGNORECASE)
-    return cleaned.strip()
+    cleaned = cleaned.strip()
+    label_only_values = {"project name:", "project name", "purpose of project:", "purpose of project", "subcommittee:", "subcommittee", "agency:", "agency", "name:", "title:", "phone #:", "email address:", "project information:", "point of contact for request:", "eligible account (see list above):", "eligible account:"}
+    if cleaned.lower() in label_only_values:
+        return ""
+    return cleaned
+
+
+def _project_name_from_project_info(full_text: str) -> str:
+    """Derive a project name from 'Project Information' line when Project Name is blank."""
+    match = re.search(r"(?im)^\s*Project Information\s*:\s*(.+)$", full_text)
+    if not match:
+        return ""
+    text = match.group(1).strip()
+    # common pattern: "$650,000 to expand ..."
+    text = re.sub(r"^\$?[\d,]+\s*(?:to\s+)?", "", text, flags=re.IGNORECASE).strip()
+    if not text:
+        return ""
+    return text[:180]
 
 
 def _parse_cpf(lines: list[str], full_text: str) -> dict:
@@ -333,6 +350,8 @@ def _parse_cpf(lines: list[str], full_text: str) -> dict:
     fields["requester_phone"] = fields["requester_phone"] or _line_after_label(full_text, r"Phone\s*#?")
     fields["requester_email"] = fields["requester_email"] or _line_after_label(full_text, r"Email Address")
     fields["project_name"] = fields["project_name"] or _line_after_label(full_text, r"Project Name")
+    if not fields["project_name"]:
+        fields["project_name"] = _project_name_from_project_info(full_text)
     fields["project_address"] = fields["project_address"] or _line_after_label(full_text, r"Postal Address of Project")
     fields["subcommittee"] = fields["subcommittee"] or _line_after_label(full_text, r"Subcommittee")
     if (not fields["agency"]) or ("\n" in fields["agency"]) or ("address of organization" in fields["agency"].lower()):
@@ -342,6 +361,20 @@ def _parse_cpf(lines: list[str], full_text: str) -> dict:
     # Clean obvious extraction artifacts
     for key in ["entity_name", "entity_address", "website", "requester_name", "requester_title", "requester_phone", "requester_email", "project_name", "project_address", "subcommittee", "agency", "eligible_account"]:
         fields[key] = _clean_field_value(fields.get(key, ""))
+
+    # Suppress common label bleed-through in blank/partial forms
+    invalid_starts = ("purpose of project", "project name", "point of contact", "requested fy", "subcommittee", "agency", "project information")
+    if fields["project_name"].lower().startswith(invalid_starts):
+        fields["project_name"] = ""
+    if fields["requester_name"].lower().startswith(("title", "phone", "email")):
+        fields["requester_name"] = ""
+
+    if not fields["project_name"]:
+        fields["project_name"] = _project_name_from_project_info(full_text)
+    if fields.get("project_description", "").strip().lower() in {"purpose of project:", "project name:"}:
+        fields["project_description"] = ""
+    if not fields["project_name"] and fields.get("project_description"):
+        fields["project_name"] = fields["project_description"].split(".")[0][:180].strip()
 
     # Supporting documentation (19 questions)
     fields["public_benefit"] = _find_multiline_value(lines, "benefit the public", ["2."])
