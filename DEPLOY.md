@@ -32,7 +32,7 @@ When deployed via Blueprint:
 6. Under "Connection string", copy the **URI** (starts with `postgresql://`)
 7. Replace `[YOUR-PASSWORD]` in the URI with your database password
 
-If using Supabase manually, your DATABASE_URL will look like:
+If using Supabase manually, your DATABASE_URL (or SUPABASE_DB_URL fallback) will look like:
 ```
 postgresql://postgres.[project-ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres
 ```
@@ -96,6 +96,7 @@ postgresql://postgres.[project-ref]:[password]@aws-0-[region].pooler.supabase.co
    | Key | Value |
    |-----|-------|
    | `DATABASE_URL` | DB connection string (from `atlas-ops-db` or Supabase) |
+   | `SUPABASE_DB_URL` | Optional fallback DB URL if `DATABASE_URL` is not set |
    | `GOOGLE_SHEETS_ENABLED` | `true` (or `false` to disable) |
    | `GOOGLE_SHEETS_ID` | Your Google Sheet ID from Step 2 |
    | `GOOGLE_SERVICE_ACCOUNT_JSON` | The entire JSON contents from Step 2 (paste as one line) |
@@ -160,6 +161,7 @@ If your Render URL is different from the default, update these files:
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `DATABASE_URL` | Yes | PostgreSQL connection string (Render `atlas-ops-db` or Supabase) |
+| `SUPABASE_DB_URL` | No | Optional fallback DB URL used when `DATABASE_URL` is empty |
 | `GOOGLE_SHEETS_ENABLED` | No | Set to `true` to enable Google Sheets backup |
 | `GOOGLE_SHEETS_ID` | No* | Google Sheet ID (required if backup enabled) |
 | `GOOGLE_SERVICE_ACCOUNT_JSON` | No* | Service account JSON (required if backup enabled) |
