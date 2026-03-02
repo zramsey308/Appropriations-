@@ -138,6 +138,24 @@ class RequestService:
         except Exception as e:
             logger.error(f"Error getting status counts: {e}")
 
+        # Amount by subcommittee
+        amount_by_subcommittee = {}
+        try:
+            sub_amounts = (
+                self.db.query(
+                    Request.subcommittee,
+                    func.sum(Request.requested_amount),
+                )
+                .filter(Request.requested_amount.isnot(None))
+                .group_by(Request.subcommittee)
+                .all()
+            )
+            for sub, sub_total in sub_amounts:
+                if sub is not None and sub_total is not None:
+                    amount_by_subcommittee[sub] = float(sub_total)
+        except Exception as e:
+            logger.error(f"Error getting amount by subcommittee: {e}")
+
         # CPF selected count
         cpf_selected_count = 0
         try:
@@ -155,6 +173,7 @@ class RequestService:
             "by_type": by_type,
             "by_subcommittee": by_subcommittee,
             "by_status": by_status,
+            "amount_by_subcommittee": amount_by_subcommittee,
             "cpf_selected": cpf_selected_count,
             "cpf_selected_count": cpf_selected_count,
             "cpf_selected_slots_remaining": 15 - cpf_selected_count,

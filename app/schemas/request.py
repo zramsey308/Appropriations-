@@ -31,6 +31,7 @@ class RequestBase(BaseModel):
     other_members: Optional[str] = None
     prior_year_submission: Optional[bool] = None
     prior_year_details: Optional[str] = None
+    priority_order: Optional[int] = None
     assigned_to: Optional[str] = None
     notes: Optional[str] = None
 
@@ -59,6 +60,7 @@ class RequestUpdate(BaseModel):
     language_justification: Optional[str] = None
     language_location: Optional[str] = None
     priority_rank: Optional[str] = None
+    priority_order: Optional[int] = None
     problem_statement: Optional[str] = None
     goals_outcomes: Optional[str] = None
     other_members: Optional[str] = None
@@ -73,6 +75,7 @@ class RequestResponse(RequestBase):
 
     id: int
     status: RequestStatus
+    priority_order: Optional[int] = None
     cpf_details: Optional[CPFDetailsResponse] = None
     attachments: List[AttachmentResponse] = []
     created_at: datetime

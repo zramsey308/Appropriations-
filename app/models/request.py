@@ -44,6 +44,9 @@ class Request(Base):
     prior_year_submission = Column(Boolean, nullable=True)
     prior_year_details = Column(Text, nullable=True)
 
+    # Priority ordering (for drag-reorder in CPF expanded view)
+    priority_order = Column(Integer, nullable=True, index=True)
+
     # Routing
     assigned_to = Column(String(255), nullable=True)
     notes = Column(Text, nullable=True)

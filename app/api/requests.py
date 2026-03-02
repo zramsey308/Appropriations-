@@ -1,13 +1,14 @@
 import csv
 import io
 from typing import Optional, List
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, Body, Depends, HTTPException, UploadFile, File, Form
 from fastapi.responses import FileResponse, Response, StreamingResponse
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.db import get_db
 from app.models.enums import RequestType, Subcommittee, RequestStatus, AttachmentType
-from app.models import Attachment
+from app.models import Attachment, Request
 from app.schemas import (
     RequestCreate,
     RequestUpdate,
@@ -22,6 +23,25 @@ from app.schemas import (
 from app.services import RequestService, CPFService, AttachmentService
 
 router = APIRouter()
+
+
+class ReorderItem(BaseModel):
+    id: int
+    priority_order: int
+
+
+@router.post("/reorder", status_code=200)
+def reorder_requests(
+    items: List[ReorderItem] = Body(...),
+    db: Session = Depends(get_db),
+):
+    """Bulk update priority_order for a set of requests (used by drag-reorder)."""
+    for item in items:
+        req = db.query(Request).filter(Request.id == item.id).first()
+        if req:
+            req.priority_order = item.priority_order
+    db.commit()
+    return {"updated": len(items)}
 
 
 @router.post("", response_model=RequestResponse, status_code=201)
