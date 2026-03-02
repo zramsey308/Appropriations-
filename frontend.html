@@ -1859,6 +1859,19 @@ Description: Expand engineering research facilities.' style="width: 100%; border
             return sub.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
         }
 
+        function formatEntityType(et) {
+            if (!et) return '';
+            const map = {
+                'nonprofit_501c3': '501(c)(3)',
+                'state_local_tribal_government': 'Government',
+                'state_government': 'State Gov',
+                'local_government': 'Local Gov',
+                'tribal_government': 'Tribal Gov',
+                'public_entity': 'Public Entity',
+            };
+            return map[et] || et.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+        }
+
         function normalizeSubcommittee(raw) {
             const value = (raw || '').toLowerCase();
             if (value.includes('commerce') || value.includes('justice') || value.includes('science')) return 'commerce_justice_science';
@@ -2701,8 +2714,8 @@ Description: Expand engineering research facilities.' style="width: 100%; border
                     <div class="cpf-priority-num">${idx + 1}</div>
                     <div class="cpf-item-info">
                         <div class="cpf-item-title">${r.title}</div>
-                        <div class="cpf-item-org">${r.cpf_details?.entity_name || r.requester_organization || 'Unknown Entity'}</div>
-                        ${r.requester_name ? `<div class="cpf-item-contact">${r.requester_name}</div>` : ''}
+                        <div class="cpf-item-org">${r.cpf_details?.entity_name || r.requester_organization || 'Unknown Entity'}${r.cpf_details?.entity_type ? ` <span style="opacity:0.5; font-size:0.7rem;">(${formatEntityType(r.cpf_details.entity_type)})</span>` : ''}</div>
+                        ${r.requester_name ? `<div class="cpf-item-contact">POC: ${r.requester_name}</div>` : ''}
                     </div>
                     <div class="cpf-item-meta">
                         <div class="cpf-item-amount">${formatCurrency(r.requested_amount)}</div>
