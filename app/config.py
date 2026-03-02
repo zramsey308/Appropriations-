@@ -36,10 +36,12 @@ class Settings(BaseSettings):
         env_database_url = os.getenv("DATABASE_URL", "").strip()
         env_supabase_db_url = os.getenv("SUPABASE_DB_URL", "").strip()
 
-        url = env_database_url or env_supabase_db_url or self.database_url or self.supabase_db_url or "sqlite:///./data/appropriations.db"
+        # Prefer explicit env vars first, then resolved settings values.
+        # NOTE: self.database_url defaults to SQLite, so self.supabase_db_url must be checked before it.
+        url = env_database_url or env_supabase_db_url or self.supabase_db_url or self.database_url or "sqlite:///./data/appropriations.db"
 
         # Render/Supabase guides sometimes provide postgres:// URLs; SQLAlchemy expects postgresql://
-        if url.startswith("postgres://"):
+        if url.lower().startswith("postgres://"):
             url = "postgresql://" + url[len("postgres://"):]
 
         return url
