@@ -963,12 +963,29 @@
                     </div>
 
                     <div style="margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 2rem;">
-                        <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem;">Quick Text Intake (Chat Output)</h3>
-                        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.75rem;">Paste standardized text (one field per line) and create a request instantly. Example keys: <code>Project Name</code>, <code>Submitter</code>, <code>Subcommittee</code>, <code>Requested Amount</code>, <code>Organization</code>, <code>Description</code>, <code>Request Type</code>.</p>
-                        <textarea id="quick-intake-text" rows="10" placeholder="Project Name: ASU Mechanical Engineering Expansion&#10;Submitter: Jennifer Brown&#10;Subcommittee: Commerce, Justice, Science&#10;Requested Amount: $650,000&#10;Organization: Angelo State University (ASU)&#10;Request Type: CPF&#10;Description: To expand engineering research and workforce development." style="width: 100%; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.75rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85rem; color: var(--text-primary); background: var(--surface);"></textarea>
-                        <div style="margin-top: 0.75rem; display: flex; gap: 0.75rem; flex-wrap: wrap;">
-                            <button class="btn btn-accent" type="button" onclick="submitQuickIntake()">Create from Text</button>
-                            <button class="btn btn-secondary" type="button" onclick="document.getElementById('quick-intake-text').value=''">Clear</button>
+                        <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem;">ChatGPT Quick Intake</h3>
+                        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
+                            Paste ChatGPT output directly &mdash; supports <strong>JSON</strong> (full parsed format) or <strong>plain text</strong> (key: value lines).
+                            Multiple requests can be separated by <code>---</code> lines. Subcommittee is auto-detected.
+                        </p>
+                        <textarea id="quick-intake-text" rows="14" placeholder='Paste ChatGPT JSON or plain text here...
+
+JSON example (paste the full { } object):
+{"requesting_organization": {"name": "City of Midland"}, "project": {"project_name": "Water Treatment Upgrade", "subcommittee": "Energy and Water", "requested_amount": 3000000}, ...}
+
+Plain text example:
+Project Name: ASU Engineering Expansion
+Submitter: Jennifer Brown
+Subcommittee: Commerce, Justice, Science
+Requested Amount: $650,000
+Organization: Angelo State University
+Request Type: CPF
+Description: Expand engineering research facilities.' style="width: 100%; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.75rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.82rem; color: var(--text-primary); background: var(--surface); resize: vertical;"></textarea>
+                        <div id="intake-result" style="display: none; margin-top: 0.75rem; padding: 0.75rem; border-radius: var(--radius-md); font-size: 0.85rem;"></div>
+                        <div style="margin-top: 0.75rem; display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+                            <button class="btn btn-accent" type="button" onclick="submitQuickIntake()">Import Requests</button>
+                            <button class="btn btn-secondary" type="button" onclick="document.getElementById('quick-intake-text').value=''; document.getElementById('intake-result').style.display='none';">Clear</button>
+                            <span id="intake-spinner" style="display: none; font-size: 0.85rem; color: var(--text-muted);">Processing...</span>
                         </div>
                     </div>
                 </div>
@@ -1624,43 +1641,60 @@
         }
 
         async function submitQuickIntake() {
-            const raw = document.getElementById('quick-intake-text').value;
-            const parsed = parseSimpleKeyValueText(raw);
-            if (!Object.keys(parsed).length) {
-                showToast('Please paste standardized key:value content first.', 'error');
+            const raw = document.getElementById('quick-intake-text').value.trim();
+            if (!raw) {
+                showToast('Please paste ChatGPT output (JSON or text) first.', 'error');
                 return;
             }
 
-            const requestType = parseRequestType(parsed['request type'] || parsed['type']);
-            const data = {
-                request_type: requestType,
-                subcommittee: normalizeSubcommittee(parsed['subcommittee'] || ''),
-                title: parsed['project name'] || parsed['title'] || 'Imported Request',
-                description: parsed['description'] || parsed['purpose of project'] || '',
-                requester_name: parsed['submitter'] || parsed['requester'] || parsed['name'] || '',
-                requester_email: parsed['email'] || '',
-                requester_organization: parsed['organization'] || '',
-                requested_amount: parseAmountText(parsed['requested amount'] || parsed['amount'])
-            };
+            const spinner = document.getElementById('intake-spinner');
+            const resultDiv = document.getElementById('intake-result');
+            spinner.style.display = 'inline';
+            resultDiv.style.display = 'none';
 
             try {
-                const response = await fetch(`${API_BASE}/api/requests`, {
+                const response = await fetch(`${API_BASE}/api/intake/text`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
+                    body: JSON.stringify({ text: raw })
                 });
                 if (!response.ok) {
                     const error = await response.json().catch(() => ({}));
-                    throw new Error(error.detail || 'Failed to create request from text');
+                    throw new Error(error.detail || 'Failed to import requests');
                 }
-                const created = await response.json();
-                showToast(`Imported request #${created.id} from text`, 'success');
-                document.getElementById('quick-intake-text').value = '';
-                await loadDashboard();
-                await loadRequests();
-                showPanel('requests');
+                const result = await response.json();
+
+                // Show result summary
+                let html = '';
+                if (result.created > 0) {
+                    html += `<div style="color: var(--accent); font-weight: 600; margin-bottom: 0.5rem;">Created ${result.created} request(s)</div>`;
+                    html += '<div style="display: flex; flex-direction: column; gap: 4px;">';
+                    for (const r of result.requests) {
+                        html += `<div style="padding: 6px 10px; background: var(--surface-alt); border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">`;
+                        html += `<span><strong>#${r.id}</strong> ${r.title}</span>`;
+                        html += `<span><span class="badge badge-${r.request_type}">${r.request_type.toUpperCase()}</span> <span style="color: var(--text-muted); font-size: 0.8rem;">${formatSubcommittee(r.subcommittee)}</span></span>`;
+                        html += `</div>`;
+                    }
+                    html += '</div>';
+                }
+                if (result.errors.length > 0) {
+                    html += `<div style="color: var(--danger); margin-top: 0.5rem;">${result.errors.join('<br>')}</div>`;
+                }
+                resultDiv.innerHTML = html;
+                resultDiv.style.display = 'block';
+                resultDiv.style.background = result.created > 0 ? 'rgba(5,150,105,0.05)' : 'rgba(220,38,38,0.05)';
+                resultDiv.style.border = `1px solid ${result.created > 0 ? 'rgba(5,150,105,0.2)' : 'rgba(220,38,38,0.2)'}`;
+
+                if (result.created > 0) {
+                    showToast(`Imported ${result.created} request(s)`, 'success');
+                    document.getElementById('quick-intake-text').value = '';
+                    await loadDashboard();
+                    await loadRequests();
+                }
             } catch (error) {
                 showToast(error.message, 'error');
+            } finally {
+                spinner.style.display = 'none';
             }
         }
 

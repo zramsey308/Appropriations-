@@ -4,25 +4,30 @@ from sqlalchemy.pool import NullPool
 
 from app.config import settings
 
+# Render provides postgres:// but SQLAlchemy requires postgresql://
+database_url = settings.database_url
+if database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+
 # Configure connection based on database type
 connect_args = {}
 engine_kwargs = {}
 
-if settings.database_url.startswith("sqlite"):
+if database_url.startswith("sqlite"):
     # SQLite requires check_same_thread=False for FastAPI
     connect_args["check_same_thread"] = False
-elif settings.database_url.startswith("postgresql"):
-    # PostgreSQL (Supabase) - use NullPool for serverless compatibility
+elif database_url.startswith("postgresql"):
+    # PostgreSQL (Supabase/Render) - use NullPool for serverless compatibility
     engine_kwargs["poolclass"] = NullPool
 
 engine = create_engine(
-    settings.database_url,
+    database_url,
     connect_args=connect_args,
     **engine_kwargs
 )
 
 # Enable foreign keys for SQLite
-if settings.database_url.startswith("sqlite"):
+if database_url.startswith("sqlite"):
     @event.listens_for(engine, "connect")
     def set_sqlite_pragma(dbapi_connection, connection_record):
         cursor = dbapi_connection.cursor()
