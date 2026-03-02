@@ -281,8 +281,6 @@ def _clean_field_value(value: str) -> str:
     return cleaned
 
 
-
-
 def _project_name_from_project_info(full_text: str) -> str:
     """Derive a project name from 'Project Information' line when Project Name is blank."""
     match = re.search(r"(?im)^\s*Project Information\s*:\s*(.+)$", full_text)

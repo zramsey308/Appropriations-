@@ -1,7 +1,7 @@
-import re
 """
 Upload endpoint for parsing Word documents into requests.
 """
+import re
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 
@@ -54,6 +54,7 @@ def _best_eligible_account_match(accounts: list[EligibleAccount], eligible_accou
             best_score = score
             best_id = account.id
 
+    # keep threshold modest: forms often contain abbreviated account labels
     return best_id if best_score >= 0.2 else None
 
 
