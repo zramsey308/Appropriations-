@@ -238,6 +238,17 @@ def _find_multiline_value(lines: list[str], label: str, stop_labels: list[str]) 
     return "\n".join(values).strip()
 
 
+def _find_value_after_anchor(lines: list[str], anchor: str, label: str, stop_labels: list[str] = None) -> str:
+    """Find a value by first locating an anchor line, then searching for a label after it."""
+    anchor_lower = anchor.lower().strip()
+    start_idx = 0
+    for idx, line in enumerate(lines):
+        if anchor_lower in line.lower():
+            start_idx = idx
+            break
+    return _find_value(lines[start_idx:], label, stop_labels)
+
+
 def _parse_amount(text: str) -> Optional[int]:
     """Parse a dollar amount from text."""
     if not text:
@@ -250,6 +261,39 @@ def _parse_amount(text: str) -> Optional[int]:
         return None
 
 
+def _line_after_label(full_text: str, label_regex: str) -> str:
+    """Extract text after a label on the same line from full_text."""
+    match = re.search(rf"(?im)^\s*{label_regex}\s*:\s*(.+)$", full_text)
+    return match.group(1).strip() if match else ""
+
+
+def _clean_field_value(value: str) -> str:
+    """Normalize parser artifacts from table/label extraction."""
+    if not value:
+        return value
+    cleaned = value.strip()
+    cleaned = re.sub(r"^/?(?:of\s+Project|/Entity|Entity|#)\s*:\s*", "", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"^\(See list above\)\s*:\s*", "", cleaned, flags=re.IGNORECASE)
+    cleaned = cleaned.strip()
+    label_only_values = {"project name:", "project name", "purpose of project:", "purpose of project", "subcommittee:", "subcommittee", "agency:", "agency", "name:", "title:", "phone #:", "email address:", "project information:", "point of contact for request:", "eligible account (see list above):", "eligible account:"}
+    if cleaned.lower() in label_only_values:
+        return ""
+    return cleaned
+
+
+def _project_name_from_project_info(full_text: str) -> str:
+    """Derive a project name from 'Project Information' line when Project Name is blank."""
+    match = re.search(r"(?im)^\s*Project Information\s*:\s*(.+)$", full_text)
+    if not match:
+        return ""
+    text = match.group(1).strip()
+    # common pattern: "$650,000 to expand ..."
+    text = re.sub(r"^\$?[\d,]+\s*(?:to\s+)?", "", text, flags=re.IGNORECASE).strip()
+    if not text:
+        return ""
+    return text[:180]
+
+
 def _parse_cpf(lines: list[str], full_text: str) -> dict:
     """Parse a CPF request form."""
     fields = {}
@@ -259,31 +303,78 @@ def _parse_cpf(lines: list[str], full_text: str) -> dict:
     fields["entity_address"] = _find_value(lines, "Address of Organization")
     fields["website"] = _find_value(lines, "Website")
 
-    # Entity type detection
-    entity_text = full_text.lower()
-    if "501(c" in entity_text or "nonprofit" in entity_text.lower():
-        fields["entity_type"] = "nonprofit"
-    elif "tribal" in entity_text:
-        fields["entity_type"] = "tribal_government"
+    # Entity type detection - prefer explicit selected value near "Type of Entity"
+    type_line = _find_value(lines, "Type of Entity")
+    entity_text = f"{type_line}\n{full_text}".lower()
+    if "state" in entity_text and "government" in entity_text:
+        fields["entity_type"] = "state_government"
     elif "local" in entity_text and "government" in entity_text:
         fields["entity_type"] = "local_government"
-    elif "state" in entity_text and "government" in entity_text:
-        fields["entity_type"] = "state_government"
+    elif "tribal" in entity_text and "government" in entity_text:
+        fields["entity_type"] = "tribal_government"
+    elif "public entity" in entity_text:
+        fields["entity_type"] = "public_entity"
+    elif "501(c" in entity_text or "nonprofit" in entity_text:
+        fields["entity_type"] = "nonprofit_501c3"
 
     # Contact info
-    fields["requester_name"] = _find_value(lines, "Name:", ["Title:"])
-    fields["requester_title"] = _find_value(lines, "Title:", ["Phone"])
-    fields["requester_phone"] = _find_value(lines, "Phone", ["Email"])
-    fields["requester_email"] = _find_value(lines, "Email Address:", ["Project"])
+    fields["requester_name"] = _find_value_after_anchor(lines, "Point of Contact for Request", "Name:", ["Title:"])
+    fields["requester_title"] = _find_value_after_anchor(lines, "Point of Contact for Request", "Title:", ["Phone"])
+    fields["requester_phone"] = _find_value_after_anchor(lines, "Point of Contact for Request", "Phone", ["Email"])
+    fields["requester_email"] = _find_value_after_anchor(lines, "Point of Contact for Request", "Email Address:", ["Project"])
 
     # Project info
     fields["project_name"] = _find_value(lines, "Project Name:", ["Purpose"])
     fields["project_description"] = _find_multiline_value(lines, "Purpose of Project:", ["Postal Address"])
     fields["project_address"] = _find_value(lines, "Postal Address", ["Requested"])
-    fields["requested_amount"] = _parse_amount(_find_value(lines, "Requested FY", ["Subcommittee"]))
+    requested_text = _find_value(lines, "Requested FY", ["Subcommittee"])
+    fields["requested_amount"] = _parse_amount(requested_text)
+    if fields["requested_amount"] is None:
+        requested_match = re.search(r"requested\s+fy[^\n:]*:\s*\$?([\d,]+)", full_text, flags=re.IGNORECASE)
+        if requested_match:
+            fields["requested_amount"] = _parse_amount(requested_match.group(1))
+
     fields["subcommittee"] = _find_value(lines, "Subcommittee:", ["Agency"])
+    if not fields["subcommittee"]:
+        subcommittee_match = re.search(r"subcommittee\s*:\s*([^\n]+)", full_text, flags=re.IGNORECASE)
+        fields["subcommittee"] = subcommittee_match.group(1).strip() if subcommittee_match else ""
     fields["agency"] = _find_value(lines, "Agency:", ["Eligible Account"])
     fields["eligible_account"] = _find_value(lines, "Eligible Account", ["Supporting"])
+
+    # Targeted line-based fallbacks for common CPF forms
+    fields["entity_name"] = fields["entity_name"] or _line_after_label(full_text, r"Name of Requesting Organization/Entity")
+    fields["entity_address"] = fields["entity_address"] or _line_after_label(full_text, r"Address of Organization")
+    fields["website"] = fields["website"] or _line_after_label(full_text, r"Website")
+    fields["requester_name"] = fields["requester_name"] or _line_after_label(full_text, r"Name")
+    fields["requester_title"] = fields["requester_title"] or _line_after_label(full_text, r"Title")
+    fields["requester_phone"] = fields["requester_phone"] or _line_after_label(full_text, r"Phone\s*#?")
+    fields["requester_email"] = fields["requester_email"] or _line_after_label(full_text, r"Email Address")
+    fields["project_name"] = fields["project_name"] or _line_after_label(full_text, r"Project Name")
+    if not fields["project_name"]:
+        fields["project_name"] = _project_name_from_project_info(full_text)
+    fields["project_address"] = fields["project_address"] or _line_after_label(full_text, r"Postal Address of Project")
+    fields["subcommittee"] = fields["subcommittee"] or _line_after_label(full_text, r"Subcommittee")
+    if (not fields["agency"]) or ("\n" in fields["agency"]) or ("address of organization" in fields["agency"].lower()):
+        fields["agency"] = _line_after_label(full_text, r"Agency")
+    fields["eligible_account"] = fields["eligible_account"] or _line_after_label(full_text, r"Eligible Account(?:\s*\(See list above\))?")
+
+    # Clean obvious extraction artifacts
+    for key in ["entity_name", "entity_address", "website", "requester_name", "requester_title", "requester_phone", "requester_email", "project_name", "project_address", "subcommittee", "agency", "eligible_account"]:
+        fields[key] = _clean_field_value(fields.get(key, ""))
+
+    # Suppress common label bleed-through in blank/partial forms
+    invalid_starts = ("purpose of project", "project name", "point of contact", "requested fy", "subcommittee", "agency", "project information")
+    if fields["project_name"].lower().startswith(invalid_starts):
+        fields["project_name"] = ""
+    if fields["requester_name"].lower().startswith(("title", "phone", "email")):
+        fields["requester_name"] = ""
+
+    if not fields["project_name"]:
+        fields["project_name"] = _project_name_from_project_info(full_text)
+    if fields.get("project_description", "").strip().lower() in {"purpose of project:", "project name:"}:
+        fields["project_description"] = ""
+    if not fields["project_name"] and fields.get("project_description"):
+        fields["project_name"] = fields["project_description"].split(".")[0][:180].strip()
 
     # Supporting documentation (19 questions)
     fields["public_benefit"] = _find_multiline_value(lines, "benefit the public", ["2."])

@@ -961,6 +961,16 @@
                         </h3>
                         <div id="result-items"></div>
                     </div>
+
+                    <div style="margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 2rem;">
+                        <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem;">Quick Text Intake (Chat Output)</h3>
+                        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.75rem;">Paste standardized text (one field per line) and create a request instantly. Example keys: <code>Project Name</code>, <code>Submitter</code>, <code>Subcommittee</code>, <code>Requested Amount</code>, <code>Organization</code>, <code>Description</code>, <code>Request Type</code>.</p>
+                        <textarea id="quick-intake-text" rows="10" placeholder="Project Name: ASU Mechanical Engineering Expansion&#10;Submitter: Jennifer Brown&#10;Subcommittee: Commerce, Justice, Science&#10;Requested Amount: $650,000&#10;Organization: Angelo State University (ASU)&#10;Request Type: CPF&#10;Description: To expand engineering research and workforce development." style="width: 100%; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.75rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85rem; color: var(--text-primary); background: var(--surface);"></textarea>
+                        <div style="margin-top: 0.75rem; display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                            <button class="btn btn-accent" type="button" onclick="submitQuickIntake()">Create from Text</button>
+                            <button class="btn btn-secondary" type="button" onclick="document.getElementById('quick-intake-text').value=''">Clear</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1563,6 +1573,91 @@
             return sub.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
         }
 
+        function normalizeSubcommittee(raw) {
+            const value = (raw || '').toLowerCase();
+            if (value.includes('commerce') || value.includes('justice') || value.includes('science')) return 'commerce_justice_science';
+            if (value.includes('transport') || value.includes('hud') || value.includes('housing')) return 'transportation_hud';
+            if (value.includes('labor') || value.includes('hhs') || value.includes('education')) return 'labor_hhs_education';
+            if (value.includes('interior') || value.includes('environment')) return 'interior_environment';
+            if (value.includes('energy') || value.includes('water')) return 'energy_water';
+            if (value.includes('defense')) return 'defense';
+            if (value.includes('agriculture')) return 'agriculture';
+            if (value.includes('homeland')) return 'homeland_security';
+            if (value.includes('financial')) return 'financial_services_general_government';
+            if (value.includes('legislative')) return 'legislative_branch';
+            if (value.includes('milcon') || value.includes('veteran')) return 'milcon_va';
+            if (value.includes('state') || value.includes('foreign')) return 'state_foreign_operations';
+            return 'agriculture';
+        }
+
+        function parseSimpleKeyValueText(rawText) {
+            const map = {};
+            for (const line of (rawText || '').split('\n')) {
+                const trimmed = line.trim();
+                if (!trimmed || !trimmed.includes(':')) continue;
+                const idx = trimmed.indexOf(':');
+                const key = trimmed.slice(0, idx).trim().toLowerCase();
+                const value = trimmed.slice(idx + 1).trim();
+                if (key && value) map[key] = value;
+            }
+            return map;
+        }
+
+        function parseAmountText(value) {
+            if (!value) return null;
+            const cleaned = String(value).replace(/[$,\s]/g, '');
+            const num = parseFloat(cleaned);
+            return Number.isFinite(num) ? num : null;
+        }
+
+        function parseRequestType(value) {
+            const v = (value || '').toLowerCase();
+            if (v.includes('language')) return 'language';
+            if (v.includes('programmatic')) return 'programmatic';
+            return 'cpf';
+        }
+
+        async function submitQuickIntake() {
+            const raw = document.getElementById('quick-intake-text').value;
+            const parsed = parseSimpleKeyValueText(raw);
+            if (!Object.keys(parsed).length) {
+                showToast('Please paste standardized key:value content first.', 'error');
+                return;
+            }
+
+            const requestType = parseRequestType(parsed['request type'] || parsed['type']);
+            const data = {
+                request_type: requestType,
+                subcommittee: normalizeSubcommittee(parsed['subcommittee'] || ''),
+                title: parsed['project name'] || parsed['title'] || 'Imported Request',
+                description: parsed['description'] || parsed['purpose of project'] || '',
+                requester_name: parsed['submitter'] || parsed['requester'] || parsed['name'] || '',
+                requester_email: parsed['email'] || '',
+                requester_organization: parsed['organization'] || '',
+                requested_amount: parseAmountText(parsed['requested amount'] || parsed['amount'])
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/api/requests`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (!response.ok) {
+                    const error = await response.json().catch(() => ({}));
+                    throw new Error(error.detail || 'Failed to create request from text');
+                }
+                const created = await response.json();
+                showToast(`Imported request #${created.id} from text`, 'success');
+                document.getElementById('quick-intake-text').value = '';
+                await loadDashboard();
+                await loadRequests();
+                showPanel('requests');
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
         async function loadDashboard() {
             try {
                 const response = await fetch(`${API_BASE}/api/dashboard/summary`);
@@ -1617,12 +1712,19 @@
                 const response = await fetch(`${API_BASE}/api/requests`);
                 const data = await response.json();
                 const requests = data.items || data;
+                const sortedRequests = [...requests].sort((a, b) => {
+                    const projectCompare = (a.title || '').localeCompare((b.title || ''));
+                    if (projectCompare !== 0) return projectCompare;
+                    const submitterCompare = (a.requester_name || '').localeCompare((b.requester_name || ''));
+                    if (submitterCompare !== 0) return submitterCompare;
+                    return (a.subcommittee || '').localeCompare((b.subcommittee || ''));
+                });
                 const tbody = document.getElementById('all-requests');
-                if (requests.length === 0) {
+                if (sortedRequests.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="8" class="empty-state"><div class="empty-state-icon">&#128203;</div><p>No requests found</p></td></tr>`;
                     return;
                 }
-                tbody.innerHTML = requests.map(r => `
+                tbody.innerHTML = sortedRequests.map(r => `
                     <tr class="clickable" onclick="openEditModal(${r.id})">
                         <td><strong>#${r.id}</strong></td>
                         <td>${r.title}</td>

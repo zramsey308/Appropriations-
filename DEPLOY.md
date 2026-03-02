@@ -8,7 +8,18 @@ This guide will help you deploy the TX-11 Appropriations Tracker with:
 
 ---
 
-## Step 1: Set Up Supabase Database (Required)
+## Step 1: Set Up Persistent Database (Required)
+
+### Option A (Recommended): Render Managed PostgreSQL (`atlas-ops-db`)
+
+This repo now includes a Render Blueprint database named `atlas-ops-db` in `render.yaml`.
+
+When deployed via Blueprint:
+- Render provisions `atlas-ops-db`
+- `DATABASE_URL` is injected automatically from that DB connection string
+- submissions persist across deploys/restarts (no re-upload needed)
+
+### Option B: External Supabase PostgreSQL
 
 1. Go to [supabase.com](https://supabase.com) and sign up/login
 2. Click **New Project**
@@ -21,7 +32,7 @@ This guide will help you deploy the TX-11 Appropriations Tracker with:
 6. Under "Connection string", copy the **URI** (starts with `postgresql://`)
 7. Replace `[YOUR-PASSWORD]` in the URI with your database password
 
-Your DATABASE_URL will look like:
+If using Supabase manually, your DATABASE_URL will look like:
 ```
 postgresql://postgres.[project-ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres
 ```
@@ -62,6 +73,15 @@ postgresql://postgres.[project-ref]:[password]@aws-0-[region].pooler.supabase.co
 
 ## Step 3: Deploy Backend to Render
 
+### If using Blueprint (recommended)
+1. In Render, choose **New** → **Blueprint** and select this repository.
+2. Confirm both resources are detected:
+   - `atlas-ops-db` (PostgreSQL)
+   - `tx11-appropriations-api` (Web Service)
+3. Deploy. No manual `DATABASE_URL` entry is required.
+
+### If creating Web Service manually
+
 1. Go to [render.com](https://render.com) and sign up with GitHub
 2. Click **New** → **Web Service**
 3. Connect your GitHub repository
@@ -75,7 +95,7 @@ postgresql://postgres.[project-ref]:[password]@aws-0-[region].pooler.supabase.co
 
    | Key | Value |
    |-----|-------|
-   | `DATABASE_URL` | Your Supabase connection string from Step 1 |
+   | `DATABASE_URL` | DB connection string (from `atlas-ops-db` or Supabase) |
    | `GOOGLE_SHEETS_ENABLED` | `true` (or `false` to disable) |
    | `GOOGLE_SHEETS_ID` | Your Google Sheet ID from Step 2 |
    | `GOOGLE_SERVICE_ACCOUNT_JSON` | The entire JSON contents from Step 2 (paste as one line) |
@@ -129,9 +149,9 @@ If your Render URL is different from the default, update these files:
 ## How It Works
 
 1. **User submits a request** via the submit form
-2. **Data is saved to Supabase** (PostgreSQL database)
+2. **Data is saved to PostgreSQL** (Render `atlas-ops-db` or Supabase)
 3. **Data is backed up to Google Sheets** (if enabled)
-4. **Dashboard shows all submissions** from Supabase
+4. **Dashboard shows all submissions** from PostgreSQL
 
 ---
 
@@ -139,7 +159,7 @@ If your Render URL is different from the default, update these files:
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `DATABASE_URL` | Yes | Supabase PostgreSQL connection string |
+| `DATABASE_URL` | Yes | PostgreSQL connection string (Render `atlas-ops-db` or Supabase) |
 | `GOOGLE_SHEETS_ENABLED` | No | Set to `true` to enable Google Sheets backup |
 | `GOOGLE_SHEETS_ID` | No* | Google Sheet ID (required if backup enabled) |
 | `GOOGLE_SERVICE_ACCOUNT_JSON` | No* | Service account JSON (required if backup enabled) |
