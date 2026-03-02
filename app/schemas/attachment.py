@@ -1,11 +1,13 @@
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
 
 from app.models.enums import AttachmentType
 
 
 class AttachmentResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     request_id: int
     filename: str
@@ -15,6 +17,3 @@ class AttachmentResponse(BaseModel):
     content_type: Optional[str] = None
     attachment_type: AttachmentType
     created_at: datetime
-
-    class Config:
-        from_attributes = True

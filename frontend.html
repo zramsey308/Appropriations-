@@ -1194,7 +1194,13 @@
             <div class="card">
                 <div class="card-header">
                     <h2>All Requests</h2>
-                    <button class="btn btn-secondary" onclick="loadRequests()">Refresh</button>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <input id="search-input" type="text" placeholder="Search requests..."
+                            style="padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 0.85rem; width: 220px; outline: none;"
+                            oninput="debounceSearch()">
+                        <button class="btn btn-secondary" onclick="exportCSV()" title="Export CSV" style="padding: 0.5rem 0.75rem; font-size: 0.85rem;">Export CSV</button>
+                        <button class="btn btn-secondary" onclick="loadRequests()">Refresh</button>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="table-container">
@@ -1707,9 +1713,23 @@
             }
         }
 
+        let searchTimer = null;
+        function debounceSearch() {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(() => loadRequests(), 300);
+        }
+
+        function exportCSV() {
+            const q = document.getElementById('search-input').value.trim();
+            const params = q ? `?q=${encodeURIComponent(q)}` : '';
+            window.open(`${API_BASE}/api/requests/export.csv${params}`, '_blank');
+        }
+
         async function loadRequests() {
             try {
-                const response = await fetch(`${API_BASE}/api/requests`);
+                const q = document.getElementById('search-input')?.value?.trim();
+                const params = q ? `?q=${encodeURIComponent(q)}` : '';
+                const response = await fetch(`${API_BASE}/api/requests${params}`);
                 const data = await response.json();
                 const requests = data.items || data;
                 const sortedRequests = [...requests].sort((a, b) => {

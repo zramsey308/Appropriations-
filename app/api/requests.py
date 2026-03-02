@@ -1,6 +1,8 @@
+import csv
+import io
 from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
-from fastapi.responses import FileResponse, Response
+from fastapi.responses import FileResponse, Response, StreamingResponse
 from sqlalchemy.orm import Session
 
 from app.db import get_db
@@ -36,21 +38,70 @@ def list_requests(
     type: Optional[RequestType] = None,
     subcommittee: Optional[Subcommittee] = None,
     status: Optional[RequestStatus] = None,
+    q: Optional[str] = None,
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
 ):
-    """List appropriations requests with optional filters."""
+    """List appropriations requests with optional filters.
+
+    Use `q` for text search across title, description, requester name, and organization.
+    """
     service = RequestService(db)
     items, total = service.list(
         fy=fy,
         request_type=type,
         subcommittee=subcommittee,
         status=status,
+        search=q,
         skip=skip,
         limit=limit,
     )
     return RequestListResponse(items=items, total=total)
+
+
+@router.get("/export.csv")
+def export_requests_csv(
+    fy: Optional[int] = None,
+    type: Optional[RequestType] = None,
+    subcommittee: Optional[Subcommittee] = None,
+    status: Optional[RequestStatus] = None,
+    q: Optional[str] = None,
+    db: Session = Depends(get_db),
+):
+    """Export requests as CSV with the same filters as the list endpoint."""
+    service = RequestService(db)
+    items, _ = service.list(
+        fy=fy,
+        request_type=type,
+        subcommittee=subcommittee,
+        status=status,
+        search=q,
+        skip=0,
+        limit=10000,
+    )
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow([
+        "ID", "Fiscal Year", "Type", "Subcommittee", "Status",
+        "Title", "Requester Name", "Organization", "Email",
+        "Requested Amount", "Created At",
+    ])
+    for r in items:
+        writer.writerow([
+            r.id, r.fiscal_year, r.request_type, r.subcommittee, r.status,
+            r.title, r.requester_name or "", r.requester_organization or "",
+            r.requester_email or "", r.requested_amount or "",
+            r.created_at.isoformat() if r.created_at else "",
+        ])
+
+    output.seek(0)
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=requests_export.csv"},
+    )
 
 
 @router.get("/{request_id}", response_model=RequestResponse)

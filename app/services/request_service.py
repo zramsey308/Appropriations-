@@ -1,6 +1,6 @@
 from typing import Optional, List
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, or_
 import logging
 
 from app.models import Request, CPFDetails
@@ -31,6 +31,7 @@ class RequestService:
         request_type: Optional[RequestType] = None,
         subcommittee: Optional[Subcommittee] = None,
         status: Optional[RequestStatus] = None,
+        search: Optional[str] = None,
         skip: int = 0,
         limit: int = 100,
     ) -> tuple[List[Request], int]:
@@ -44,6 +45,14 @@ class RequestService:
             query = query.filter(Request.subcommittee == subcommittee)
         if status is not None:
             query = query.filter(Request.status == status)
+        if search:
+            term = f"%{search}%"
+            query = query.filter(or_(
+                Request.title.ilike(term),
+                Request.description.ilike(term),
+                Request.requester_name.ilike(term),
+                Request.requester_organization.ilike(term),
+            ))
 
         total = query.count()
         items = query.order_by(Request.created_at.desc()).offset(skip).limit(limit).all()

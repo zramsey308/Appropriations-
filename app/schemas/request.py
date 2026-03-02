@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional, List
 
 from app.models.enums import RequestType, Subcommittee, RequestStatus
@@ -69,15 +69,14 @@ class RequestUpdate(BaseModel):
 
 
 class RequestResponse(RequestBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     status: RequestStatus
     cpf_details: Optional[CPFDetailsResponse] = None
     attachments: List[AttachmentResponse] = []
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        from_attributes = True
 
 
 class RequestListResponse(BaseModel):
