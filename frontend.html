@@ -666,6 +666,7 @@
         .badge-ndaa { background: rgba(220, 38, 38, 0.1); color: #dc2626; }
         .badge-draft { background: var(--surface-alt); color: var(--text-muted); border: 1px solid var(--border); }
         .badge-submitted { background: rgba(12, 74, 110, 0.1); color: var(--secondary); }
+        .badge-submitted_to_committee { background: rgba(59, 130, 246, 0.12); color: #2563eb; }
         .badge-selected { background: rgba(5, 150, 105, 0.1); color: var(--accent); }
 
         .amount {
@@ -1730,6 +1731,7 @@ Or for language requests include:
                                 <option value="draft">Draft</option>
                                 <option value="submitted">Submitted</option>
                                 <option value="under_review">Under Review</option>
+                                <option value="submitted_to_committee">Submitted to Committee</option>
                                 <option value="approved">Approved</option>
                                 <option value="rejected">Rejected</option>
                                 <option value="selected">Selected</option>
@@ -2085,6 +2087,19 @@ Or for language requests include:
             return `<span class="deadline-tag ${urgency}">${label}</span>`;
         }
 
+        function formatStatus(status) {
+            const labels = {
+                draft: 'Draft',
+                submitted: 'Submitted',
+                under_review: 'Under Review',
+                submitted_to_committee: 'Submitted to Committee',
+                approved: 'Approved',
+                rejected: 'Rejected',
+                selected: 'Selected',
+            };
+            return labels[status] || status;
+        }
+
         function subcommitteeStyle(sub) {
             const c = SUBCOMMITTEE_COLORS[sub] || { bg: 'rgba(107,114,128,0.12)', color: '#6b7280' };
             return `background:${c.bg}; color:${c.color}; font-weight:600;`;
@@ -2420,7 +2435,7 @@ Or for language requests include:
                         <td><span class="badge badge-${r.request_type}">${r.request_type.toUpperCase()}</span></td>
                         <td><span style="font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; ${subcommitteeStyle(r.subcommittee)}">${formatSubcommittee(r.subcommittee)}</span> ${getCpfDeadlineTag(r.subcommittee, r.request_type)}</td>
                         <td class="amount">${formatCurrency(r.requested_amount)}</td>
-                        <td><span class="badge badge-${r.status}">${r.status}</span></td>
+                        <td><span class="badge badge-${r.status}">${formatStatus(r.status)}</span></td>
                     </tr>
                 `).join('');
             } catch (error) {
@@ -2467,7 +2482,7 @@ Or for language requests include:
                         <td><span style="font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; ${subcommitteeStyle(r.subcommittee)}">${formatSubcommittee(r.subcommittee)}</span> ${getCpfDeadlineTag(r.subcommittee, r.request_type)}</td>
                         <td>${r.requester_name || '-'}</td>
                         <td class="amount">${formatCurrency(r.requested_amount)}</td>
-                        <td><span class="badge badge-${r.status}">${r.status}</span></td>
+                        <td><span class="badge badge-${r.status}">${formatStatus(r.status)}</span></td>
                         <td>${new Date(r.created_at).toLocaleDateString()}</td>
                     </tr>
                 `).join('');
