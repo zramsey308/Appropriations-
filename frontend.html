@@ -669,6 +669,14 @@
         .badge-submitted_to_committee { background: rgba(59, 130, 246, 0.12); color: #2563eb; }
         .badge-selected { background: rgba(5, 150, 105, 0.1); color: var(--accent); }
 
+        /* Committee Submission Styles */
+        .committee-section { background: var(--surface-alt); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1rem; }
+        .committee-section-title { font-size: 0.95rem; font-weight: 600; color: var(--primary); margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+        .cs-field { width: 100%; padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); font-size: 0.875rem; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; }
+        .cs-field:hover { border-color: var(--primary); }
+        .cs-field.copied { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.2); }
+        .cs-field:not([readonly]) { cursor: text; background: white; }
+
         .amount {
             font-family: 'SF Mono', 'Fira Code', monospace;
             font-weight: 500;
@@ -1078,6 +1086,7 @@
             <button class="nav-btn" data-panel="upload-docs">Upload Docs</button>
             <button class="nav-btn" data-panel="new-request">New Request</button>
             <button class="nav-btn" data-panel="requests">All Requests</button>
+            <button class="nav-btn" data-panel="committee-submit">Committee Submission</button>
             <button class="nav-btn" data-panel="accounts">Eligible Accounts</button>
         </nav>
     </div>
@@ -1307,7 +1316,7 @@
                         <div style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.4;">&#128196;</div>
                         <p style="font-size: 1rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem;">Drag & drop Word documents here</p>
                         <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">or click to browse files</p>
-                        <input type="file" id="file-input" accept=".docx" multiple style="display: none;" onchange="handleFiles(this.files)">
+                        <input type="file" id="file-input" accept=".docx,.doc" multiple style="display: none;" onchange="handleFiles(this.files)">
                         <button class="btn btn-accent" onclick="document.getElementById('file-input').click()" type="button">Select Files</button>
                     </div>
 
@@ -1683,6 +1692,214 @@ Or for language requests include:
             </div>
         </div>
 
+        <!-- Committee Submission Panel -->
+        <div id="committee-submit" class="panel">
+            <div class="card">
+                <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <h2>Committee Submission Prep</h2>
+                        <p style="color:var(--text-muted); font-size:0.85rem; margin-top:4px;">Pre-filled fields matching the Appropriations Committee portal. Select a request, review, then copy each field.</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="form-group" style="margin-bottom:1.5rem;">
+                        <label style="font-weight:600;">Select CPF Request to Submit</label>
+                        <select id="committee-request-select" onchange="loadCommitteeForm()" style="width:100%; padding:0.6rem; border:1px solid var(--border); border-radius:var(--radius-md); font-size:0.9rem;">
+                            <option value="">-- Select a CPF request --</option>
+                        </select>
+                    </div>
+
+                    <div id="committee-form-container" style="display:none;">
+                        <!-- Page 1: Subcommittee & Request Type -->
+                        <div class="committee-section">
+                            <h3 class="committee-section-title">Page 1: Subcommittee & Request Type</h3>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Subcommittee *</label>
+                                    <input type="text" id="cs-subcommittee" readonly class="cs-field" onclick="copyField(this)">
+                                </div>
+                                <div class="form-group">
+                                    <label>Request Type *</label>
+                                    <input type="text" id="cs-request-type" value="Community Project Funding / Congressionally Directed Spending" readonly class="cs-field" onclick="copyField(this)">
+                                </div>
+                                <div class="form-group">
+                                    <label>Agency *</label>
+                                    <input type="text" id="cs-agency" readonly class="cs-field" onclick="copyField(this)">
+                                </div>
+                                <div class="form-group">
+                                    <label>Bureau *</label>
+                                    <input type="text" id="cs-bureau" readonly class="cs-field" onclick="copyField(this)">
+                                </div>
+                                <div class="form-group">
+                                    <label>Account *</label>
+                                    <input type="text" id="cs-account" readonly class="cs-field" onclick="copyField(this)">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Page 2: Request Details -->
+                        <div class="committee-section">
+                            <h3 class="committee-section-title">Page 2: Request Details</h3>
+                            <div class="form-grid">
+                                <div class="form-group" style="grid-column: 1 / -1;">
+                                    <label>Project Title *</label>
+                                    <input type="text" id="cs-project-title" readonly class="cs-field" onclick="copyField(this)">
+                                </div>
+                                <div class="form-group" style="grid-column: 1 / -1;">
+                                    <label>Project Description * <span id="cs-desc-count" style="color:var(--text-muted); font-size:0.75rem;"></span></label>
+                                    <textarea id="cs-project-description" readonly class="cs-field" rows="6" onclick="copyField(this)" style="resize:vertical;"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label>Estimated Start Date</label>
+                                    <input type="text" id="cs-start-date" readonly class="cs-field" onclick="copyField(this)">
+                                </div>
+                                <div class="form-group">
+                                    <label>Estimated End Date</label>
+                                    <input type="text" id="cs-end-date" readonly class="cs-field" onclick="copyField(this)">
+                                </div>
+                                <div class="form-group" style="grid-column: 1 / -1;">
+                                    <label>Community Support Evidence *</label>
+                                    <textarea id="cs-community-support" readonly class="cs-field" rows="4" onclick="copyField(this)" style="resize:vertical;"></textarea>
+                                </div>
+                                <div class="form-group" style="grid-column: 1 / -1;">
+                                    <label>Letter of Community Support</label>
+                                    <div id="cs-support-letters" style="font-size:0.85rem; color:var(--text-muted);">No letters uploaded</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Page 3: Funding -->
+                        <div class="committee-section">
+                            <h3 class="committee-section-title">Page 3: Funding</h3>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Amount Requested for FY27 *</label>
+                                    <input type="text" id="cs-amount-requested" readonly class="cs-field" onclick="copyField(this)">
+                                </div>
+                                <div class="form-group">
+                                    <label>Total Project Cost</label>
+                                    <input type="text" id="cs-total-cost" readonly class="cs-field" onclick="copyField(this)">
+                                </div>
+                                <div class="form-group">
+                                    <label>FY27 President's Budget Request Amount *</label>
+                                    <input type="text" id="cs-president-budget" readonly class="cs-field" onclick="copyField(this)">
+                                </div>
+                                <div class="form-group">
+                                    <label>FY26 Enacted Amount *</label>
+                                    <input type="text" id="cs-fy26-enacted" readonly class="cs-field" onclick="copyField(this)">
+                                </div>
+                                <div class="form-group">
+                                    <label>Can obligate funds within 12 months?</label>
+                                    <input type="text" id="cs-obligate-12mo" readonly class="cs-field" onclick="copyField(this)">
+                                </div>
+                                <div class="form-group">
+                                    <label>Request submitted to another subcommittee?</label>
+                                    <input type="text" id="cs-other-subcommittee" readonly class="cs-field" onclick="copyField(this)">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Page 4: Project/Recipient Information -->
+                        <div class="committee-section">
+                            <h3 class="committee-section-title">Page 4: Project/Recipient Information</h3>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Governmental or Non-Profit?</label>
+                                    <input type="text" id="cs-entity-type" readonly class="cs-field" onclick="copyField(this)">
+                                </div>
+                                <div class="form-group">
+                                    <label>Recipient Point of Contact</label>
+                                    <input type="text" id="cs-poc-name" readonly class="cs-field" onclick="copyField(this)">
+                                </div>
+                                <div class="form-group">
+                                    <label>Recipient Phone Number</label>
+                                    <input type="text" id="cs-poc-phone" readonly class="cs-field" onclick="copyField(this)">
+                                </div>
+                                <div class="form-group">
+                                    <label>Recipient Email Address</label>
+                                    <input type="text" id="cs-poc-email" readonly class="cs-field" onclick="copyField(this)">
+                                </div>
+                                <div class="form-group">
+                                    <label>Congressional District</label>
+                                    <input type="text" id="cs-district" value="TX-11" readonly class="cs-field" onclick="copyField(this)">
+                                </div>
+                                <div class="form-group">
+                                    <label>Recipient Legal Name</label>
+                                    <input type="text" id="cs-legal-name" readonly class="cs-field" onclick="copyField(this)">
+                                </div>
+                                <div class="form-group" style="grid-column: 1 / -1;">
+                                    <label>Street Address</label>
+                                    <input type="text" id="cs-street" readonly class="cs-field" onclick="copyField(this)">
+                                </div>
+                                <div class="form-group">
+                                    <label>City</label>
+                                    <input type="text" id="cs-city" readonly class="cs-field" onclick="copyField(this)">
+                                </div>
+                                <div class="form-group">
+                                    <label>State</label>
+                                    <input type="text" id="cs-state" value="TX" readonly class="cs-field" onclick="copyField(this)">
+                                </div>
+                                <div class="form-group">
+                                    <label>Zip Code</label>
+                                    <input type="text" id="cs-zip" readonly class="cs-field" onclick="copyField(this)">
+                                </div>
+                                <div class="form-group" style="grid-column: 1 / -1;">
+                                    <label>Project Address (if different)</label>
+                                    <input type="text" id="cs-project-address" readonly class="cs-field" onclick="copyField(this)">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Page 5: Disclosure and Transparency -->
+                        <div class="committee-section">
+                            <h3 class="committee-section-title">Page 5: Disclosure and Transparency</h3>
+                            <div class="form-grid">
+                                <div class="form-group" style="grid-column: 1 / -1;">
+                                    <label>Project Information URL *</label>
+                                    <input type="text" id="cs-project-url" class="cs-field" onclick="copyField(this)" placeholder="https://membername.house.gov/...">
+                                </div>
+                                <div class="form-group" style="grid-column: 1 / -1;">
+                                    <label>Request Explanation * <span id="cs-explanation-count" style="color:var(--text-muted); font-size:0.75rem;"></span></label>
+                                    <textarea id="cs-request-explanation" readonly class="cs-field" rows="6" onclick="copyField(this)" style="resize:vertical;"></textarea>
+                                </div>
+                                <div class="form-group" style="grid-column: 1 / -1;">
+                                    <label>Financial Disclosure and Federal Nexus Letter</label>
+                                    <div id="cs-disclosure-letter" style="font-size:0.85rem; color:var(--text-muted);">Upload separately to portal (PDF only)</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Page 6: Supplemental Questions -->
+                        <div class="committee-section">
+                            <h3 class="committee-section-title">Page 6: Supplemental Questions</h3>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Is recipient a 501(c)(3)? *</label>
+                                    <input type="text" id="cs-is-501c3" readonly class="cs-field" onclick="copyField(this)">
+                                </div>
+                                <div class="form-group">
+                                    <label>Can spend smaller amount within 12 months? *</label>
+                                    <input type="text" id="cs-partial-funding" readonly class="cs-field" onclick="copyField(this)">
+                                </div>
+                                <div class="form-group" style="grid-column: 1 / -1;">
+                                    <label>Scalability details</label>
+                                    <textarea id="cs-scalability" readonly class="cs-field" rows="3" onclick="copyField(this)" style="resize:vertical;"></textarea>
+                                </div>
+                                <div class="form-group" style="grid-column: 1 / -1;">
+                                    <label>Project location (City/County, State)</label>
+                                    <input type="text" id="cs-location-display" readonly class="cs-field" onclick="copyField(this)">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="text-align:center; margin-top:1.5rem;">
+                            <button type="button" class="btn btn-accent" onclick="markSubmittedToCommittee()" style="padding:0.75rem 2rem;">Mark as Submitted to Committee</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Eligible Accounts Panel -->
         <div id="accounts" class="panel">
             <div class="card">
@@ -1998,6 +2215,7 @@ Or for language requests include:
             if (panelId === 'requests') loadRequests();
             if (panelId === 'accounts') loadAccounts();
             if (panelId === 'cpf-projects') loadCpfProjects();
+            if (panelId === 'committee-submit') loadCommitteeRequestList();
             if (panelId === 'tx11-map') loadTx11Map();
         }
 
@@ -2845,10 +3063,10 @@ Or for language requests include:
 
         function handleFiles(fileList) {
             for (const file of fileList) {
-                if (file.name.endsWith('.docx')) {
+                if (file.name.endsWith('.docx') || file.name.endsWith('.doc')) {
                     uploadFiles.push(file);
                 } else {
-                    showToast(`Skipped ${file.name} - only .docx files supported`, 'error');
+                    showToast(`Skipped ${file.name} - only .docx and .doc files supported`, 'error');
                 }
             }
             renderUploadQueue();
@@ -3141,7 +3359,10 @@ Or for language requests include:
                             method: 'POST',
                             body: formData,
                         });
-                        if (!resp.ok) throw new Error('Upload failed');
+                        if (!resp.ok) {
+                            const errBody = await resp.json().catch(() => ({}));
+                            throw new Error(errBody.detail || `Upload failed (${resp.status})`);
+                        }
                         const att = await resp.json();
 
                         // Show uploaded file in the list
@@ -3153,7 +3374,8 @@ Or for language requests include:
                         `;
                         listEl.appendChild(itemDiv);
                     } catch (err) {
-                        showToast(`Failed to upload ${file.name}`, 'error');
+                        showToast(`Failed to upload ${file.name}: ${err.message}`, 'error');
+                        break; // Stop trying remaining letters from this file
                     }
                 }
             }
@@ -3175,13 +3397,31 @@ Or for language requests include:
                     return;
                 }
                 listEl.innerHTML = letters.map(a => `
-                    <div class="support-file-item">
-                        <span class="file-name">${a.original_filename}</span>
-                        <span class="file-meta">${a.file_size ? (a.file_size / 1024).toFixed(0) + ' KB' : ''}</span>
+                    <div class="support-file-item" style="display:flex; align-items:center; justify-content:space-between;">
+                        <span>
+                            <span class="file-name">${a.original_filename}</span>
+                            <span class="file-meta">${a.file_size ? (a.file_size / 1024).toFixed(0) + ' KB' : ''}</span>
+                        </span>
+                        <button onclick="deleteSupportLetter(${a.request_id}, ${a.id})" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size:0.8rem; padding:2px 6px;" title="Remove letter">&times;</button>
                     </div>
                 `).join('');
             } catch (err) {
                 console.warn('Could not load attachments:', err);
+            }
+        }
+
+        async function deleteSupportLetter(requestId, attachmentId) {
+            if (!confirm('Remove this support letter?')) return;
+            try {
+                const resp = await fetch(`${API_BASE}/api/requests/${requestId}/attachments/${attachmentId}`, {
+                    method: 'DELETE',
+                });
+                if (!resp.ok) throw new Error('Delete failed');
+                showToast('Support letter removed', 'success');
+                loadSupportLetters(requestId);
+                loadCpfProjects();
+            } catch (err) {
+                showToast('Failed to remove letter', 'error');
             }
         }
 
@@ -3482,6 +3722,180 @@ Or for language requests include:
             } catch (error) {
                 console.error('Map load error:', error);
                 showToast('Failed to load map data', 'error');
+            }
+        }
+
+        // ── Committee Submission Functions ──────────────────────
+        function copyField(el) {
+            const value = el.value || el.textContent;
+            if (!value.trim()) return;
+            navigator.clipboard.writeText(value).then(() => {
+                el.classList.add('copied');
+                showToast('Copied to clipboard', 'success');
+                setTimeout(() => el.classList.remove('copied'), 1500);
+            });
+        }
+
+        async function loadCommitteeRequestList() {
+            try {
+                const resp = await fetch(`${API_BASE}/api/requests?type=cpf&limit=500`);
+                const data = await resp.json();
+                const requests = data.items || data;
+                const select = document.getElementById('committee-request-select');
+                select.innerHTML = '<option value="">-- Select a CPF request --</option>';
+                requests.forEach(r => {
+                    const cpf = r.cpf_details || {};
+                    const amt = r.requested_amount ? ` - ${formatCurrency(r.requested_amount)}` : '';
+                    const org = r.requester_organization ? ` (${r.requester_organization})` : '';
+                    select.innerHTML += `<option value="${r.id}">${r.title}${org}${amt}</option>`;
+                });
+            } catch (err) {
+                console.error('Failed to load committee request list:', err);
+            }
+        }
+
+        async function loadCommitteeForm() {
+            const select = document.getElementById('committee-request-select');
+            const container = document.getElementById('committee-form-container');
+            const requestId = select.value;
+            if (!requestId) {
+                container.style.display = 'none';
+                return;
+            }
+
+            try {
+                const [reqResp, cpfResp, attResp] = await Promise.all([
+                    fetch(`${API_BASE}/api/requests/${requestId}`),
+                    fetch(`${API_BASE}/api/requests/${requestId}/cpf`),
+                    fetch(`${API_BASE}/api/requests/${requestId}/attachments`),
+                ]);
+                const req = await reqResp.json();
+                const cpf = cpfResp.ok ? await cpfResp.json() : {};
+                const attachments = attResp.ok ? await attResp.json() : [];
+                const letters = attachments.filter(a => a.attachment_type === 'cpf_support_letter');
+
+                // Parse address into components
+                const addr = cpf.entity_address || '';
+                const addrParts = parseAddress(addr);
+
+                // Page 1: Subcommittee & Type
+                document.getElementById('cs-subcommittee').value = formatSubcommittee(req.subcommittee);
+                document.getElementById('cs-agency').value = req.agency || cpf.eligible_account?.agency || '';
+                document.getElementById('cs-bureau').value = '';
+                document.getElementById('cs-account').value = cpf.eligible_account?.account_name || '';
+
+                // Page 2: Request Details
+                document.getElementById('cs-project-title').value = cpf.project_name || req.title || '';
+                const desc = cpf.project_description || req.description || '';
+                document.getElementById('cs-project-description').value = desc;
+                document.getElementById('cs-desc-count').textContent = `${desc.length} / 2000`;
+                document.getElementById('cs-start-date').value = '';
+                document.getElementById('cs-end-date').value = cpf.timeline || '';
+                document.getElementById('cs-community-support').value = cpf.stakeholders_support || '';
+
+                // Support letters
+                const lettersEl = document.getElementById('cs-support-letters');
+                if (letters.length > 0) {
+                    lettersEl.innerHTML = letters.map(l =>
+                        `<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                            <span style="color:var(--accent);">&#10003;</span>
+                            <a href="${API_BASE}/api/requests/${requestId}/attachments/${l.id}/download" target="_blank" style="color:var(--secondary);">${l.original_filename}</a>
+                            <span style="color:var(--text-muted);font-size:0.75rem;">${(l.file_size/1024).toFixed(0)} KB</span>
+                        </div>`
+                    ).join('');
+                } else {
+                    lettersEl.innerHTML = '<span style="color:var(--danger);">No support letters uploaded - required for submission</span>';
+                }
+
+                // Page 3: Funding
+                document.getElementById('cs-amount-requested').value = req.requested_amount ? req.requested_amount.toLocaleString() : '';
+                document.getElementById('cs-total-cost').value = cpf.total_project_cost ? cpf.total_project_cost.toLocaleString() : '';
+                document.getElementById('cs-president-budget').value = cpf.in_presidential_budget ? (cpf.presidential_budget_details || 'Yes') : '0';
+                document.getElementById('cs-fy26-enacted').value = cpf.prior_federal_funding ? (cpf.prior_funding_details || '0') : '0';
+                document.getElementById('cs-obligate-12mo').value = cpf.timeline ? 'Yes' : '';
+                document.getElementById('cs-other-subcommittee').value = cpf.members_receiving_request ? 'Yes' : 'No';
+
+                // Page 4: Recipient Info
+                const entityTypeMap = {
+                    'nonprofit_501c3': 'Non-Profit Organization',
+                    'state_local_tribal_government': 'Governmental Organization',
+                    'state_government': 'Governmental Organization',
+                    'local_government': 'Governmental Organization',
+                    'tribal_government': 'Governmental Organization',
+                    'public_entity': 'Governmental Organization',
+                    'public_higher_education': 'Governmental Organization',
+                };
+                document.getElementById('cs-entity-type').value = entityTypeMap[cpf.entity_type] || cpf.entity_type || '';
+                document.getElementById('cs-poc-name').value = req.requester_name || '';
+                document.getElementById('cs-poc-phone').value = req.requester_phone || '';
+                document.getElementById('cs-poc-email').value = req.requester_email || '';
+                document.getElementById('cs-legal-name').value = cpf.entity_name || req.requester_organization || '';
+                document.getElementById('cs-street').value = addrParts.street;
+                document.getElementById('cs-city').value = addrParts.city;
+                document.getElementById('cs-state').value = addrParts.state || 'TX';
+                document.getElementById('cs-zip').value = addrParts.zip;
+                document.getElementById('cs-project-address').value = cpf.project_address || '';
+
+                // Page 5: Disclosure
+                const explanation = cpf.public_benefit_justification || cpf.tx11_priority_justification || req.description || '';
+                document.getElementById('cs-request-explanation').value = explanation;
+                document.getElementById('cs-explanation-count').textContent = `${explanation.length} / 2000`;
+
+                // Page 6: Supplemental
+                document.getElementById('cs-is-501c3').value = cpf.entity_type === 'nonprofit_501c3' ? 'Yes' : 'No';
+                document.getElementById('cs-partial-funding').value = cpf.partial_funding_acceptable ? 'Yes' : 'No';
+                document.getElementById('cs-scalability').value = cpf.partial_funding_explanation || '';
+
+                // Build location from project address
+                const projAddr = cpf.project_address || cpf.entity_address || '';
+                const cityMatch = projAddr.match(/([^,]+),\s*([A-Z]{2})/i);
+                document.getElementById('cs-location-display').value = cityMatch ? `${cityMatch[1].trim()}, ${cityMatch[2]}` : '';
+
+                container.style.display = 'block';
+            } catch (err) {
+                showToast('Failed to load request data', 'error');
+                console.error(err);
+            }
+        }
+
+        function parseAddress(addr) {
+            if (!addr) return { street: '', city: '', state: 'TX', zip: '' };
+            // Try to parse "Street, City, State ZIP" format
+            const parts = addr.split(',').map(s => s.trim());
+            if (parts.length >= 3) {
+                const lastPart = parts[parts.length - 1];
+                const stateZip = lastPart.match(/([A-Z]{2})\s*(\d{5}(?:-\d{4})?)?/i);
+                return {
+                    street: parts.slice(0, -2).join(', '),
+                    city: parts[parts.length - 2],
+                    state: stateZip ? stateZip[1] : 'TX',
+                    zip: stateZip && stateZip[2] ? stateZip[2] : '',
+                };
+            }
+            if (parts.length === 2) {
+                const stateZip = parts[1].match(/([A-Z]{2})\s*(\d{5}(?:-\d{4})?)?/i);
+                if (stateZip) return { street: parts[0], city: '', state: stateZip[1], zip: stateZip[2] || '' };
+                return { street: parts[0], city: parts[1], state: 'TX', zip: '' };
+            }
+            return { street: addr, city: '', state: 'TX', zip: '' };
+        }
+
+        async function markSubmittedToCommittee() {
+            const select = document.getElementById('committee-request-select');
+            const requestId = select.value;
+            if (!requestId) return;
+
+            try {
+                const resp = await fetch(`${API_BASE}/api/requests/${requestId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: 'submitted_to_committee' }),
+                });
+                if (!resp.ok) throw new Error('Failed to update status');
+                showToast('Request marked as Submitted to Committee', 'success');
+                loadCommitteeRequestList();
+            } catch (err) {
+                showToast('Failed to update status', 'error');
             }
         }
 
