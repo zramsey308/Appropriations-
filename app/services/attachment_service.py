@@ -71,6 +71,11 @@ class AttachmentService:
         if not attachment:
             return False
 
+        # Decrement support letters count if this is a CPF support letter
+        if attachment.attachment_type == AttachmentType.cpf_support_letter:
+            cpf_service = CPFService(self.db)
+            cpf_service.decrement_support_letters(attachment.request_id)
+
         # Delete file from storage (Supabase or local filesystem)
         storage.delete_file(attachment.file_path)
 

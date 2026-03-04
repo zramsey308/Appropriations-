@@ -211,3 +211,11 @@ class CPFService:
             self.db.commit()
             self.db.refresh(cpf_details)
         return cpf_details
+
+    def decrement_support_letters(self, request_id: int) -> Optional[CPFDetails]:
+        cpf_details = self.get_by_request(request_id)
+        if cpf_details and cpf_details.support_letters_received > 0:
+            cpf_details.support_letters_received -= 1
+            self.db.commit()
+            self.db.refresh(cpf_details)
+        return cpf_details

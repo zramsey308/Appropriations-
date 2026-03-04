@@ -595,7 +595,7 @@ def map_subcommittee(raw: str) -> Optional[str]:
         "defense": "defense",
         "energy": "energy_water",
         "water": "energy_water",
-        "financial": "financial_services_general_government",
+        "financial": "financial_services",
         "homeland": "homeland_security",
         "interior": "interior_environment",
         "environment": "interior_environment",
