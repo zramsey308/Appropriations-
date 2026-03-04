@@ -28,6 +28,7 @@ class RequestStatus(str, enum.Enum):
     draft = "draft"
     submitted = "submitted"
     under_review = "under_review"
+    submitted_to_committee = "submitted_to_committee"
     approved = "approved"
     rejected = "rejected"
     selected = "selected"
