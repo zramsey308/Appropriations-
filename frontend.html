@@ -946,6 +946,38 @@
         .cpf-item.expanded .cpf-expand-indicator {
             transform: rotate(90deg);
         }
+        .deadline-tag {
+            display: inline-block;
+            font-size: 0.68rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 10px;
+            white-space: nowrap;
+            letter-spacing: 0.01em;
+        }
+        .deadline-ok {
+            background: rgba(5, 150, 105, 0.1);
+            color: #059669;
+        }
+        .deadline-soon {
+            background: rgba(217, 119, 6, 0.12);
+            color: #b45309;
+        }
+        .deadline-urgent {
+            background: rgba(220, 38, 38, 0.12);
+            color: #dc2626;
+            animation: pulse-deadline 1.5s ease-in-out infinite;
+        }
+        .deadline-passed {
+            background: rgba(220, 38, 38, 0.08);
+            color: #991b1b;
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+        @keyframes pulse-deadline {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
         .support-drop-zone {
             border: 2px dashed var(--border);
             border-radius: var(--radius-md);
@@ -2014,6 +2046,45 @@ Or for language requests include:
             transportation_hud: { bg: 'rgba(255,140,0,0.12)', color: '#e07000' },
         };
 
+        // CPF submission deadlines by subcommittee (6:00 PM ET)
+        const CPF_DEADLINES = {
+            agriculture:                          new Date('2026-03-13T18:00:00-05:00'),
+            commerce_justice_science:             new Date('2026-03-13T18:00:00-05:00'),
+            milcon_va:                            new Date('2026-03-13T18:00:00-05:00'),
+            energy_water:                         new Date('2026-03-20T18:00:00-04:00'),
+            homeland_security:                    new Date('2026-03-20T18:00:00-04:00'),
+            interior_environment:                 new Date('2026-03-20T18:00:00-04:00'),
+            labor_hhs_education:                  new Date('2026-03-20T18:00:00-04:00'),
+            transportation_hud:                   new Date('2026-03-20T18:00:00-04:00'),
+        };
+
+        function getCpfDeadlineTag(subcommittee, requestType) {
+            if (requestType && requestType !== 'cpf') return '';
+            const deadline = CPF_DEADLINES[subcommittee];
+            if (!deadline) return '';
+            const now = new Date();
+            const diff = deadline - now;
+            const daysLeft = Math.ceil(diff / (1000 * 60 * 60 * 24));
+            const dateStr = deadline.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            const timeStr = '6:00 PM';
+
+            let urgency, label;
+            if (diff <= 0) {
+                urgency = 'deadline-passed';
+                label = `Due ${dateStr} — PAST DUE`;
+            } else if (daysLeft <= 3) {
+                urgency = 'deadline-urgent';
+                label = `Due ${dateStr} ${timeStr} — ${daysLeft}d left`;
+            } else if (daysLeft <= 7) {
+                urgency = 'deadline-soon';
+                label = `Due ${dateStr} ${timeStr} — ${daysLeft}d left`;
+            } else {
+                urgency = 'deadline-ok';
+                label = `Due ${dateStr} ${timeStr}`;
+            }
+            return `<span class="deadline-tag ${urgency}">${label}</span>`;
+        }
+
         function subcommitteeStyle(sub) {
             const c = SUBCOMMITTEE_COLORS[sub] || { bg: 'rgba(107,114,128,0.12)', color: '#6b7280' };
             return `background:${c.bg}; color:${c.color}; font-weight:600;`;
@@ -2347,7 +2418,7 @@ Or for language requests include:
                         <td><strong>#${r.id}</strong></td>
                         <td>${r.title}</td>
                         <td><span class="badge badge-${r.request_type}">${r.request_type.toUpperCase()}</span></td>
-                        <td><span style="font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; ${subcommitteeStyle(r.subcommittee)}">${formatSubcommittee(r.subcommittee)}</span></td>
+                        <td><span style="font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; ${subcommitteeStyle(r.subcommittee)}">${formatSubcommittee(r.subcommittee)}</span> ${getCpfDeadlineTag(r.subcommittee, r.request_type)}</td>
                         <td class="amount">${formatCurrency(r.requested_amount)}</td>
                         <td><span class="badge badge-${r.status}">${r.status}</span></td>
                     </tr>
@@ -2393,7 +2464,7 @@ Or for language requests include:
                         <td><strong>#${r.id}</strong></td>
                         <td>${r.title}</td>
                         <td><span class="badge badge-${r.request_type}">${r.request_type.toUpperCase()}</span></td>
-                        <td><span style="font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; ${subcommitteeStyle(r.subcommittee)}">${formatSubcommittee(r.subcommittee)}</span></td>
+                        <td><span style="font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; ${subcommitteeStyle(r.subcommittee)}">${formatSubcommittee(r.subcommittee)}</span> ${getCpfDeadlineTag(r.subcommittee, r.request_type)}</td>
                         <td>${r.requester_name || '-'}</td>
                         <td class="amount">${formatCurrency(r.requested_amount)}</td>
                         <td><span class="badge badge-${r.status}">${r.status}</span></td>
@@ -2896,7 +2967,7 @@ Or for language requests include:
                 return `
                     <div class="sub-funding-card">
                         <div style="flex:1;">
-                            <div class="sub-name"><span style="padding: 2px 10px; border-radius: 12px; ${subcommitteeStyle(sub)}">${formatSubcommittee(sub)}</span></div>
+                            <div class="sub-name"><span style="padding: 2px 10px; border-radius: 12px; ${subcommitteeStyle(sub)}">${formatSubcommittee(sub)}</span> ${getCpfDeadlineTag(sub)}</div>
                             <div class="sub-count">${count} request${count !== 1 ? 's' : ''}</div>
                             <div class="sub-funding-bar">
                                 <div class="sub-funding-bar-fill" style="width: ${pct}%;"></div>
@@ -2962,6 +3033,7 @@ Or for language requests include:
                     <div class="cpf-item-meta">
                         <div class="cpf-item-amount">${formatCurrency(r.requested_amount)}</div>
                         <div class="cpf-item-sub" style="${subcommitteeStyle(r.subcommittee)}">${formatSubcommittee(r.subcommittee)}</div>
+                        ${getCpfDeadlineTag(r.subcommittee, r.request_type)}
                         <span class="badge badge-${r.status}" style="font-size: 0.65rem;">${r.status}</span>
                     </div>
                     <div class="cpf-item-actions">
