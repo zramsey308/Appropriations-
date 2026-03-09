@@ -18,6 +18,8 @@ from app.db import get_db
 from app.models import Request, CPFDetails, EligibleAccount
 from app.services.docx_parser import map_subcommittee
 from app.api.upload import _best_eligible_account_match
+from app.api.prog_lang_upload import _create_from_prog_lang_schema
+from app.api.cpf_upload import _create_from_cpf_schema
 
 router = APIRouter()
 
@@ -136,8 +138,51 @@ def _safe_get(obj: dict, *keys: str, default: Any = None) -> Any:
     return current if current is not None else default
 
 
+def _detect_json_schema(data: dict) -> str:
+    """Detect which JSON schema variant was used.
+
+    Returns:
+        "prog_lang" - programmatic/language schema (has request_details or bill_details)
+        "cpf"       - CPF schema (has project + requesting_organization, or narratives/support/compliance)
+        "generic"   - fallback to generic intake parsing
+    """
+    metadata = data.get("metadata") or {}
+    request_type = (metadata.get("request_type") or "").lower()
+
+    # Programmatic/language schema: has request_details, bill_details, or
+    # top-level "organization" (not "requesting_organization")
+    if data.get("request_details") or data.get("bill_details"):
+        return "prog_lang"
+    if request_type in ("programmatic", "language"):
+        return "prog_lang"
+    if data.get("organization") and not data.get("requesting_organization"):
+        # "organization" key is prog_lang; CPF uses "requesting_organization"
+        if data.get("justification") or data.get("prior_history"):
+            return "prog_lang"
+
+    # CPF schema: has project + requesting_organization or CPF-specific sections
+    if data.get("project") and (data.get("requesting_organization") or data.get("narratives")):
+        return "cpf"
+    if data.get("compliance") or data.get("flags") is not None:
+        return "cpf"
+
+    return "generic"
+
+
 def _create_from_json(data: dict, db: Session) -> dict:
-    """Create a request from the ChatGPT-parsed JSON structure."""
+    """Create a request from the ChatGPT-parsed JSON structure.
+
+    Auto-detects the schema variant (CPF, programmatic/language, or generic)
+    and routes to the appropriate handler.
+    """
+    schema = _detect_json_schema(data)
+
+    if schema == "prog_lang":
+        return _create_from_prog_lang_schema(data, db)
+    if schema == "cpf":
+        return _create_from_cpf_schema(data, db)
+
+    # Generic / fallback: use the original intake logic
     project = data.get("project", {}) or {}
     org = data.get("requesting_organization", {}) or {}
     poc = data.get("point_of_contact", {}) or {}
