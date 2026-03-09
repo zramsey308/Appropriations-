@@ -2229,6 +2229,61 @@ Or for language requests include:
                         </div>
                     </div>
 
+                    <!-- Programmatic/Language Details Section -->
+                    <div id="edit-prog-lang-section" style="margin-top: 1.5rem; display: none;">
+                        <h3 style="font-size: 1rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border);">Programmatic / Language Details</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Program Name</label>
+                                <input type="text" id="edit-program-name">
+                            </div>
+                            <div class="form-group">
+                                <label>Agency</label>
+                                <input type="text" id="edit-agency">
+                            </div>
+                            <div class="form-group">
+                                <label>Priority Rank</label>
+                                <input type="text" id="edit-priority-rank">
+                            </div>
+                            <div class="form-group">
+                                <label>Bill Section</label>
+                                <input type="text" id="edit-bill-section">
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Problem Statement</label>
+                                <textarea id="edit-problem-statement" rows="3"></textarea>
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Goals & Expected Outcomes</label>
+                                <textarea id="edit-goals-outcomes" rows="3"></textarea>
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Programmatic Justification</label>
+                                <textarea id="edit-prog-justification" rows="3"></textarea>
+                            </div>
+                            <div class="form-group full-width" id="edit-lang-fields" style="display:none;">
+                                <label>Proposed Language</label>
+                                <textarea id="edit-proposed-language" rows="5" style="font-family:monospace; font-size:0.85rem;"></textarea>
+                            </div>
+                            <div class="form-group full-width" id="edit-lang-just-field" style="display:none;">
+                                <label>Language Justification</label>
+                                <textarea id="edit-lang-justification" rows="3"></textarea>
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Other Members Receiving This Request</label>
+                                <textarea id="edit-pl-other-members" rows="2"></textarea>
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Prior Year Details</label>
+                                <textarea id="edit-prior-year-details" rows="2"></textarea>
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Staff Notes</label>
+                                <textarea id="edit-pl-notes" rows="3" placeholder="Internal notes (not visible to requestor)"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Attachments Section -->
                     <div id="edit-attachments-section" style="margin-top: 1.5rem;">
                         <h3 style="font-size: 1rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
@@ -2941,6 +2996,32 @@ Or for language requests include:
                     currentCpfDetails = null;
                 }
 
+                // Load Programmatic/Language details if applicable
+                const plSection = document.getElementById('edit-prog-lang-section');
+                if (request.request_type === 'programmatic' || request.request_type === 'language') {
+                    plSection.style.display = 'block';
+                    document.getElementById('edit-program-name').value = request.program_name || '';
+                    document.getElementById('edit-agency').value = request.agency || '';
+                    document.getElementById('edit-priority-rank').value = request.priority_rank || '';
+                    document.getElementById('edit-bill-section').value = request.bill_section || '';
+                    document.getElementById('edit-problem-statement').value = request.problem_statement || '';
+                    document.getElementById('edit-goals-outcomes').value = request.goals_outcomes || '';
+                    document.getElementById('edit-prog-justification').value = request.programmatic_justification || '';
+                    document.getElementById('edit-pl-other-members').value = request.other_members || '';
+                    document.getElementById('edit-prior-year-details').value = request.prior_year_details || '';
+                    document.getElementById('edit-pl-notes').value = request.notes || '';
+
+                    const isLang = request.request_type === 'language';
+                    document.getElementById('edit-lang-fields').style.display = isLang ? 'block' : 'none';
+                    document.getElementById('edit-lang-just-field').style.display = isLang ? 'block' : 'none';
+                    if (isLang) {
+                        document.getElementById('edit-proposed-language').value = request.proposed_language || '';
+                        document.getElementById('edit-lang-justification').value = request.language_justification || '';
+                    }
+                } else {
+                    plSection.style.display = 'none';
+                }
+
                 // Load attachments
                 await loadAttachments(id);
 
@@ -3073,6 +3154,23 @@ Or for language requests include:
                 notes: document.getElementById('edit-notes').value
             };
 
+            // Include programmatic/language fields if that section is visible
+            if (document.getElementById('edit-prog-lang-section').style.display !== 'none') {
+                data.program_name = document.getElementById('edit-program-name').value || null;
+                data.agency = document.getElementById('edit-agency').value || null;
+                data.priority_rank = document.getElementById('edit-priority-rank').value || null;
+                data.bill_section = document.getElementById('edit-bill-section').value || null;
+                data.problem_statement = document.getElementById('edit-problem-statement').value || null;
+                data.goals_outcomes = document.getElementById('edit-goals-outcomes').value || null;
+                data.programmatic_justification = document.getElementById('edit-prog-justification').value || null;
+                data.proposed_language = document.getElementById('edit-proposed-language').value || null;
+                data.language_justification = document.getElementById('edit-lang-justification').value || null;
+                data.other_members = document.getElementById('edit-pl-other-members').value || null;
+                data.prior_year_details = document.getElementById('edit-prior-year-details').value || null;
+                const plNotes = document.getElementById('edit-pl-notes').value;
+                if (plNotes) data.notes = plNotes;
+            }
+
             try {
                 const response = await fetch(`${API_BASE}/api/requests/${currentEditId}`, {
                     method: 'PATCH',
@@ -3114,6 +3212,8 @@ Or for language requests include:
                 closeEditModal();
                 loadRequests();
                 loadDashboard();
+                loadCpfProjects();
+                loadProgLangRequests();
             } catch (error) {
                 showToast(error.message, 'error');
             }
@@ -3134,6 +3234,8 @@ Or for language requests include:
                 closeEditModal();
                 loadRequests();
                 loadDashboard();
+                loadCpfProjects();
+                loadProgLangRequests();
             } catch (error) {
                 showToast(error.message, 'error');
             }
