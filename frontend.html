@@ -2351,11 +2351,33 @@ Or for language requests include:
             if (value.includes('defense')) return 'defense';
             if (value.includes('agriculture')) return 'agriculture';
             if (value.includes('homeland')) return 'homeland_security';
-            if (value.includes('financial')) return 'financial_services_general_government';
+            if (value.includes('financial')) return 'financial_services';
             if (value.includes('legislative')) return 'legislative_branch';
             if (value.includes('milcon') || value.includes('veteran')) return 'milcon_va';
             if (value.includes('state') || value.includes('foreign')) return 'state_foreign_operations';
             return 'agriculture';
+        }
+
+        function cleanJsonInput(raw) {
+            // Strip markdown code blocks (```json ... ``` or ``` ... ```)
+            let cleaned = raw.trim();
+            cleaned = cleaned.replace(/^```(?:json|JSON|js)?\s*\n?/m, '').replace(/\n?\s*```\s*$/m, '');
+            // If ChatGPT wrapped in extra text, try to extract the JSON portion
+            // Look for first { or [ and last } or ]
+            cleaned = cleaned.trim();
+            if (!cleaned.startsWith('{') && !cleaned.startsWith('[')) {
+                const firstBrace = cleaned.search(/[\[{]/);
+                if (firstBrace > -1) {
+                    cleaned = cleaned.substring(firstBrace);
+                }
+            }
+            if (!cleaned.endsWith('}') && !cleaned.endsWith(']')) {
+                const lastBrace = Math.max(cleaned.lastIndexOf('}'), cleaned.lastIndexOf(']'));
+                if (lastBrace > -1) {
+                    cleaned = cleaned.substring(0, lastBrace + 1);
+                }
+            }
+            return cleaned;
         }
 
         function parseSimpleKeyValueText(rawText) {
@@ -2451,9 +2473,10 @@ Or for language requests include:
             }
             let parsed;
             try {
-                parsed = JSON.parse(raw);
+                const cleaned = cleanJsonInput(raw);
+                parsed = JSON.parse(cleaned);
             } catch (e) {
-                showToast('Invalid JSON. Please paste a valid CPF schema object or array.', 'error');
+                showToast('Invalid JSON. Make sure you copied the full JSON output from ChatGPT (code blocks are OK).', 'error');
                 return;
             }
 
@@ -2516,9 +2539,10 @@ Or for language requests include:
             }
             let parsed;
             try {
-                parsed = JSON.parse(raw);
+                const cleaned = cleanJsonInput(raw);
+                parsed = JSON.parse(cleaned);
             } catch (e) {
-                showToast('Invalid JSON. Please paste a valid JSON object or array.', 'error');
+                showToast('Invalid JSON. Make sure you copied the full JSON output from ChatGPT (code blocks are OK).', 'error');
                 return;
             }
 
