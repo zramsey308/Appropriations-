@@ -308,7 +308,13 @@ async def upload_cpf_json(
             errors.append(f"Item {i}: expected a JSON object")
             continue
         try:
-            result = _create_from_cpf_schema(item, db)
+            # Auto-detect flat vs nested CPF schema (lazy import to avoid circular)
+            from app.api.intake import _detect_json_schema, _create_from_flat_cpf
+            schema = _detect_json_schema(item)
+            if schema == "cpf_flat":
+                result = _create_from_flat_cpf(item, db)
+            else:
+                result = _create_from_cpf_schema(item, db)
             results.append(result)
         except Exception as e:
             db.rollback()
