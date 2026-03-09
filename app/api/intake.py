@@ -22,6 +22,26 @@ from app.api.upload import _best_eligible_account_match
 router = APIRouter()
 
 
+def _strip_markdown_json(text: str) -> str:
+    """Strip markdown code fences and surrounding prose from ChatGPT output."""
+    cleaned = text.strip()
+    # Remove ```json ... ``` or ``` ... ``` wrappers
+    cleaned = re.sub(r"^```(?:json|JSON|js)?\s*\n?", "", cleaned)
+    cleaned = re.sub(r"\n?\s*```\s*$", "", cleaned)
+    cleaned = cleaned.strip()
+    # If there's still non-JSON text before the first { or [, strip it
+    if not cleaned.startswith("{") and not cleaned.startswith("["):
+        first_brace = re.search(r"[\[{]", cleaned)
+        if first_brace:
+            cleaned = cleaned[first_brace.start():]
+    # If there's trailing text after the last } or ], strip it
+    if not cleaned.endswith("}") and not cleaned.endswith("]"):
+        last_brace = max(cleaned.rfind("}"), cleaned.rfind("]"))
+        if last_brace > -1:
+            cleaned = cleaned[: last_brace + 1]
+    return cleaned
+
+
 class TextIntakeRequest(BaseModel):
     text: str
 
@@ -475,10 +495,11 @@ def bulk_text_intake(
     results: list[dict] = []
     errors: list[str] = []
 
-    # Try JSON first
-    if raw.startswith("{") or raw.startswith("["):
+    # Try JSON first — strip markdown code blocks if present
+    cleaned = _strip_markdown_json(raw)
+    if cleaned.startswith("{") or cleaned.startswith("["):
         try:
-            parsed = json.loads(raw)
+            parsed = json.loads(cleaned)
             items = parsed if isinstance(parsed, list) else [parsed]
 
             for i, item in enumerate(items, start=1):
