@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.db import get_db
 from app.models.enums import RequestType, Subcommittee, RequestStatus, AttachmentType
-from app.models import Attachment, Request
+from app.models import Attachment, Request, NdaaDetails
 from app.schemas import (
     RequestCreate,
     RequestUpdate,
@@ -18,6 +18,9 @@ from app.schemas import (
     CPFDetailsUpdate,
     CPFDetailsResponse,
     CPFValidationResult,
+    NdaaDetailsCreate,
+    NdaaDetailsUpdate,
+    NdaaDetailsResponse,
     AttachmentResponse,
 )
 from app.services import RequestService, CPFService, AttachmentService
@@ -199,6 +202,41 @@ def select_cpf(
         return cpf_details
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post("/{request_id}/ndaa", response_model=NdaaDetailsResponse, status_code=201)
+def create_or_update_ndaa_details(
+    request_id: int,
+    data: NdaaDetailsCreate,
+    db: Session = Depends(get_db),
+):
+    """Create or update NDAA details for a request."""
+    request = db.query(Request).filter(Request.id == request_id).first()
+    if not request:
+        raise HTTPException(status_code=404, detail="Request not found")
+    existing = db.query(NdaaDetails).filter(NdaaDetails.request_id == request_id).first()
+    update_data = data.model_dump(exclude_unset=True)
+    if existing:
+        for key, value in update_data.items():
+            setattr(existing, key, value)
+        db.commit()
+        db.refresh(existing)
+        return existing
+    else:
+        ndaa = NdaaDetails(request_id=request_id, **update_data)
+        db.add(ndaa)
+        db.commit()
+        db.refresh(ndaa)
+        return ndaa
+
+
+@router.get("/{request_id}/ndaa", response_model=NdaaDetailsResponse)
+def get_ndaa_details(request_id: int, db: Session = Depends(get_db)):
+    """Get NDAA details for a request."""
+    ndaa = db.query(NdaaDetails).filter(NdaaDetails.request_id == request_id).first()
+    if not ndaa:
+        raise HTTPException(status_code=404, detail="NDAA details not found")
+    return ndaa
 
 
 @router.get("/{request_id}/attachments", response_model=List[AttachmentResponse])

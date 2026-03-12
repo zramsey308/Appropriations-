@@ -45,6 +45,15 @@ def _apply_column_migrations():
         if "priority_order" not in columns:
             conn.execute(text("ALTER TABLE requests ADD COLUMN priority_order INTEGER"))
             logger.info("Added priority_order column to requests table")
+        if "bureau" not in columns:
+            conn.execute(text("ALTER TABLE requests ADD COLUMN bureau VARCHAR(500)"))
+            logger.info("Added bureau column to requests table")
+        if "account" not in columns:
+            conn.execute(text("ALTER TABLE requests ADD COLUMN account VARCHAR(500)"))
+            logger.info("Added account column to requests table")
+        if "program_funding" not in columns:
+            conn.execute(text("ALTER TABLE requests ADD COLUMN program_funding VARCHAR(100)"))
+            logger.info("Added program_funding column to requests table")
 
 try:
     _apply_column_migrations()

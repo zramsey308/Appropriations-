@@ -15,7 +15,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.db import get_db
-from app.models import Request, CPFDetails, EligibleAccount
+from app.models import Request, CPFDetails, NdaaDetails, EligibleAccount
 from app.services.docx_parser import map_subcommittee
 from app.api.upload import _best_eligible_account_match
 from app.api.prog_lang_upload import _create_from_prog_lang_schema
@@ -142,6 +142,7 @@ def _detect_json_schema(data: dict) -> str:
     """Detect which JSON schema variant was used.
 
     Returns:
+        "ndaa"       - NDAA schema (has ndaa-specific fields like hasc_subcommittee, funding_agency, etc.)
         "prog_lang"  - programmatic/language schema (has request_details or bill_details)
         "cpf"        - CPF nested schema (has project + requesting_organization, or narratives/support/compliance)
         "cpf_flat"   - CPF flat schema (top-level project_name, requesting_entity, requested_amount, etc.)
@@ -149,6 +150,31 @@ def _detect_json_schema(data: dict) -> str:
     """
     metadata = data.get("metadata") or {}
     request_type = (metadata.get("request_type") or "").lower()
+    top_type = (data.get("request_type") or "").lower()
+    doc_title = (metadata.get("document_title") or "").lower()
+
+    # NDAA detection: explicit type or NDAA-specific fields
+    if "ndaa" in request_type or "ndaa" in top_type or "ndaa" in doc_title:
+        return "ndaa"
+    if "national defense" in request_type or "national defense" in top_type or "national defense" in doc_title:
+        return "ndaa"
+    # NDAA-specific field signals
+    ndaa_signals = sum([
+        bool(data.get("hasc_subcommittee")),
+        bool(data.get("funding_agency")),
+        bool(data.get("budget_account")),
+        bool(data.get("official_project_name")),
+        bool(data.get("proposed_bill_language")),
+        bool(data.get("proposed_report_language")),
+        bool(data.get("military_value")),
+        bool(data.get("program_element")),
+        bool(data.get("funded_in_pb") is not None and data.get("funded_in_pb") is not False or data.get("funded_in_pb") is True),
+        bool(data.get("unfunded_priority_list")),
+        bool(data.get("met_with_congressman")),
+        bool(data.get("poc_is_lobbyist") is not None and "poc_is_lobbyist" in data),
+    ])
+    if ndaa_signals >= 3:
+        return "ndaa"
 
     # Programmatic/language schema: has request_details, bill_details, or
     # top-level "organization" (not "requesting_organization")
@@ -157,7 +183,6 @@ def _detect_json_schema(data: dict) -> str:
     if request_type in ("programmatic", "language"):
         return "prog_lang"
     # Flat prog/lang: top-level request_type field says programmatic or language
-    top_type = (data.get("request_type") or "").lower()
     if top_type in ("programmatic", "language") or "language" in top_type or "programmatic" in top_type:
         return "prog_lang"
     # Has proposal_text or appropriations_bill or committee — prog/lang signals
@@ -344,14 +369,111 @@ def _create_from_flat_cpf(data: dict, db: Session) -> dict:
     }
 
 
+def _create_from_flat_ndaa(data: dict, db: Session) -> dict:
+    """Create a Request + NdaaDetails from a flat NDAA JSON structure."""
+    title = (
+        data.get("official_project_name")
+        or data.get("company_organization")
+        or data.get("title")
+        or data.get("program_name")
+        or "NDAA Request"
+    )
+
+    # HASC subcommittee mapping — NDAA is always defense
+    subcommittee = "defense"
+
+    amount = _parse_amount(
+        data.get("additional_funding_amount")
+        or data.get("requested_amount")
+        or data.get("fy26_bill_amount")
+    )
+
+    request = Request(
+        fiscal_year=data.get("fiscal_year") or 2027,
+        request_type="ndaa",
+        subcommittee=subcommittee,
+        status="submitted",
+        title=title,
+        description=data.get("program_description") or data.get("justification") or "",
+        requester_name=data.get("poc_name") or "",
+        requester_email=data.get("email") or "",
+        requester_phone=data.get("phone") or "",
+        requester_organization=data.get("company_organization") or "",
+        requested_amount=amount,
+    )
+    db.add(request)
+    db.flush()
+
+    ndaa = NdaaDetails(
+        request_id=request.id,
+        company_organization=data.get("company_organization") or "",
+        address=data.get("address") or "",
+        city=data.get("city") or "",
+        state=data.get("state") or "TX",
+        zip_code=data.get("zip_code") or "",
+        poc_name=data.get("poc_name") or "",
+        poc_is_lobbyist=bool(data.get("poc_is_lobbyist")),
+        lobbyist_organization=data.get("lobbyist_organization") or "",
+        phone=data.get("phone") or "",
+        email=data.get("email") or "",
+        met_with_congressman=data.get("met_with_congressman") or "",
+        meeting_date=data.get("meeting_date") or "",
+        multiple_requests=bool(data.get("multiple_requests")),
+        request_priority=data.get("request_priority") or "",
+        official_project_name=data.get("official_project_name") or "",
+        funding_agency=data.get("funding_agency") or data.get("agency") or "",
+        budget_account=data.get("budget_account") or "",
+        sub_account_1=data.get("sub_account_1") or "",
+        sub_account_2=data.get("sub_account_2") or "",
+        line_title=data.get("line_title") or "",
+        line_number=data.get("line_number") or "",
+        hasc_subcommittee=data.get("hasc_subcommittee") or "",
+        funded_in_pb=bool(data.get("funded_in_pb")),
+        program_element=data.get("program_element") or "",
+        additional_funding_amount=_parse_amount(data.get("additional_funding_amount")),
+        is_scalable=bool(data.get("is_scalable")),
+        scalable_amount=_parse_amount(data.get("scalable_amount")),
+        fy26_bill_amount=_parse_amount(data.get("fy26_bill_amount")),
+        unfunded_priority_list=bool(data.get("unfunded_priority_list")),
+        unfunded_ranking=data.get("unfunded_ranking") or "",
+        unfunded_amount=_parse_amount(data.get("unfunded_amount")),
+        proposed_bill_language=data.get("proposed_bill_language") or "",
+        proposed_report_language=data.get("proposed_report_language") or "",
+        items_of_special_interest=data.get("items_of_special_interest") or "",
+        justification=data.get("justification") or "",
+        program_description=data.get("program_description") or "",
+        military_value=data.get("military_value") or "",
+        tx11_impact=data.get("tx11_impact") or "",
+        partners=data.get("partners") or "",
+        other_offices_engaged=data.get("other_offices_engaged") or "",
+        committee_staff_engaged=data.get("committee_staff_engaged") or "",
+        additional_notes=data.get("additional_notes") or "",
+    )
+    db.add(ndaa)
+    db.commit()
+    db.refresh(request)
+
+    return {
+        "id": request.id,
+        "title": request.title,
+        "request_type": request.request_type,
+        "subcommittee": request.subcommittee,
+        "organization": request.requester_organization,
+        "amount": request.requested_amount,
+        "status": "submitted",
+    }
+
+
 def _create_from_json(data: dict, db: Session) -> dict:
     """Create a request from the ChatGPT-parsed JSON structure.
 
-    Auto-detects the schema variant (CPF, programmatic/language, or generic)
+    Auto-detects the schema variant (CPF, programmatic/language, NDAA, or generic)
     and routes to the appropriate handler.
     """
     schema = _detect_json_schema(data)
 
+    if schema == "ndaa":
+        return _create_from_flat_ndaa(data, db)
     if schema == "prog_lang":
         return _create_from_prog_lang_schema(data, db)
     if schema == "cpf":
