@@ -149,7 +149,8 @@ def _detect_json_schema(data: dict) -> str:
         "generic"    - fallback to generic intake parsing
     """
     metadata = data.get("metadata") or {}
-    request_type = (metadata.get("request_type") or "").lower()
+    portal = data.get("submission_portal_fields") or {}
+    request_type = (portal.get("request_type") or metadata.get("request_type") or "").lower()
     top_type = (data.get("request_type") or "").lower()
     doc_title = (metadata.get("document_title") or "").lower()
 
@@ -176,9 +177,12 @@ def _detect_json_schema(data: dict) -> str:
     if ndaa_signals >= 3:
         return "ndaa"
 
-    # Programmatic/language schema: has request_details, bill_details, or
+    # Programmatic/language schema: has request_details, bill_details,
+    # submission_portal_fields, committee_submission, or
     # top-level "organization" (not "requesting_organization")
     if data.get("request_details") or data.get("bill_details"):
+        return "prog_lang"
+    if data.get("submission_portal_fields") or data.get("committee_submission"):
         return "prog_lang"
     if request_type in ("programmatic", "language"):
         return "prog_lang"

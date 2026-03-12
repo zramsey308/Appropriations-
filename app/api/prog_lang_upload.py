@@ -101,6 +101,8 @@ def _create_from_prog_lang_schema(data: dict, db: Session) -> dict:
         return {}
 
     metadata = _as_dict(data.get("metadata"))
+    portal = _as_dict(data.get("submission_portal_fields"))
+    committee_sub = _as_dict(data.get("committee_submission"))
     org_raw = data.get("organization") or data.get("requesting_organization") or {}
     org = _as_dict(org_raw, "name")
     poc = _as_dict(data.get("point_of_contact"), "name")
@@ -120,16 +122,21 @@ def _create_from_prog_lang_schema(data: dict, db: Session) -> dict:
     else:
         proposed_text = _str(lang_field) if lang_field else ""
 
-    # Also check nested locations
+    # Also check nested locations (committee_submission.report_language, etc.)
     if not proposed_text:
         proposed_text = (
-            _str(data.get("proposed_language_text"))
+            _str(committee_sub.get("report_language"))
+            or _str(committee_sub.get("bill_language"))
+            or _str(data.get("proposed_language_text"))
             or _str(request_details.get("proposed_language"))
         )
 
     # Determine type
     raw_type = _str(
-        metadata.get("request_type") or data.get("request_type") or ""
+        portal.get("request_type")
+        or metadata.get("request_type")
+        or data.get("request_type")
+        or ""
     ).lower()
     # Normalize: "report language" → "language", "programmatic request" → "programmatic"
     if "language" in raw_type or "report" in raw_type:
@@ -139,13 +146,15 @@ def _create_from_prog_lang_schema(data: dict, db: Session) -> dict:
     else:
         request_type = "language" if proposed_text else "programmatic"
 
-    # Subcommittee (check both nested and flat, including appropriations_bill)
+    # Subcommittee (check portal fields, nested, and flat, including appropriations_bill)
     raw_sub = (
-        _str(request_details.get("subcommittee"))
+        _str(portal.get("subcommittee"))
+        or _str(request_details.get("subcommittee"))
         or _str(request_details.get("appropriations_bill"))
         or _str(bill.get("appropriations_bill"))
         or _str(bill.get("subcommittee"))
         or _str(metadata.get("subcommittee"))
+        or _str(metadata.get("bill"))
         or _str(data.get("subcommittee"))
         or _str(data.get("appropriations_bill"))
         or _str(data.get("committee"))
@@ -153,14 +162,17 @@ def _create_from_prog_lang_schema(data: dict, db: Session) -> dict:
     subcommittee = map_subcommittee(raw_sub)
     if not subcommittee:
         subcommittee = map_subcommittee(
-            _str(request_details.get("agency")) or _str(data.get("agency"))
+            _str(portal.get("agency"))
+            or _str(request_details.get("agency"))
+            or _str(data.get("agency"))
         )
     if not subcommittee:
         subcommittee = "agriculture"
 
-    # Title (check both nested and flat, including program_or_project_name)
+    # Title (check portal, nested, and flat, including program_title)
     title = (
-        _str(request_details.get("program_name"))
+        _str(request_details.get("program_title"))
+        or _str(request_details.get("program_name"))
         or _str(data.get("program_name"))
         or _str(data.get("program_or_project_name"))
         or _str(data.get("program_title"))
@@ -168,6 +180,7 @@ def _create_from_prog_lang_schema(data: dict, db: Session) -> dict:
         or _str(bill.get("title"))
         or _str(data.get("title"))
         or _str(metadata.get("title"))
+        or _str(metadata.get("source_document"))
         or f"Imported {request_type.capitalize()} Request"
     )
 
@@ -186,7 +199,8 @@ def _create_from_prog_lang_schema(data: dict, db: Session) -> dict:
         fy = int(digits[-4:]) if len(digits) >= 4 else 2027
 
     description = (
-        _str(request_details.get("description"))
+        _str(request_details.get("program_description"))
+        or _str(request_details.get("description"))
         or _str(request_details.get("request_description"))
         or _str(data.get("program_description"))
         or _str(data.get("description"))
@@ -195,7 +209,7 @@ def _create_from_prog_lang_schema(data: dict, db: Session) -> dict:
         or _str(justification.get("justification"))
     )
 
-    poc_name = _str(poc.get("name"))
+    poc_name = _str(poc.get("name")) or _str(metadata.get("contact_name"))
     if not poc_name:
         first = _str(poc.get("first_name"))
         last = _str(poc.get("last_name"))
@@ -227,29 +241,33 @@ def _create_from_prog_lang_schema(data: dict, db: Session) -> dict:
         title=title,
         description=description,
         requester_name=poc_name,
-        requester_email=_str(poc.get("email")),
-        requester_phone=_str(poc.get("phone") or poc.get("business_phone")),
+        requester_email=_str(poc.get("email") or metadata.get("contact_email")),
+        requester_phone=_str(poc.get("phone") or poc.get("business_phone") or metadata.get("contact_phone")),
         requester_organization=_str(
             org.get("name") or org.get("organization_name")
-            or poc.get("organization") or data.get("organization")
+            or poc.get("organization") or metadata.get("organization")
+            or data.get("organization")
         ),
         requested_amount=amount,
-        agency=_str(request_details.get("agency") or data.get("agency")),
-        bureau=_str(request_details.get("bureau") or data.get("bureau")),
-        account=_str(request_details.get("account") or data.get("account")),
+        agency=_str(portal.get("agency") or request_details.get("agency") or data.get("agency")),
+        bureau=_str(portal.get("bureau") or request_details.get("bureau") or data.get("bureau")),
+        account=_str(portal.get("account") or request_details.get("account") or data.get("account")),
         program_funding=_str(
             request_details.get("program_funding")
+            or portal.get("program_funding")
             or data.get("program_funding")
             or data.get("fy26_funding_status")
         ),
         program_name=_str(
-            request_details.get("program_name")
+            request_details.get("program_title")
+            or request_details.get("program_name")
             or data.get("program_name")
             or data.get("program_or_project_name")
             or data.get("program_title")
         ),
         programmatic_justification=_str(
-            justification.get("goals_outcomes")
+            request_details.get("program_description")
+            or justification.get("goals_outcomes")
             or justification.get("justification")
             or data.get("justification")
             or data.get("program_description")
@@ -260,6 +278,7 @@ def _create_from_prog_lang_schema(data: dict, db: Session) -> dict:
             data.get("language_justification")
             or data.get("justification")
             or justification.get("problem_statement")
+            or request_details.get("program_description")
         ),
         priority_rank=_str(request_details.get("priority") or metadata.get("priority") or data.get("priority_rank")),
         problem_statement=_str(
