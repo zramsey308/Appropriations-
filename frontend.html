@@ -686,9 +686,18 @@
         .pl-sub-header .pl-sub-meta { display: flex; gap: 8px; align-items: center; font-size: 0.8rem; color: var(--text-muted); }
         .pl-sub-body { display: none; border-top: 1px solid var(--border); }
         .pl-sub-body.open { display: block; }
-        .pl-request-item { display: flex; align-items: center; gap: 12px; padding: 0.75rem 1.25rem 0.75rem 2rem; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s; }
+        .pl-request-item { display: flex; align-items: center; gap: 12px; padding: 0.75rem 1.25rem 0.75rem 1.25rem; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s; }
         .pl-request-item:last-child { border-bottom: none; }
         .pl-request-item:hover { background: var(--surface-alt); }
+        .pl-request-item.dragging { background: rgba(217, 119, 6, 0.06); box-shadow: 0 4px 20px rgba(0,0,0,0.08); opacity: 0.9; }
+        .pl-request-item.drag-over { border-top: 2px solid var(--primary); }
+        .pl-drag-handle { color: var(--text-muted); font-size: 1.1rem; cursor: grab; flex-shrink: 0; width: 20px; text-align: center; }
+        .pl-drag-handle:active { cursor: grabbing; }
+        .pl-rank-num { font-size: 0.7rem; font-weight: 700; color: var(--primary); background: rgba(217,119,6,0.1); border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .pl-signoff-btn { font-size: 0.65rem; padding: 2px 8px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); color: var(--text-muted); cursor: pointer; white-space: nowrap; transition: all 0.15s; }
+        .pl-signoff-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .pl-signoff-btn.signed-off { background: rgba(5, 150, 105, 0.1); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+        .pl-signoff-btn.signed-off::before { content: '\2713 '; }
         .pl-request-item .pl-req-info { flex: 1; min-width: 0; }
         .pl-request-item .pl-req-title { font-weight: 500; font-size: 0.875rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .pl-request-item .pl-req-org { font-size: 0.75rem; color: var(--text-muted); }
@@ -4409,7 +4418,12 @@ Or for language requests include:
                 const langData = await langResp.json();
                 const progItems = progData.items || progData;
                 const langItems = langData.items || langData;
-                plRequestsData = [...progItems, ...langItems];
+                plRequestsData = [...progItems, ...langItems].sort((a, b) => {
+                    const aOrd = a.priority_order != null ? a.priority_order : 99999;
+                    const bOrd = b.priority_order != null ? b.priority_order : 99999;
+                    if (aOrd !== bOrd) return aOrd - bOrd;
+                    return a.id - b.id;
+                });
                 document.getElementById('pl-prog-count').textContent = `${progItems.length} programmatic`;
                 document.getElementById('pl-lang-count').textContent = `${langItems.length} language`;
                 renderProgLangPanel();
@@ -4446,6 +4460,13 @@ Or for language requests include:
 
             container.innerHTML = sortedSubs.map(sub => {
                 const items = groups[sub];
+                // Sort within subcommittee by priority_order
+                items.sort((a, b) => {
+                    const aOrd = a.priority_order != null ? a.priority_order : 99999;
+                    const bOrd = b.priority_order != null ? b.priority_order : 99999;
+                    if (aOrd !== bOrd) return aOrd - bOrd;
+                    return a.id - b.id;
+                });
                 const progCount = items.filter(r => r.request_type === 'programmatic').length;
                 const langCount = items.filter(r => r.request_type === 'language').length;
                 const totalAmount = items.reduce((sum, r) => sum + (r.requested_amount || 0), 0);
@@ -4464,20 +4485,26 @@ Or for language requests include:
                             <span style="font-size:1rem;">&#9654;</span>
                         </div>
                     </div>
-                    <div class="pl-sub-body" id="pl-sub-${sub}">
-                        ${items.map(r => renderPlRequestItem(r)).join('')}
+                    <div class="pl-sub-body" id="pl-sub-${sub}" data-subcommittee="${sub}">
+                        ${items.map((r, idx) => renderPlRequestItem(r, idx)).join('')}
                     </div>
                 </div>`;
             }).join('');
+
+            // Attach drag listeners to all subcommittee groups
+            attachPlDragListeners();
         }
 
-        function renderPlRequestItem(r) {
+        function renderPlRequestItem(r, idx) {
             const typeBadge = r.request_type === 'language'
                 ? '<span class="badge badge-language" style="font-size:0.6rem;">LANGUAGE</span>'
                 : '<span class="badge badge-programmatic" style="font-size:0.6rem;">PROGRAMMATIC</span>';
             const priority = r.priority_rank ? `<span style="font-size:0.7rem; color:var(--text-muted);">Priority: ${r.priority_rank}</span>` : '';
+            const signedOff = r.staff_signoff ? 'signed-off' : '';
             return `
-                <div class="pl-request-item" onclick="togglePlDetail(${r.id})">
+                <div class="pl-request-item" draggable="true" data-id="${r.id}" data-idx="${idx}" onclick="togglePlDetail(${r.id})">
+                    <div class="pl-drag-handle" title="Drag to reorder">&#9776;</div>
+                    <span class="pl-rank-num">${idx + 1}</span>
                     <div class="pl-req-info">
                         <div class="pl-req-title">${r.title}</div>
                         <div class="pl-req-org">${r.requester_organization || r.requester_name || 'Unknown'} ${priority}</div>
@@ -4486,6 +4513,7 @@ Or for language requests include:
                         ${r.requested_amount ? `<span style="font-weight:600; font-size:0.85rem;">${formatCurrency(r.requested_amount)}</span>` : ''}
                         ${typeBadge}
                         <span class="badge badge-${r.status}" style="font-size:0.6rem;">${formatStatus(r.status)}</span>
+                        <button class="pl-signoff-btn ${signedOff}" onclick="event.stopPropagation(); togglePlSignOff(${r.id})" title="Staff Sign-off">Staff Sign-off</button>
                         <button class="cpf-item-btn" onclick="event.stopPropagation(); openEditModal(${r.id})" title="Edit">&#9998;</button>
                         <button class="cpf-item-btn delete" onclick="event.stopPropagation(); deleteProgLangRequest(${r.id})" title="Delete">&#128465;</button>
                     </div>
@@ -4528,6 +4556,110 @@ Or for language requests include:
                 if (p.id !== `pl-detail-${id}`) p.classList.remove('open');
             });
             panel.classList.toggle('open');
+        }
+
+        function attachPlDragListeners() {
+            const containers = document.querySelectorAll('.pl-sub-body');
+            containers.forEach(container => {
+                const items = container.querySelectorAll('.pl-request-item[draggable]');
+                let dragSrcEl = null;
+
+                items.forEach(item => {
+                    item.addEventListener('dragstart', function(e) {
+                        dragSrcEl = this;
+                        this.classList.add('dragging');
+                        e.dataTransfer.effectAllowed = 'move';
+                        e.dataTransfer.setData('text/plain', this.dataset.id);
+                    });
+
+                    item.addEventListener('dragend', function() {
+                        this.classList.remove('dragging');
+                        container.querySelectorAll('.pl-request-item').forEach(i => i.classList.remove('drag-over'));
+                    });
+
+                    item.addEventListener('dragover', function(e) {
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = 'move';
+                        this.classList.add('drag-over');
+                    });
+
+                    item.addEventListener('dragleave', function() {
+                        this.classList.remove('drag-over');
+                    });
+
+                    item.addEventListener('drop', function(e) {
+                        e.preventDefault();
+                        this.classList.remove('drag-over');
+                        if (dragSrcEl === this) return;
+
+                        const subcommittee = container.dataset.subcommittee;
+                        const subItems = plRequestsData.filter(r =>
+                            (r.subcommittee || 'Unassigned') === subcommittee
+                        );
+
+                        const fromId = parseInt(e.dataTransfer.getData('text/plain'));
+                        const toId = parseInt(this.dataset.id);
+                        const fromIdx = subItems.findIndex(r => r.id === fromId);
+                        const toIdx = subItems.findIndex(r => r.id === toId);
+
+                        if (fromIdx === -1 || toIdx === -1) return;
+
+                        // Reorder within the subcommittee group
+                        const [moved] = subItems.splice(fromIdx, 1);
+                        subItems.splice(toIdx, 0, moved);
+
+                        // Update priority_order for this subcommittee group
+                        subItems.forEach((r, idx) => r.priority_order = idx + 1);
+
+                        // Re-render and save
+                        renderProgLangPanel();
+                        savePlOrder(subItems);
+                    });
+                });
+            });
+        }
+
+        async function savePlOrder(items) {
+            const reorderItems = items.map((r, idx) => ({
+                id: r.id,
+                priority_order: idx + 1
+            }));
+            try {
+                await fetch(`${API_BASE}/api/requests/reorder`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(reorderItems)
+                });
+                showToast('P/L priority order saved', 'success');
+            } catch (error) {
+                showToast('Failed to save P/L order', 'error');
+            }
+        }
+
+        async function togglePlSignOff(id) {
+            const req = plRequestsData.find(r => r.id === id);
+            if (!req) return;
+            const newVal = !req.staff_signoff;
+            try {
+                const response = await fetch(`${API_BASE}/api/requests/${id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ staff_signoff: newVal })
+                });
+                if (!response.ok) throw new Error('Failed to update sign-off');
+                req.staff_signoff = newVal;
+                // Update the button in place
+                const item = document.querySelector(`.pl-request-item[data-id="${id}"]`);
+                if (item) {
+                    const btn = item.querySelector('.pl-signoff-btn');
+                    if (btn) {
+                        btn.classList.toggle('signed-off', newVal);
+                    }
+                }
+                showToast(newVal ? 'Staff signed off' : 'Sign-off removed', 'success');
+            } catch (error) {
+                showToast('Failed to update sign-off', 'error');
+            }
         }
 
         async function deleteProgLangRequest(id) {
