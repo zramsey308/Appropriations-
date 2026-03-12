@@ -1640,22 +1640,57 @@ Or for language requests include:
                             </div>
                             <div class="form-grid">
                                 <div class="form-group full-width">
-                                    <label>Program Name</label>
+                                    <label>Program Title <span class="required">*</span></label>
                                     <input type="text" id="program_name" placeholder="Federal program name">
                                 </div>
-                                <div class="form-group full-width">
-                                    <label>Justification</label>
-                                    <textarea id="programmatic_justification" placeholder="Why should this program receive increased funding?"></textarea>
+                                <div class="form-group">
+                                    <label>Agency <span class="required">*</span></label>
+                                    <input type="text" id="prog_agency" placeholder="e.g., EPA, DOE, USDA">
+                                </div>
+                                <div class="form-group">
+                                    <label>Bureau <span class="required">*</span></label>
+                                    <input type="text" id="prog_bureau" placeholder="e.g., Bureau of Reclamation">
+                                </div>
+                                <div class="form-group">
+                                    <label>Account <span class="required">*</span></label>
+                                    <input type="text" id="prog_account" placeholder="e.g., Water and Related Resources">
+                                </div>
+                                <div class="form-group">
+                                    <label>Program Funding <span class="required">*</span></label>
+                                    <select id="prog_funding_type">
+                                        <option value="">Select a value...</option>
+                                        <option value="increase">Increase over prior year</option>
+                                        <option value="new">New program/line item</option>
+                                        <option value="maintain">Maintain current funding</option>
+                                        <option value="restore">Restore proposed cut</option>
+                                    </select>
                                 </div>
                                 <div class="form-group full-width">
-                                    <label>TX-11 Connection</label>
-                                    <textarea id="programmatic_tx11_explanation" placeholder="How does this program benefit TX-11 (Midland, Odessa, San Angelo, Permian Basin)?"></textarea>
+                                    <label>Program Description <span class="required">*</span></label>
+                                    <textarea id="programmatic_justification" placeholder="Enter a program description" maxlength="2000" oninput="document.getElementById('prog-desc-count').textContent = this.value.length + ' / 2000 character limit'"></textarea>
+                                    <span id="prog-desc-count" style="font-size: 0.75rem; color: var(--text-muted); font-style: italic;">0 / 2000 character limit</span>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Problem / Issue Statement</label>
+                                    <textarea id="prog_problem_statement" placeholder="What problem does this address?"></textarea>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Goals & Expected Outcomes</label>
+                                    <textarea id="prog_goals_outcomes" placeholder="Expected results if funded"></textarea>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Other Members Receiving This Request</label>
+                                    <input type="text" id="prog_other_members" placeholder="e.g., Rep. Smith, Sen. Jones">
                                 </div>
                                 <div class="form-group full-width">
                                     <div class="checkbox-group">
-                                        <input type="checkbox" id="programmatic_tx11_nexus">
-                                        <label for="programmatic_tx11_nexus">I confirm this request has a direct connection to TX-11</label>
+                                        <input type="checkbox" id="prog_prior_year">
+                                        <label for="prog_prior_year">This request was submitted in a prior fiscal year</label>
                                     </div>
+                                </div>
+                                <div class="form-group full-width" id="prog-prior-details-group" style="display:none;">
+                                    <label>Prior Year Details</label>
+                                    <input type="text" id="prog_prior_year_details" placeholder="e.g., FY26 - $2M requested">
                                 </div>
                             </div>
                         </div>
@@ -1667,26 +1702,52 @@ Or for language requests include:
                             </div>
                             <div class="form-grid">
                                 <div class="form-group">
-                                    <label>Bill Section</label>
-                                    <input type="text" id="bill_section" placeholder="e.g., Section 123">
+                                    <label>Agency <span class="required">*</span></label>
+                                    <input type="text" id="lang_agency" placeholder="e.g., DOJ, NSF, NASA">
+                                </div>
+                                <div class="form-group">
+                                    <label>Bureau</label>
+                                    <input type="text" id="lang_bureau" placeholder="e.g., Office of Justice Programs">
+                                </div>
+                                <div class="form-group">
+                                    <label>Account</label>
+                                    <input type="text" id="lang_account" placeholder="e.g., State and Local Law Enforcement">
+                                </div>
+                                <div class="form-group">
+                                    <label>Bill Section <span class="required">*</span></label>
+                                    <input type="text" id="bill_section" placeholder="e.g., Title II, Section 123">
                                 </div>
                                 <div class="form-group full-width">
-                                    <label>Proposed Language</label>
-                                    <textarea id="proposed_language" placeholder="Enter the proposed bill language..."></textarea>
+                                    <label>Program Title <span class="required">*</span></label>
+                                    <input type="text" id="lang_program_name" placeholder="Program or initiative name">
                                 </div>
                                 <div class="form-group full-width">
-                                    <label>Justification</label>
-                                    <textarea id="language_justification" placeholder="Why is this language change needed?"></textarea>
+                                    <label>Proposed Bill / Report Language <span class="required">*</span></label>
+                                    <textarea id="proposed_language" placeholder="Enter the proposed bill or report language..." rows="6" style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85rem;" maxlength="2000" oninput="document.getElementById('lang-text-count').textContent = this.value.length + ' / 2000 character limit'"></textarea>
+                                    <span id="lang-text-count" style="font-size: 0.75rem; color: var(--text-muted); font-style: italic;">0 / 2000 character limit</span>
                                 </div>
                                 <div class="form-group full-width">
-                                    <label>TX-11 Connection</label>
-                                    <textarea id="language_tx11_explanation" placeholder="How does this language change benefit TX-11 (Midland, Odessa, San Angelo, Permian Basin)?"></textarea>
+                                    <label>Justification / Description <span class="required">*</span></label>
+                                    <textarea id="language_justification" placeholder="Why is this language change needed?" maxlength="2000" oninput="document.getElementById('lang-just-count').textContent = this.value.length + ' / 2000 character limit'"></textarea>
+                                    <span id="lang-just-count" style="font-size: 0.75rem; color: var(--text-muted); font-style: italic;">0 / 2000 character limit</span>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Problem / Issue Statement</label>
+                                    <textarea id="lang_problem_statement" placeholder="What problem does this language address?"></textarea>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Other Members Receiving This Request</label>
+                                    <input type="text" id="lang_other_members" placeholder="e.g., Rep. Smith, Sen. Jones">
                                 </div>
                                 <div class="form-group full-width">
                                     <div class="checkbox-group">
-                                        <input type="checkbox" id="language_tx11_nexus">
-                                        <label for="language_tx11_nexus">I confirm this request has a direct connection to TX-11</label>
+                                        <input type="checkbox" id="lang_prior_year">
+                                        <label for="lang_prior_year">This request was submitted in a prior fiscal year</label>
                                     </div>
+                                </div>
+                                <div class="form-group full-width" id="lang-prior-details-group" style="display:none;">
+                                    <label>Prior Year Details</label>
+                                    <input type="text" id="lang_prior_year_details" placeholder="e.g., FY26 - similar language request">
                                 </div>
                             </div>
                         </div>
@@ -1949,20 +2010,36 @@ Or for language requests include:
                                 <h3 class="committee-section-title">Program Details</h3>
                                 <div class="form-grid">
                                     <div class="form-group">
-                                        <label>Program Name</label>
-                                        <input type="text" id="cs-program-name" readonly class="cs-field" onclick="copyField(this)">
+                                        <label>Subcommittee / Appropriations Bill *</label>
+                                        <input type="text" id="cs-pl-subcommittee" readonly class="cs-field" onclick="copyField(this)">
                                     </div>
                                     <div class="form-group">
-                                        <label>Agency</label>
+                                        <label>Request Type</label>
+                                        <input type="text" id="cs-pl-request-type" readonly class="cs-field" onclick="copyField(this)">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Agency *</label>
                                         <input type="text" id="cs-pl-agency" readonly class="cs-field" onclick="copyField(this)">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Bureau *</label>
+                                        <input type="text" id="cs-pl-bureau" readonly class="cs-field" onclick="copyField(this)">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Account *</label>
+                                        <input type="text" id="cs-pl-account" readonly class="cs-field" onclick="copyField(this)">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Program Funding *</label>
+                                        <input type="text" id="cs-pl-funding-type" readonly class="cs-field" onclick="copyField(this)">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Program Title *</label>
+                                        <input type="text" id="cs-program-name" readonly class="cs-field" onclick="copyField(this)">
                                     </div>
                                     <div class="form-group">
                                         <label>Priority Rank</label>
                                         <input type="text" id="cs-pl-priority" readonly class="cs-field" onclick="copyField(this)">
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Subcommittee / Appropriations Bill</label>
-                                        <input type="text" id="cs-pl-subcommittee" readonly class="cs-field" onclick="copyField(this)">
                                     </div>
                                     <div class="form-group" style="grid-column: 1 / -1;">
                                         <label>Problem / Issue Statement</label>
@@ -2242,6 +2319,24 @@ Or for language requests include:
                                 <input type="text" id="edit-agency">
                             </div>
                             <div class="form-group">
+                                <label>Bureau</label>
+                                <input type="text" id="edit-bureau">
+                            </div>
+                            <div class="form-group">
+                                <label>Account</label>
+                                <input type="text" id="edit-account">
+                            </div>
+                            <div class="form-group">
+                                <label>Program Funding</label>
+                                <select id="edit-program-funding">
+                                    <option value="">Select...</option>
+                                    <option value="increase">Increase over prior year</option>
+                                    <option value="new">New program/line item</option>
+                                    <option value="maintain">Maintain current funding</option>
+                                    <option value="restore">Restore proposed cut</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
                                 <label>Priority Rank</label>
                                 <input type="text" id="edit-priority-rank">
                             </div>
@@ -2258,7 +2353,7 @@ Or for language requests include:
                                 <textarea id="edit-goals-outcomes" rows="3"></textarea>
                             </div>
                             <div class="form-group full-width">
-                                <label>Programmatic Justification</label>
+                                <label>Programmatic Justification / Description</label>
                                 <textarea id="edit-prog-justification" rows="3"></textarea>
                             </div>
                             <div class="form-group full-width" id="edit-lang-fields" style="display:none;">
@@ -2439,6 +2534,14 @@ Or for language requests include:
             });
         });
 
+        // Prior year checkbox toggles
+        document.getElementById('prog_prior_year')?.addEventListener('change', (e) => {
+            document.getElementById('prog-prior-details-group').style.display = e.target.checked ? 'block' : 'none';
+        });
+        document.getElementById('lang_prior_year')?.addEventListener('change', (e) => {
+            document.getElementById('lang-prior-details-group').style.display = e.target.checked ? 'block' : 'none';
+        });
+
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
@@ -2446,6 +2549,11 @@ Or for language requests include:
             toast.textContent = message;
             container.appendChild(toast);
             setTimeout(() => toast.remove(), 4000);
+        }
+
+        function formatProgramFunding(val) {
+            const labels = { increase: 'Increase over prior year', new: 'New program/line item', maintain: 'Maintain current funding', restore: 'Restore proposed cut' };
+            return labels[val] || val || '';
         }
 
         function formatCurrency(amount) {
@@ -3002,6 +3110,9 @@ Or for language requests include:
                     plSection.style.display = 'block';
                     document.getElementById('edit-program-name').value = request.program_name || '';
                     document.getElementById('edit-agency').value = request.agency || '';
+                    document.getElementById('edit-bureau').value = request.bureau || '';
+                    document.getElementById('edit-account').value = request.account || '';
+                    document.getElementById('edit-program-funding').value = request.program_funding || '';
                     document.getElementById('edit-priority-rank').value = request.priority_rank || '';
                     document.getElementById('edit-bill-section').value = request.bill_section || '';
                     document.getElementById('edit-problem-statement').value = request.problem_statement || '';
@@ -3158,6 +3269,9 @@ Or for language requests include:
             if (document.getElementById('edit-prog-lang-section').style.display !== 'none') {
                 data.program_name = document.getElementById('edit-program-name').value || null;
                 data.agency = document.getElementById('edit-agency').value || null;
+                data.bureau = document.getElementById('edit-bureau').value || null;
+                data.account = document.getElementById('edit-account').value || null;
+                data.program_funding = document.getElementById('edit-program-funding').value || null;
                 data.priority_rank = document.getElementById('edit-priority-rank').value || null;
                 data.bill_section = document.getElementById('edit-bill-section').value || null;
                 data.problem_statement = document.getElementById('edit-problem-statement').value || null;
@@ -3282,15 +3396,28 @@ Or for language requests include:
             };
             if (requestType === 'programmatic') {
                 data.program_name = document.getElementById('program_name').value;
-                const progJustification = document.getElementById('programmatic_justification').value;
-                const progTx11 = document.getElementById('programmatic_tx11_explanation').value;
-                data.programmatic_justification = progJustification + (progTx11 ? '\n\nTX-11 Connection: ' + progTx11 : '');
+                data.agency = document.getElementById('prog_agency').value;
+                data.bureau = document.getElementById('prog_bureau').value;
+                data.account = document.getElementById('prog_account').value;
+                data.program_funding = document.getElementById('prog_funding_type').value;
+                data.programmatic_justification = document.getElementById('programmatic_justification').value;
+                data.problem_statement = document.getElementById('prog_problem_statement').value;
+                data.goals_outcomes = document.getElementById('prog_goals_outcomes').value;
+                data.other_members = document.getElementById('prog_other_members').value;
+                data.prior_year_submission = document.getElementById('prog_prior_year').checked;
+                data.prior_year_details = document.getElementById('prog_prior_year_details').value;
             } else if (requestType === 'language') {
+                data.program_name = document.getElementById('lang_program_name').value;
+                data.agency = document.getElementById('lang_agency').value;
+                data.bureau = document.getElementById('lang_bureau').value;
+                data.account = document.getElementById('lang_account').value;
                 data.bill_section = document.getElementById('bill_section').value;
                 data.proposed_language = document.getElementById('proposed_language').value;
-                const langJustification = document.getElementById('language_justification').value;
-                const langTx11 = document.getElementById('language_tx11_explanation').value;
-                data.language_justification = langJustification + (langTx11 ? '\n\nTX-11 Connection: ' + langTx11 : '');
+                data.language_justification = document.getElementById('language_justification').value;
+                data.problem_statement = document.getElementById('lang_problem_statement').value;
+                data.other_members = document.getElementById('lang_other_members').value;
+                data.prior_year_submission = document.getElementById('lang_prior_year').checked;
+                data.prior_year_details = document.getElementById('lang_prior_year_details').value;
             }
             try {
                 const response = await fetch(`${API_BASE}/api/requests`, {
@@ -4103,7 +4230,9 @@ Or for language requests include:
                 <div class="pl-detail-panel" id="pl-detail-${r.id}">
                     <div class="pl-detail-grid">
                         <div class="pl-detail-section">
-                            ${r.program_name ? `<h4>Program / Agency</h4><p>${r.program_name}${r.agency ? ` — ${r.agency}` : ''}</p>` : ''}
+                            ${r.program_name ? `<h4>Program / Agency</h4><p><strong>${r.program_name}</strong>${r.agency ? ` — ${r.agency}` : ''}</p>` : ''}
+                            ${r.bureau || r.account ? `<h4>Bureau / Account</h4><p>${r.bureau || ''}${r.bureau && r.account ? ' — ' : ''}${r.account || ''}</p>` : ''}
+                            ${r.program_funding ? `<h4>Program Funding</h4><p>${formatProgramFunding(r.program_funding)}</p>` : ''}
                             ${r.description ? `<h4>Description</h4><p>${r.description}</p>` : ''}
                             ${r.problem_statement ? `<h4>Problem Statement</h4><p>${r.problem_statement}</p>` : ''}
                             ${r.goals_outcomes ? `<h4>Goals & Outcomes</h4><p>${r.goals_outcomes}</p>` : ''}
@@ -4112,6 +4241,7 @@ Or for language requests include:
                             ${r.proposed_language ? `<h4>Proposed Language</h4><p style="font-family:monospace; font-size:0.8rem; background:var(--surface-alt); padding:8px; border-radius:6px; white-space:pre-wrap;">${r.proposed_language}</p>` : ''}
                             ${r.bill_section ? `<h4>Bill Section</h4><p>${r.bill_section}</p>` : ''}
                             ${r.programmatic_justification ? `<h4>Justification</h4><p>${r.programmatic_justification}</p>` : ''}
+                            ${r.language_justification ? `<h4>Language Justification</h4><p>${r.language_justification}</p>` : ''}
                             ${r.other_members ? `<h4>Other Members</h4><p>${r.other_members}</p>` : ''}
                             ${r.prior_year_submission ? `<h4>Prior Year</h4><p>${r.prior_year_details || 'Yes — submitted in prior year'}</p>` : ''}
                             <div style="margin-top: 0.75rem;">
@@ -4248,6 +4378,10 @@ Or for language requests include:
                     // Programmatic / Language fields
                     document.getElementById('cs-program-name').value = req.program_name || req.title || '';
                     document.getElementById('cs-pl-agency').value = req.agency || '';
+                    document.getElementById('cs-pl-bureau').value = req.bureau || '';
+                    document.getElementById('cs-pl-account').value = req.account || '';
+                    document.getElementById('cs-pl-funding-type').value = formatProgramFunding(req.program_funding);
+                    document.getElementById('cs-pl-request-type').value = req.request_type ? req.request_type.charAt(0).toUpperCase() + req.request_type.slice(1) : '';
                     document.getElementById('cs-pl-priority').value = req.priority_rank || '';
                     document.getElementById('cs-pl-subcommittee').value = formatSubcommittee(req.subcommittee);
                     document.getElementById('cs-pl-problem').value = req.problem_statement || '';

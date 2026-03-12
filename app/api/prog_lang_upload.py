@@ -86,67 +86,96 @@ class BulkUploadResponse(BaseModel):
 # ── Create from JSON schema ──────────────────────────────
 
 def _create_from_prog_lang_schema(data: dict, db: Session) -> dict:
-    """Create a Request from a programmatic/language JSON schema."""
+    """Create a Request from a programmatic/language JSON schema.
+
+    Supports both:
+    - Nested schema: request_details, bill_details, justification, etc.
+    - Flat schema: top-level program_name, agency, bureau, etc.
+    """
     metadata = data.get("metadata") or {}
-    org = data.get("organization") or data.get("requesting_organization") or {}
+    org_raw = data.get("organization") or data.get("requesting_organization") or {}
+    org = org_raw if isinstance(org_raw, dict) else {"name": str(org_raw)}
     poc = data.get("point_of_contact") or {}
     request_details = data.get("request_details") or {}
     bill = data.get("bill_details") or {}
     justification = data.get("justification") or {}
     prior = data.get("prior_history") or {}
     other = data.get("other_offices") or {}
-    lang = data.get("proposed_language") or {}
+    lang_field = data.get("proposed_language")
 
-    # Determine type: language if proposed_language or bill_language present
-    proposed_text = (
-        _str(lang.get("text"))
-        or _str(lang.get("bill_language"))
-        or _str(data.get("proposed_language_text"))
-        or _str(request_details.get("proposed_language"))
-    )
-    request_type = _str(metadata.get("request_type")).lower()
+    # proposed_language can be a dict (nested schema) or a string (flat schema)
+    if isinstance(lang_field, dict):
+        proposed_text = (
+            _str(lang_field.get("text"))
+            or _str(lang_field.get("bill_language"))
+        )
+    else:
+        proposed_text = _str(lang_field) if lang_field else ""
+
+    # Also check nested locations
+    if not proposed_text:
+        proposed_text = (
+            _str(data.get("proposed_language_text"))
+            or _str(request_details.get("proposed_language"))
+        )
+
+    # Determine type
+    request_type = _str(metadata.get("request_type") or data.get("request_type")).lower()
     if request_type not in ("programmatic", "language"):
         request_type = "language" if proposed_text else "programmatic"
 
-    # Subcommittee
+    # Subcommittee (check both nested and flat)
     raw_sub = (
         _str(request_details.get("subcommittee"))
         or _str(request_details.get("appropriations_bill"))
         or _str(bill.get("appropriations_bill"))
         or _str(bill.get("subcommittee"))
         or _str(metadata.get("subcommittee"))
+        or _str(data.get("subcommittee"))
     )
     subcommittee = map_subcommittee(raw_sub)
     if not subcommittee:
-        subcommittee = map_subcommittee(_str(request_details.get("agency")))
+        subcommittee = map_subcommittee(
+            _str(request_details.get("agency")) or _str(data.get("agency"))
+        )
     if not subcommittee:
         subcommittee = "agriculture"
 
-    # Title
+    # Title (check both nested and flat)
     title = (
         _str(request_details.get("program_name"))
+        or _str(data.get("program_name"))
+        or _str(data.get("program_title"))
         or _str(request_details.get("title"))
         or _str(bill.get("title"))
+        or _str(data.get("title"))
         or _str(metadata.get("title"))
         or f"Imported {request_type.capitalize()} Request"
     )
 
     amount = _parse_amount(
         request_details.get("requested_amount")
+        or data.get("requested_amount")
         or request_details.get("last_fy_amount")
         or request_details.get("presidents_budget_amount")
     )
 
-    fy = _get(metadata, "fiscal_year", default=2027) or 2027
+    fy = _get(metadata, "fiscal_year", default=None) or data.get("fiscal_year") or 2027
+    if isinstance(fy, str):
+        import re as _re
+        digits = _re.sub(r"[^0-9]", "", fy)
+        fy = int(digits[-4:]) if len(digits) >= 4 else 2027
 
     description = (
         _str(request_details.get("description"))
         or _str(request_details.get("request_description"))
+        or _str(data.get("program_description"))
+        or _str(data.get("description"))
         or _str(justification.get("problem_statement"))
     )
 
-    poc_name = _str(poc.get("name"))
-    if not poc_name:
+    poc_name = _str(poc.get("name")) if isinstance(poc, dict) else ""
+    if not poc_name and isinstance(poc, dict):
         first = _str(poc.get("first_name"))
         last = _str(poc.get("last_name"))
         poc_name = f"{first} {last}".strip()
@@ -163,18 +192,21 @@ def _create_from_prog_lang_schema(data: dict, db: Session) -> dict:
         requester_phone=_str(poc.get("phone") or poc.get("business_phone")),
         requester_organization=_str(org.get("name") or org.get("organization_name")),
         requested_amount=amount,
-        agency=_str(request_details.get("agency")),
-        program_name=_str(request_details.get("program_name")),
-        programmatic_justification=_str(justification.get("goals_outcomes") or justification.get("justification")),
-        bill_section=_str(bill.get("section") or request_details.get("bill_section")),
+        agency=_str(request_details.get("agency") or data.get("agency")),
+        bureau=_str(request_details.get("bureau") or data.get("bureau")),
+        account=_str(request_details.get("account") or data.get("account")),
+        program_funding=_str(request_details.get("program_funding") or data.get("program_funding")),
+        program_name=_str(request_details.get("program_name") or data.get("program_name") or data.get("program_title")),
+        programmatic_justification=_str(justification.get("goals_outcomes") or justification.get("justification") or data.get("program_description")),
+        bill_section=_str(bill.get("section") or request_details.get("bill_section") or data.get("bill_section")),
         proposed_language=proposed_text,
-        language_justification=_str(justification.get("problem_statement")),
-        priority_rank=_str(request_details.get("priority") or metadata.get("priority")),
-        problem_statement=_str(justification.get("problem_statement")),
-        goals_outcomes=_str(justification.get("goals_outcomes")),
-        other_members=_str(other.get("other_members") or other.get("other_members_receiving_request")),
-        prior_year_submission=bool(prior.get("prior_submissions") or prior.get("prior_year_submission")),
-        prior_year_details=_str(prior.get("prior_submissions") or prior.get("prior_year_details")),
+        language_justification=_str(justification.get("problem_statement") or data.get("language_justification")),
+        priority_rank=_str(request_details.get("priority") or metadata.get("priority") or data.get("priority_rank")),
+        problem_statement=_str(justification.get("problem_statement") or data.get("problem_statement")),
+        goals_outcomes=_str(justification.get("goals_outcomes") or data.get("goals_outcomes")),
+        other_members=_str(other.get("other_members") or other.get("other_members_receiving_request") or data.get("other_members")),
+        prior_year_submission=bool(prior.get("prior_submissions") or prior.get("prior_year_submission") or data.get("prior_year_submission")),
+        prior_year_details=_str(prior.get("prior_submissions") or prior.get("prior_year_details") or data.get("prior_year_details")),
     )
     db.add(request)
     db.commit()

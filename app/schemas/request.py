@@ -20,6 +20,9 @@ class RequestBase(BaseModel):
     requested_amount: Optional[int] = None
     program_name: Optional[str] = None
     agency: Optional[str] = None
+    bureau: Optional[str] = None
+    account: Optional[str] = None
+    program_funding: Optional[str] = None
     programmatic_justification: Optional[str] = None
     bill_section: Optional[str] = None
     proposed_language: Optional[str] = None
@@ -54,6 +57,9 @@ class RequestUpdate(BaseModel):
     requested_amount: Optional[int] = None
     program_name: Optional[str] = None
     agency: Optional[str] = None
+    bureau: Optional[str] = None
+    account: Optional[str] = None
+    program_funding: Optional[str] = None
     programmatic_justification: Optional[str] = None
     bill_section: Optional[str] = None
     proposed_language: Optional[str] = None

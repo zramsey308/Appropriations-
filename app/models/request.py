@@ -28,6 +28,9 @@ class Request(Base):
     # Programmatic fields
     program_name = Column(String(500), nullable=True)
     agency = Column(String(500), nullable=True)
+    bureau = Column(String(500), nullable=True)
+    account = Column(String(500), nullable=True)
+    program_funding = Column(String(100), nullable=True)  # "increase", "new", "maintain", etc.
     programmatic_justification = Column(Text, nullable=True)
 
     # Language fields

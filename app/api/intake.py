@@ -156,6 +156,10 @@ def _detect_json_schema(data: dict) -> str:
         return "prog_lang"
     if request_type in ("programmatic", "language"):
         return "prog_lang"
+    # Flat prog/lang: top-level request_type field says programmatic or language
+    top_type = (data.get("request_type") or "").lower()
+    if top_type in ("programmatic", "language"):
+        return "prog_lang"
     if data.get("organization") and not data.get("requesting_organization"):
         # "organization" key is prog_lang; CPF uses "requesting_organization"
         if data.get("justification") or data.get("prior_history"):
