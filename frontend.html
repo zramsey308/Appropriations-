@@ -1183,28 +1183,6 @@
 
                 <div class="bento-card bento-stat">
                     <div class="stat-header">
-                        <div class="stat-icon programmatic">&#128200;</div>
-                        <span class="stat-trend up">Active</span>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value" id="stat-programmatic">0</div>
-                        <div class="stat-label">Programmatic Requests</div>
-                    </div>
-                </div>
-
-                <div class="bento-card bento-stat">
-                    <div class="stat-header">
-                        <div class="stat-icon language">&#128221;</div>
-                        <span class="stat-trend up">Active</span>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value" id="stat-language">0</div>
-                        <div class="stat-label">Language Requests</div>
-                    </div>
-                </div>
-
-                <div class="bento-card bento-stat">
-                    <div class="stat-header">
                         <div class="stat-icon amount">&#127941;</div>
                         <span class="stat-trend up">Active</span>
                     </div>
@@ -3191,8 +3169,6 @@ Or for language requests include:
                 document.getElementById('hero-amount').textContent = formatCompact(data.total_requested_amount);
                 document.getElementById('hero-selected').textContent = data.cpf_selected || 0;
                 document.getElementById('stat-cpf').textContent = data.by_type?.cpf || 0;
-                document.getElementById('stat-programmatic').textContent = data.by_type?.programmatic || 0;
-                document.getElementById('stat-language').textContent = data.by_type?.language || 0;
                 document.getElementById('stat-ndaa').textContent = data.by_type?.ndaa || 0;
                 document.getElementById('stat-amount').textContent = formatCurrency(data.total_requested_amount);
                 renderSubcommitteeFunding(data.amount_by_subcommittee || {}, data.by_subcommittee || {});
