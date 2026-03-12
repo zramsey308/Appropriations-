@@ -18,6 +18,8 @@ from app.db import get_db
 from app.models import Request, CPFDetails, EligibleAccount
 from app.services.docx_parser import map_subcommittee
 from app.api.upload import _best_eligible_account_match
+from app.api.prog_lang_upload import _create_from_prog_lang_schema
+from app.api.cpf_upload import _create_from_cpf_schema
 
 router = APIRouter()
 
@@ -136,8 +138,228 @@ def _safe_get(obj: dict, *keys: str, default: Any = None) -> Any:
     return current if current is not None else default
 
 
+def _detect_json_schema(data: dict) -> str:
+    """Detect which JSON schema variant was used.
+
+    Returns:
+        "prog_lang"  - programmatic/language schema (has request_details or bill_details)
+        "cpf"        - CPF nested schema (has project + requesting_organization, or narratives/support/compliance)
+        "cpf_flat"   - CPF flat schema (top-level project_name, requesting_entity, requested_amount, etc.)
+        "generic"    - fallback to generic intake parsing
+    """
+    metadata = data.get("metadata") or {}
+    request_type = (metadata.get("request_type") or "").lower()
+
+    # Programmatic/language schema: has request_details, bill_details, or
+    # top-level "organization" (not "requesting_organization")
+    if data.get("request_details") or data.get("bill_details"):
+        return "prog_lang"
+    if request_type in ("programmatic", "language"):
+        return "prog_lang"
+    # Flat prog/lang: top-level request_type field says programmatic or language
+    top_type = (data.get("request_type") or "").lower()
+    if top_type in ("programmatic", "language") or "language" in top_type or "programmatic" in top_type:
+        return "prog_lang"
+    # Has proposal_text or appropriations_bill or committee — prog/lang signals
+    if data.get("proposal_text") or data.get("appropriations_bill"):
+        return "prog_lang"
+    if data.get("organization") and not data.get("requesting_organization"):
+        # "organization" key is prog_lang; CPF uses "requesting_organization"
+        if data.get("justification") or data.get("prior_history"):
+            return "prog_lang"
+
+    # CPF nested schema: has project + requesting_organization or CPF-specific sections
+    if data.get("project") and (data.get("requesting_organization") or data.get("narratives")):
+        return "cpf"
+    if data.get("compliance") or data.get("flags") is not None:
+        return "cpf"
+
+    # CPF flat schema: top-level project fields with CPF indicators
+    # (project_name + requested_amount, or requesting_entity, or account/subcommittee + amount)
+    cpf_flat_signals = sum([
+        bool(data.get("project_name")),
+        bool(data.get("requesting_entity")),
+        bool(data.get("requested_amount")),
+        bool(data.get("total_project_cost")),
+        bool(data.get("project_purpose") or data.get("project_description")),
+        bool(data.get("public_benefit")),
+        bool(data.get("account")),
+        bool(data.get("entity_type")),
+        bool(data.get("project_location")),
+        bool(data.get("members_submitted_to")),
+    ])
+    if cpf_flat_signals >= 3:
+        return "cpf_flat"
+
+    return "generic"
+
+
+def _create_from_flat_cpf(data: dict, db: Session) -> dict:
+    """Create a Request + CPFDetails from a flat CPF JSON structure.
+
+    Handles JSON where CPF fields are at the top level (not nested under
+    project/requesting_organization/narratives sections).
+    """
+    # Point of contact may be nested or flat
+    poc = data.get("point_of_contact") or {}
+    poc_name = poc.get("name") if isinstance(poc, dict) else ""
+    poc_email = poc.get("email") if isinstance(poc, dict) else ""
+    poc_phone = poc.get("phone") if isinstance(poc, dict) else ""
+
+    # Timeline may be nested or a string
+    timeline_raw = data.get("timeline") or {}
+    if isinstance(timeline_raw, dict):
+        timeline_str = f"{timeline_raw.get('start', '')} - {timeline_raw.get('end', '')}".strip(" -")
+    else:
+        timeline_str = str(timeline_raw)
+
+    # Prior funding may be nested
+    prior_funding_raw = data.get("prior_funding") or {}
+    has_prior_funding = False
+    prior_funding_details = ""
+    if isinstance(prior_funding_raw, dict):
+        has_prior_funding = bool(prior_funding_raw.get("federal") or prior_funding_raw.get("details"))
+        details = prior_funding_raw.get("details") or []
+        if isinstance(details, list):
+            prior_funding_details = "; ".join(str(d) for d in details)
+        else:
+            prior_funding_details = str(details)
+        fed = prior_funding_raw.get("federal")
+        non_fed = prior_funding_raw.get("non_federal")
+        if fed or non_fed:
+            amounts = []
+            if fed:
+                amounts.append(f"Federal: ${fed:,}" if isinstance(fed, (int, float)) else f"Federal: {fed}")
+            if non_fed:
+                amounts.append(f"Non-Federal: ${non_fed:,}" if isinstance(non_fed, (int, float)) else f"Non-Federal: {non_fed}")
+            prior_funding_details = "; ".join(amounts) + ("; " + prior_funding_details if prior_funding_details else "")
+    elif prior_funding_raw:
+        has_prior_funding = True
+        prior_funding_details = str(prior_funding_raw)
+
+    # Members submitted to
+    members_raw = data.get("members_submitted_to") or []
+    if isinstance(members_raw, list):
+        members_str = "; ".join(str(m) for m in members_raw)
+    else:
+        members_str = str(members_raw)
+
+    # Subcommittee
+    raw_sub = data.get("subcommittee") or ""
+    subcommittee = map_subcommittee(raw_sub)
+    if not subcommittee:
+        subcommittee = map_subcommittee(data.get("agency") or "")
+    if not subcommittee:
+        subcommittee = "agriculture"
+
+    title = data.get("project_name") or data.get("requesting_entity") or "Imported CPF Request"
+    amount = _parse_amount(data.get("requested_amount"))
+    total_cost = _parse_amount(data.get("total_project_cost"))
+    entity_type = _parse_entity_type(data.get("entity_type") or "")
+
+    # Fiscal year
+    fy_raw = data.get("fiscal_year") or "2027"
+    try:
+        fy = int(re.sub(r"[^0-9]", "", str(fy_raw))[-4:]) if fy_raw else 2027
+    except (ValueError, IndexError):
+        fy = 2027
+
+    description = data.get("project_purpose") or data.get("project_description") or ""
+
+    request = Request(
+        fiscal_year=fy,
+        request_type="cpf",
+        subcommittee=subcommittee,
+        status="submitted",
+        title=title,
+        description=description,
+        requester_name=poc_name or data.get("requester_name") or "",
+        requester_email=poc_email or data.get("requester_email") or "",
+        requester_phone=poc_phone or data.get("requester_phone") or "",
+        requester_organization=data.get("requesting_entity") or data.get("entity_name") or "",
+        requested_amount=amount,
+        agency=data.get("agency") or "",
+        priority_rank=str(data.get("priority_rank")) if data.get("priority_rank") else None,
+    )
+    db.add(request)
+    db.flush()
+
+    # Eligible account matching
+    cpf_account_id = None
+    eligible_raw = data.get("account") or data.get("eligible_account") or ""
+    agency_raw = data.get("agency") or ""
+    if eligible_raw or agency_raw:
+        accounts = db.query(EligibleAccount).filter(
+            EligibleAccount.subcommittee == subcommittee
+        ).all()
+        cpf_account_id = _best_eligible_account_match(accounts, eligible_raw, agency_raw)
+
+    cpf = CPFDetails(
+        request_id=request.id,
+        cpf_account_id=cpf_account_id,
+        tx11_nexus=True,
+        tx11_nexus_explanation=data.get("priority_reason") or "",
+        entity_type=entity_type,
+        entity_name=data.get("requesting_entity") or data.get("entity_name") or "",
+        entity_address=data.get("address") or "",
+        project_name=title,
+        project_address=data.get("project_location") or "",
+        project_description=description,
+        requested_amount=amount,
+        total_project_cost=total_cost,
+        cost_share_required=bool(data.get("cost_share_required")),
+        cost_share_explanation="",
+        public_benefit_justification=data.get("public_benefit") or "",
+        tx11_priority_justification=data.get("priority_reason") or "",
+        stakeholders_support="",
+        eligibility_citations="",
+        timeline=timeline_str,
+        future_federal_funding=bool(data.get("future_federal_funding_required")),
+        partial_funding_acceptable=bool(data.get("scalable_with_partial_funding")),
+        authorized_in_law=bool(
+            data.get("authorization_status")
+            and str(data.get("authorization_status")).lower() not in ("n/a", "no", "")
+        ),
+        authorization_citation=str(data.get("authorization_status") or ""),
+        in_presidential_budget=False,
+        presidential_budget_details="",
+        prior_federal_funding=has_prior_funding,
+        prior_funding_details=prior_funding_details,
+        derogatory_info=bool(data.get("derogatory_information")),
+        derogatory_info_explanation="",
+        members_receiving_request=members_str,
+    )
+    db.add(cpf)
+    db.commit()
+    db.refresh(request)
+
+    return {
+        "id": request.id,
+        "title": request.title,
+        "request_type": request.request_type,
+        "subcommittee": request.subcommittee,
+        "organization": request.requester_organization,
+        "amount": request.requested_amount,
+        "status": "submitted",
+    }
+
+
 def _create_from_json(data: dict, db: Session) -> dict:
-    """Create a request from the ChatGPT-parsed JSON structure."""
+    """Create a request from the ChatGPT-parsed JSON structure.
+
+    Auto-detects the schema variant (CPF, programmatic/language, or generic)
+    and routes to the appropriate handler.
+    """
+    schema = _detect_json_schema(data)
+
+    if schema == "prog_lang":
+        return _create_from_prog_lang_schema(data, db)
+    if schema == "cpf":
+        return _create_from_cpf_schema(data, db)
+    if schema == "cpf_flat":
+        return _create_from_flat_cpf(data, db)
+
+    # Generic / fallback: use the original intake logic
     project = data.get("project", {}) or {}
     org = data.get("requesting_organization", {}) or {}
     poc = data.get("point_of_contact", {}) or {}
