@@ -4,6 +4,7 @@ from typing import Optional, List
 
 from app.models.enums import RequestType, Subcommittee, RequestStatus
 from app.schemas.cpf_details import CPFDetailsResponse
+from app.schemas.ndaa_details import NdaaDetailsResponse
 from app.schemas.attachment import AttachmentResponse
 
 
@@ -83,6 +84,7 @@ class RequestResponse(RequestBase):
     status: RequestStatus
     priority_order: Optional[int] = None
     cpf_details: Optional[CPFDetailsResponse] = None
+    ndaa_details: Optional[NdaaDetailsResponse] = None
     attachments: List[AttachmentResponse] = []
     created_at: datetime
     updated_at: datetime

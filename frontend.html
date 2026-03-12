@@ -1106,6 +1106,7 @@
             <button class="nav-btn active" data-panel="dashboard">Dashboard</button>
             <button class="nav-btn" data-panel="cpf-projects">CPF Projects</button>
             <button class="nav-btn" data-panel="prog-lang">Programmatic & Language</button>
+            <button class="nav-btn" data-panel="ndaa">NDAA</button>
             <button class="nav-btn" data-panel="tx11-map">TX-11 Map</button>
             <button class="nav-btn" data-panel="upload-docs">Upload Docs</button>
             <button class="nav-btn" data-panel="new-request">New Request</button>
@@ -1153,6 +1154,9 @@
                     </button>
                     <button class="quick-action-btn" onclick="showPanel('new-request'); setTimeout(() => document.querySelector('[data-type=language]').click(), 100)">
                         <span>+</span> Language Request
+                    </button>
+                    <button class="quick-action-btn" onclick="showPanel('new-request'); setTimeout(() => document.querySelector('[data-type=ndaa]').click(), 100)">
+                        <span>+</span> NDAA Request
                     </button>
                 </div>
 
@@ -1291,6 +1295,57 @@
                 <div class="card-body" style="padding: 0;">
                     <div id="pl-subcommittee-list" style="min-height: 200px;">
                         <div class="empty-state" style="padding: 3rem;">Loading requests...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NDAA Panel -->
+        <div id="ndaa" class="panel">
+            <div class="card">
+                <div class="card-header">
+                    <h2>NDAA Requests</h2>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <span id="ndaa-count" class="badge" style="font-size: 0.8rem; background: rgba(220, 38, 38, 0.1); color: #dc2626;">0 requests</span>
+                    </div>
+                </div>
+                <div class="card-body" style="padding: 0;">
+                    <div id="ndaa-request-list" style="min-height: 200px;">
+                        <div class="empty-state" style="padding: 3rem;">Loading NDAA requests...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NDAA JSON Upload Section -->
+            <div class="card" style="margin-top: 1.25rem;">
+                <div class="card-header">
+                    <h2>NDAA JSON Upload</h2>
+                </div>
+                <div class="card-body">
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
+                        Paste <strong>NDAA request JSON</strong> from ChatGPT doc parsing. Accepts a single <code>{ }</code> object or an array <code>[ ]</code> for bulk import.
+                    </p>
+                    <textarea id="ndaa-schema-text" rows="14" placeholder='Paste NDAA JSON here...
+
+{
+  "request_type": "ndaa",
+  "company_organization": "Lockheed Martin",
+  "poc_name": "Jane Smith",
+  "email": "jsmith@lm.com",
+  "official_project_name": "F-35 Sustainment",
+  "funding_agency": "Air Force",
+  "budget_account": "Aircraft Procurement",
+  "hasc_subcommittee": "Tactical Air and Land Forces",
+  "additional_funding_amount": 50000000,
+  "justification": "...",
+  "military_value": "...",
+  "tx11_impact": "..."
+}' style="width: 100%; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.75rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.82rem; color: var(--text-primary); background: var(--surface); resize: vertical;"></textarea>
+                    <div id="ndaa-schema-result" style="display: none; margin-top: 0.75rem; padding: 0.75rem; border-radius: var(--radius-md); font-size: 0.85rem;"></div>
+                    <div style="margin-top: 0.75rem; display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+                        <button class="btn btn-accent" type="button" onclick="submitNdaaSchema()">Import to DB</button>
+                        <button class="btn btn-secondary" type="button" onclick="document.getElementById('ndaa-schema-text').value=''; document.getElementById('ndaa-schema-result').style.display='none';">Clear</button>
+                        <span id="ndaa-schema-spinner" style="display: none; font-size: 0.85rem; color: var(--text-muted);">Processing...</span>
                     </div>
                 </div>
             </div>
@@ -1498,6 +1553,7 @@ Or for language requests include:
                             <button type="button" class="type-tab active" data-type="cpf">Community Project Funding</button>
                             <button type="button" class="type-tab" data-type="programmatic">Programmatic</button>
                             <button type="button" class="type-tab" data-type="language">Language</button>
+                            <button type="button" class="type-tab" data-type="ndaa">NDAA</button>
                         </div>
 
                         <input type="hidden" id="request_type" value="cpf">
@@ -1748,6 +1804,162 @@ Or for language requests include:
                                 <div class="form-group full-width" id="lang-prior-details-group" style="display:none;">
                                     <label>Prior Year Details</label>
                                     <input type="text" id="lang_prior_year_details" placeholder="e.g., FY26 - similar language request">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- NDAA Fields -->
+                        <div id="ndaa-fields" class="type-fields">
+                            <div class="section-header">
+                                <h3>NDAA Details</h3>
+                            </div>
+                            <div class="form-grid">
+                                <div class="form-group full-width" style="background: rgba(220,38,38,0.05); border: 1px solid rgba(220,38,38,0.15); border-radius: var(--radius-md); padding: 0.75rem; margin-bottom: 0.5rem;">
+                                    <p style="font-size: 0.8rem; color: #dc2626; font-weight: 600;">Section I — General Information</p>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Company / Organization <span class="required">*</span></label>
+                                    <input type="text" id="ndaa_company_organization" placeholder="e.g., Lockheed Martin, Raytheon">
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Address</label>
+                                    <input type="text" id="ndaa_address" placeholder="Street address">
+                                </div>
+                                <div class="form-group">
+                                    <label>City</label>
+                                    <input type="text" id="ndaa_city" placeholder="City">
+                                </div>
+                                <div class="form-group">
+                                    <label>State</label>
+                                    <input type="text" id="ndaa_state" value="TX" placeholder="TX">
+                                </div>
+                                <div class="form-group">
+                                    <label>ZIP Code</label>
+                                    <input type="text" id="ndaa_zip_code" placeholder="79701">
+                                </div>
+                                <div class="form-group">
+                                    <label>POC Name</label>
+                                    <input type="text" id="ndaa_poc_name" placeholder="Point of contact name">
+                                </div>
+                                <div class="form-group">
+                                    <label>Phone</label>
+                                    <input type="text" id="ndaa_phone" placeholder="(432) 555-1234">
+                                </div>
+                                <div class="form-group">
+                                    <label>Email</label>
+                                    <input type="email" id="ndaa_email" placeholder="poc@company.com">
+                                </div>
+                                <div class="form-group full-width">
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="ndaa_poc_is_lobbyist">
+                                        <label for="ndaa_poc_is_lobbyist">POC is a registered lobbyist</label>
+                                    </div>
+                                </div>
+                                <div class="form-group full-width" id="ndaa-lobbyist-group" style="display:none;">
+                                    <label>Lobbyist Organization</label>
+                                    <input type="text" id="ndaa_lobbyist_organization" placeholder="Lobbying firm name">
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Met with Congressman / Staff?</label>
+                                    <input type="text" id="ndaa_met_with_congressman" placeholder="e.g., Rep. Pfluger, LA John Smith">
+                                </div>
+                                <div class="form-group">
+                                    <label>Meeting Date</label>
+                                    <input type="text" id="ndaa_meeting_date" placeholder="MM/DD/YYYY">
+                                </div>
+
+                                <div class="form-group full-width" style="background: rgba(220,38,38,0.05); border: 1px solid rgba(220,38,38,0.15); border-radius: var(--radius-md); padding: 0.75rem; margin-top: 0.5rem; margin-bottom: 0.5rem;">
+                                    <p style="font-size: 0.8rem; color: #dc2626; font-weight: 600;">Section II — Budgetary / Legislative Proposal</p>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Official Project Name <span class="required">*</span></label>
+                                    <input type="text" id="ndaa_official_project_name" placeholder="Official program/project name">
+                                </div>
+                                <div class="form-group">
+                                    <label>Funding Agency</label>
+                                    <input type="text" id="ndaa_funding_agency" placeholder="e.g., Army, Navy, Air Force">
+                                </div>
+                                <div class="form-group">
+                                    <label>Budget Account</label>
+                                    <input type="text" id="ndaa_budget_account" placeholder="e.g., RDT&E, Procurement">
+                                </div>
+                                <div class="form-group">
+                                    <label>HASC Subcommittee</label>
+                                    <input type="text" id="ndaa_hasc_subcommittee" placeholder="e.g., Tactical Air and Land Forces">
+                                </div>
+                                <div class="form-group">
+                                    <label>Program Element</label>
+                                    <input type="text" id="ndaa_program_element" placeholder="PE number">
+                                </div>
+                                <div class="form-group">
+                                    <label>Additional Funding Amount ($)</label>
+                                    <input type="number" id="ndaa_additional_funding_amount" placeholder="0">
+                                </div>
+                                <div class="form-group full-width">
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="ndaa_funded_in_pb">
+                                        <label for="ndaa_funded_in_pb">Funded in President's Budget</label>
+                                    </div>
+                                </div>
+                                <div class="form-group full-width">
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="ndaa_is_scalable">
+                                        <label for="ndaa_is_scalable">Request is scalable</label>
+                                    </div>
+                                </div>
+                                <div class="form-group full-width">
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="ndaa_unfunded_priority_list">
+                                        <label for="ndaa_unfunded_priority_list">On Unfunded Priority List</label>
+                                    </div>
+                                </div>
+
+                                <div class="form-group full-width" style="background: rgba(220,38,38,0.05); border: 1px solid rgba(220,38,38,0.15); border-radius: var(--radius-md); padding: 0.75rem; margin-top: 0.5rem; margin-bottom: 0.5rem;">
+                                    <p style="font-size: 0.8rem; color: #dc2626; font-weight: 600;">Section III — Policy / Language Proposal</p>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Proposed Bill Language</label>
+                                    <textarea id="ndaa_proposed_bill_language" placeholder="Enter proposed bill language..." rows="4" style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85rem;"></textarea>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Proposed Report Language</label>
+                                    <textarea id="ndaa_proposed_report_language" placeholder="Enter proposed report language..." rows="4" style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85rem;"></textarea>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Items of Special Interest</label>
+                                    <textarea id="ndaa_items_of_special_interest" placeholder="Items of special interest..."></textarea>
+                                </div>
+
+                                <div class="form-group full-width" style="background: rgba(220,38,38,0.05); border: 1px solid rgba(220,38,38,0.15); border-radius: var(--radius-md); padding: 0.75rem; margin-top: 0.5rem; margin-bottom: 0.5rem;">
+                                    <p style="font-size: 0.8rem; color: #dc2626; font-weight: 600;">Section IV — Proposal Explanation</p>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Justification <span class="required">*</span></label>
+                                    <textarea id="ndaa_justification" placeholder="Why is this funding/language needed?"></textarea>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Program Description</label>
+                                    <textarea id="ndaa_program_description" placeholder="Describe the program..."></textarea>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Military Value</label>
+                                    <textarea id="ndaa_military_value" placeholder="Describe the military value and readiness impact..."></textarea>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>TX-11 Impact</label>
+                                    <textarea id="ndaa_tx11_impact" placeholder="How does this impact TX-11 communities?"></textarea>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Partners</label>
+                                    <input type="text" id="ndaa_partners" placeholder="Industry/academic/community partners">
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Other Offices Engaged</label>
+                                    <input type="text" id="ndaa_other_offices_engaged" placeholder="Other congressional offices">
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Additional Notes</label>
+                                    <textarea id="ndaa_additional_notes" placeholder="Any additional notes..."></textarea>
                                 </div>
                             </div>
                         </div>
@@ -2520,6 +2732,7 @@ Or for language requests include:
             if (panelId === 'accounts') loadAccounts();
             if (panelId === 'cpf-projects') loadCpfProjects();
             if (panelId === 'prog-lang') loadProgLangRequests();
+            if (panelId === 'ndaa') loadNdaaRequests();
             if (panelId === 'committee-submit') loadCommitteeRequestList();
             if (panelId === 'tx11-map') loadTx11Map();
         }
@@ -2540,6 +2753,9 @@ Or for language requests include:
         });
         document.getElementById('lang_prior_year')?.addEventListener('change', (e) => {
             document.getElementById('lang-prior-details-group').style.display = e.target.checked ? 'block' : 'none';
+        });
+        document.getElementById('ndaa_poc_is_lobbyist')?.addEventListener('change', (e) => {
+            document.getElementById('ndaa-lobbyist-group').style.display = e.target.checked ? 'block' : 'none';
         });
 
         function showToast(message, type = 'info') {
@@ -3418,6 +3634,14 @@ Or for language requests include:
                 data.other_members = document.getElementById('lang_other_members').value;
                 data.prior_year_submission = document.getElementById('lang_prior_year').checked;
                 data.prior_year_details = document.getElementById('lang_prior_year_details').value;
+            } else if (requestType === 'ndaa') {
+                data.subcommittee = data.subcommittee || 'defense';
+                data.title = document.getElementById('ndaa_official_project_name').value || data.title || 'NDAA Request';
+                data.description = document.getElementById('ndaa_program_description').value || document.getElementById('ndaa_justification').value;
+                data.requester_name = data.requester_name || document.getElementById('ndaa_poc_name').value;
+                data.requester_email = data.requester_email || document.getElementById('ndaa_email').value;
+                data.requester_organization = data.requester_organization || document.getElementById('ndaa_company_organization').value;
+                data.requested_amount = parseInt(document.getElementById('ndaa_additional_funding_amount').value) || data.requested_amount;
             }
             try {
                 const response = await fetch(`${API_BASE}/api/requests`, {
@@ -3430,7 +3654,46 @@ Or for language requests include:
                     throw new Error(error.error || 'Failed to create request');
                 }
                 const request = await response.json();
-                if (requestType === 'cpf') {
+                if (requestType === 'ndaa') {
+                    const ndaaData = {
+                        company_organization: document.getElementById('ndaa_company_organization').value,
+                        address: document.getElementById('ndaa_address').value,
+                        city: document.getElementById('ndaa_city').value,
+                        state: document.getElementById('ndaa_state').value || 'TX',
+                        zip_code: document.getElementById('ndaa_zip_code').value,
+                        poc_name: document.getElementById('ndaa_poc_name').value,
+                        poc_is_lobbyist: document.getElementById('ndaa_poc_is_lobbyist').checked,
+                        lobbyist_organization: document.getElementById('ndaa_lobbyist_organization').value,
+                        phone: document.getElementById('ndaa_phone').value,
+                        email: document.getElementById('ndaa_email').value,
+                        met_with_congressman: document.getElementById('ndaa_met_with_congressman').value,
+                        meeting_date: document.getElementById('ndaa_meeting_date').value,
+                        official_project_name: document.getElementById('ndaa_official_project_name').value,
+                        funding_agency: document.getElementById('ndaa_funding_agency').value,
+                        budget_account: document.getElementById('ndaa_budget_account').value,
+                        hasc_subcommittee: document.getElementById('ndaa_hasc_subcommittee').value,
+                        program_element: document.getElementById('ndaa_program_element').value,
+                        additional_funding_amount: parseInt(document.getElementById('ndaa_additional_funding_amount').value) || null,
+                        funded_in_pb: document.getElementById('ndaa_funded_in_pb').checked,
+                        is_scalable: document.getElementById('ndaa_is_scalable').checked,
+                        unfunded_priority_list: document.getElementById('ndaa_unfunded_priority_list').checked,
+                        proposed_bill_language: document.getElementById('ndaa_proposed_bill_language').value,
+                        proposed_report_language: document.getElementById('ndaa_proposed_report_language').value,
+                        items_of_special_interest: document.getElementById('ndaa_items_of_special_interest').value,
+                        justification: document.getElementById('ndaa_justification').value,
+                        program_description: document.getElementById('ndaa_program_description').value,
+                        military_value: document.getElementById('ndaa_military_value').value,
+                        tx11_impact: document.getElementById('ndaa_tx11_impact').value,
+                        partners: document.getElementById('ndaa_partners').value,
+                        other_offices_engaged: document.getElementById('ndaa_other_offices_engaged').value,
+                        additional_notes: document.getElementById('ndaa_additional_notes').value,
+                    };
+                    await fetch(`${API_BASE}/api/requests/${request.id}/ndaa`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(ndaaData)
+                    });
+                } else if (requestType === 'cpf') {
                     const cpfData = {
                         cpf_account_id: parseInt(document.getElementById('cpf_account_id').value) || null,
                         tx11_nexus: document.getElementById('tx11_nexus').checked,
@@ -4292,6 +4555,138 @@ Or for language requests include:
             }, 500);
         }
 
+        // ── NDAA Panel ────────────────────────────────────────────
+        let ndaaRequestsData = [];
+
+        async function loadNdaaRequests() {
+            try {
+                const resp = await fetch(`${API_BASE}/api/requests?type=ndaa&limit=500`);
+                const data = await resp.json();
+                ndaaRequestsData = data.items || data;
+                document.getElementById('ndaa-count').textContent = `${ndaaRequestsData.length} requests`;
+                renderNdaaPanel();
+            } catch (err) {
+                document.getElementById('ndaa-request-list').innerHTML =
+                    '<div class="empty-state" style="padding: 3rem;">Failed to load NDAA requests</div>';
+            }
+        }
+
+        function renderNdaaPanel() {
+            const container = document.getElementById('ndaa-request-list');
+
+            if (ndaaRequestsData.length === 0) {
+                container.innerHTML = '<div class="empty-state" style="padding: 3rem;">No NDAA requests yet. Upload .docx forms or paste JSON to import.</div>';
+                return;
+            }
+
+            container.innerHTML = ndaaRequestsData.map(r => {
+                const ndaa = r.ndaa_details;
+                return `
+                <div class="pl-request-item" onclick="toggleNdaaDetail(${r.id})">
+                    <div class="pl-req-info">
+                        <div class="pl-req-title">${r.title}</div>
+                        <div class="pl-req-org">${r.requester_organization || r.requester_name || 'Unknown'}${ndaa && ndaa.funding_agency ? ` — ${ndaa.funding_agency}` : ''}</div>
+                    </div>
+                    <div class="pl-req-meta">
+                        ${r.requested_amount ? `<span style="font-weight:600; font-size:0.85rem;">${formatCurrency(r.requested_amount)}</span>` : ''}
+                        <span class="badge" style="font-size:0.6rem; background: rgba(220, 38, 38, 0.1); color: #dc2626;">NDAA</span>
+                        <span class="badge badge-${r.status}" style="font-size:0.6rem;">${formatStatus(r.status)}</span>
+                        <button class="cpf-item-btn" onclick="event.stopPropagation(); openEditModal(${r.id})" title="Edit">&#9998;</button>
+                        <button class="cpf-item-btn delete" onclick="event.stopPropagation(); deleteNdaaRequest(${r.id})" title="Delete">&#128465;</button>
+                    </div>
+                </div>
+                <div class="pl-detail-panel" id="ndaa-detail-${r.id}">
+                    <div class="pl-detail-grid">
+                        <div class="pl-detail-section">
+                            ${ndaa && ndaa.official_project_name ? `<h4>Official Project Name</h4><p>${ndaa.official_project_name}</p>` : ''}
+                            ${ndaa && ndaa.funding_agency ? `<h4>Funding Agency / Account</h4><p>${ndaa.funding_agency}${ndaa.budget_account ? ` — ${ndaa.budget_account}` : ''}</p>` : ''}
+                            ${ndaa && ndaa.hasc_subcommittee ? `<h4>HASC Subcommittee</h4><p>${ndaa.hasc_subcommittee}</p>` : ''}
+                            ${ndaa && ndaa.program_element ? `<h4>Program Element</h4><p>${ndaa.program_element}</p>` : ''}
+                            ${ndaa && ndaa.additional_funding_amount ? `<h4>Additional Funding</h4><p>${formatCurrency(ndaa.additional_funding_amount)}</p>` : ''}
+                            ${ndaa && ndaa.justification ? `<h4>Justification</h4><p>${ndaa.justification}</p>` : ''}
+                            ${ndaa && ndaa.program_description ? `<h4>Program Description</h4><p>${ndaa.program_description}</p>` : ''}
+                        </div>
+                        <div class="pl-detail-section">
+                            ${ndaa && ndaa.military_value ? `<h4>Military Value</h4><p>${ndaa.military_value}</p>` : ''}
+                            ${ndaa && ndaa.tx11_impact ? `<h4>TX-11 Impact</h4><p>${ndaa.tx11_impact}</p>` : ''}
+                            ${ndaa && ndaa.proposed_bill_language ? `<h4>Proposed Bill Language</h4><p style="font-family:monospace; font-size:0.8rem; background:var(--surface-alt); padding:8px; border-radius:6px; white-space:pre-wrap;">${ndaa.proposed_bill_language}</p>` : ''}
+                            ${ndaa && ndaa.proposed_report_language ? `<h4>Proposed Report Language</h4><p style="font-family:monospace; font-size:0.8rem; background:var(--surface-alt); padding:8px; border-radius:6px; white-space:pre-wrap;">${ndaa.proposed_report_language}</p>` : ''}
+                            ${ndaa && ndaa.partners ? `<h4>Partners</h4><p>${ndaa.partners}</p>` : ''}
+                            ${ndaa && ndaa.other_offices_engaged ? `<h4>Other Offices</h4><p>${ndaa.other_offices_engaged}</p>` : ''}
+                            ${ndaa && ndaa.company_organization ? `<h4>Organization</h4><p>${ndaa.company_organization}${ndaa.city ? `, ${ndaa.city}` : ''}${ndaa.state ? `, ${ndaa.state}` : ''}</p>` : ''}
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function toggleNdaaDetail(id) {
+            const panel = document.getElementById(`ndaa-detail-${id}`);
+            if (!panel) return;
+            document.querySelectorAll('.pl-detail-panel.open').forEach(p => {
+                if (p.id !== `ndaa-detail-${id}`) p.classList.remove('open');
+            });
+            panel.classList.toggle('open');
+        }
+
+        async function deleteNdaaRequest(id) {
+            if (!confirm('Delete this NDAA request?')) return;
+            try {
+                const resp = await fetch(`${API_BASE}/api/requests/${id}`, { method: 'DELETE' });
+                if (!resp.ok) throw new Error('Delete failed');
+                showToast('NDAA request deleted', 'success');
+                loadNdaaRequests();
+            } catch (err) {
+                showToast('Failed to delete', 'error');
+            }
+        }
+
+        async function submitNdaaSchema() {
+            const raw = document.getElementById('ndaa-schema-text').value.trim();
+            if (!raw) { showToast('Paste NDAA JSON first', 'error'); return; }
+
+            const spinner = document.getElementById('ndaa-schema-spinner');
+            const resultDiv = document.getElementById('ndaa-schema-result');
+            spinner.style.display = 'inline';
+            resultDiv.style.display = 'none';
+
+            try {
+                let parsed;
+                try { parsed = JSON.parse(raw); } catch { showToast('Invalid JSON', 'error'); spinner.style.display = 'none'; return; }
+
+                const resp = await fetch(`${API_BASE}/api/upload/ndaa-json`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(parsed),
+                });
+                const result = await resp.json();
+
+                if (!resp.ok) throw new Error(result.detail || 'Upload failed');
+
+                const msgs = [];
+                if (result.created > 0) msgs.push(`Created ${result.created} NDAA request(s)`);
+                if (result.errors?.length) msgs.push(`Errors: ${result.errors.join('; ')}`);
+
+                resultDiv.style.display = 'block';
+                resultDiv.style.background = result.created > 0 ? 'rgba(5, 150, 105, 0.08)' : 'rgba(220, 38, 38, 0.08)';
+                resultDiv.style.color = result.created > 0 ? 'var(--accent)' : 'var(--danger)';
+                resultDiv.textContent = msgs.join(' | ') || 'No requests created';
+
+                if (result.created > 0) {
+                    document.getElementById('ndaa-schema-text').value = '';
+                    await loadNdaaRequests();
+                    await loadDashboard();
+                }
+            } catch (error) {
+                resultDiv.style.display = 'block';
+                resultDiv.style.background = 'rgba(220, 38, 38, 0.08)';
+                resultDiv.style.color = 'var(--danger)';
+                resultDiv.textContent = error.message;
+            } finally {
+                spinner.style.display = 'none';
+            }
+        }
+
         // ── Committee Submission Functions ──────────────────────
         function copyField(el) {
             const value = el.value || el.textContent;
@@ -4305,17 +4700,20 @@ Or for language requests include:
 
         async function loadCommitteeRequestList() {
             try {
-                const [cpfResp, progResp, langResp] = await Promise.all([
+                const [cpfResp, progResp, langResp, ndaaResp] = await Promise.all([
                     fetch(`${API_BASE}/api/requests?type=cpf&limit=500`),
                     fetch(`${API_BASE}/api/requests?type=programmatic&limit=500`),
                     fetch(`${API_BASE}/api/requests?type=language&limit=500`),
+                    fetch(`${API_BASE}/api/requests?type=ndaa&limit=500`),
                 ]);
                 const cpfData = await cpfResp.json();
                 const progData = await progResp.json();
                 const langData = await langResp.json();
+                const ndaaData = await ndaaResp.json();
                 const cpfItems = cpfData.items || cpfData;
                 const progItems = progData.items || progData;
                 const langItems = langData.items || langData;
+                const ndaaItems = ndaaData.items || ndaaData;
 
                 const select = document.getElementById('committee-request-select');
                 select.innerHTML = '<option value="">-- Select a request to prepare --</option>';
@@ -4339,6 +4737,7 @@ Or for language requests include:
                 addGroup(`CPF Projects (${cpfItems.length})`, cpfItems);
                 addGroup(`Programmatic (${progItems.length})`, progItems);
                 addGroup(`Language (${langItems.length})`, langItems);
+                addGroup(`NDAA (${ndaaItems.length})`, ndaaItems);
             } catch (err) {
                 console.error('Failed to load committee request list:', err);
             }
