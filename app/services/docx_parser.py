@@ -590,8 +590,10 @@ def map_subcommittee(raw: str) -> Optional[str]:
     mapping = {
         "agriculture": "agriculture",
         "commerce": "commerce_justice_science",
+        "cjs": "commerce_justice_science",
         "justice": "commerce_justice_science",
         "science": "commerce_justice_science",
+        "nasa": "commerce_justice_science",
         "defense": "defense",
         "armed services": "defense",
         "hasc": "defense",
