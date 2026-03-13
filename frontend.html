@@ -4413,6 +4413,16 @@ Or for language requests include:
             const container = document.getElementById('pl-subcommittee-list');
             const typeFilter = document.getElementById('pl-type-filter').value;
 
+            // Remember which subcommittee groups and detail panels are open
+            const openPlGroups = [];
+            container.querySelectorAll('.pl-sub-body.open').forEach(el => {
+                openPlGroups.push(el.dataset.subcommittee);
+            });
+            const openPlDetails = [];
+            container.querySelectorAll('.pl-detail-panel.open').forEach(el => {
+                openPlDetails.push(el.id);
+            });
+
             let filtered = plRequestsData;
             if (typeFilter !== 'all') {
                 filtered = filtered.filter(r => r.request_type === typeFilter);
@@ -4466,6 +4476,16 @@ Or for language requests include:
                     </div>
                 </div>`;
             }).join('');
+
+            // Restore open state for subcommittee groups and detail panels
+            openPlGroups.forEach(sub => {
+                const body = document.getElementById(`pl-sub-${sub}`);
+                if (body) body.classList.add('open');
+            });
+            openPlDetails.forEach(id => {
+                const panel = document.getElementById(id);
+                if (panel) panel.classList.add('open');
+            });
 
             // Attach drag listeners to all subcommittee groups
             attachPlDragListeners();
@@ -4607,8 +4627,9 @@ Or for language requests include:
                         // Update priority_order for this subcommittee group
                         subItems.forEach((r, idx) => r.priority_order = idx + 1);
 
-                        // Re-render and save
-                        renderProgLangPanel();
+                        // Re-render only this subcommittee's items (preserves open state)
+                        container.innerHTML = subItems.map((r, idx) => renderPlRequestItem(r, idx)).join('');
+                        attachPlDragListeners();
                         savePlOrder(subItems);
                     });
                 });
