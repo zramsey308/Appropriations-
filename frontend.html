@@ -4627,8 +4627,9 @@ Or for language requests include:
                         // Update priority_order for this subcommittee group
                         subItems.forEach((r, idx) => r.priority_order = idx + 1);
 
-                        // Re-render and save
-                        renderProgLangPanel();
+                        // Re-render only this subcommittee's items (preserves open state)
+                        container.innerHTML = subItems.map((r, idx) => renderPlRequestItem(r, idx)).join('');
+                        attachPlDragListeners();
                         savePlOrder(subItems);
                     });
                 });
