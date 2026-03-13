@@ -4525,6 +4525,7 @@ Or for language requests include:
         }
 
         function togglePlDetail(id) {
+            if (plDragInProgress) return;
             const panel = document.getElementById(`pl-detail-${id}`);
             if (!panel) return;
             // Close others
@@ -4534,15 +4535,27 @@ Or for language requests include:
             panel.classList.toggle('open');
         }
 
+        let plDragInProgress = false;
+
         function attachPlDragListeners() {
             const containers = document.querySelectorAll('.pl-sub-body');
             containers.forEach(container => {
+                // Prevent browser default drop behavior on the container (avoids navigation/reload)
+                container.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                });
+                container.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                });
+
                 const items = container.querySelectorAll('.pl-request-item[draggable]');
                 let dragSrcEl = null;
 
                 items.forEach(item => {
                     item.addEventListener('dragstart', function(e) {
                         dragSrcEl = this;
+                        plDragInProgress = true;
                         this.classList.add('dragging');
                         e.dataTransfer.effectAllowed = 'move';
                         e.dataTransfer.setData('text/plain', this.dataset.id);
@@ -4551,6 +4564,7 @@ Or for language requests include:
                     item.addEventListener('dragend', function() {
                         this.classList.remove('dragging');
                         container.querySelectorAll('.pl-request-item').forEach(i => i.classList.remove('drag-over'));
+                        setTimeout(() => { plDragInProgress = false; }, 0);
                     });
 
                     item.addEventListener('dragover', function(e) {
@@ -4565,13 +4579,19 @@ Or for language requests include:
 
                     item.addEventListener('drop', function(e) {
                         e.preventDefault();
+                        e.stopPropagation();
                         this.classList.remove('drag-over');
                         if (dragSrcEl === this) return;
 
                         const subcommittee = container.dataset.subcommittee;
                         const subItems = plRequestsData.filter(r =>
-                            (r.subcommittee || 'Unassigned') === subcommittee
-                        );
+                            (r.subcommittee || 'unknown') === subcommittee
+                        ).sort((a, b) => {
+                            const aOrd = a.priority_order != null ? a.priority_order : 99999;
+                            const bOrd = b.priority_order != null ? b.priority_order : 99999;
+                            if (aOrd !== bOrd) return aOrd - bOrd;
+                            return a.id - b.id;
+                        });
 
                         const fromId = parseInt(e.dataTransfer.getData('text/plain'));
                         const toId = parseInt(this.dataset.id);
