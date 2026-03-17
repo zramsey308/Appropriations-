@@ -103,10 +103,14 @@ def _create_from_prog_lang_schema(data: dict, db: Session) -> dict:
     metadata = _as_dict(data.get("metadata"))
     portal = _as_dict(data.get("submission_portal_fields"))
     committee_sub = _as_dict(data.get("committee_submission"))
-    org_raw = data.get("organization") or data.get("requesting_organization") or {}
+    org_raw = data.get("organization") or data.get("organization_information") or data.get("requesting_organization") or {}
     org = _as_dict(org_raw, "name")
-    poc = _as_dict(data.get("point_of_contact"), "name")
+    poc_raw = data.get("point_of_contact") or data.get("contact_information") or {}
+    poc = _as_dict(poc_raw, "name")
     request_details = _as_dict(data.get("request_details"))
+    prog_req = _as_dict(data.get("programmatic_request"))
+    approp_class = _as_dict(data.get("appropriations_classification"))
+    strategic = _as_dict(data.get("strategic_context"))
     bill = _as_dict(data.get("bill_details"))
     justification = _as_dict(data.get("justification"), "justification")
     prior = _as_dict(data.get("prior_history"), "prior_submissions")
@@ -151,6 +155,8 @@ def _create_from_prog_lang_schema(data: dict, db: Session) -> dict:
         _str(portal.get("subcommittee"))
         or _str(request_details.get("subcommittee"))
         or _str(request_details.get("appropriations_bill"))
+        or _str(approp_class.get("bill"))
+        or _str(approp_class.get("subcommittee"))
         or _str(bill.get("appropriations_bill"))
         or _str(bill.get("subcommittee"))
         or _str(metadata.get("subcommittee"))
@@ -164,6 +170,7 @@ def _create_from_prog_lang_schema(data: dict, db: Session) -> dict:
         subcommittee = map_subcommittee(
             _str(portal.get("agency"))
             or _str(request_details.get("agency"))
+            or _str(prog_req.get("agency"))
             or _str(data.get("agency"))
         )
     if not subcommittee:
@@ -171,8 +178,10 @@ def _create_from_prog_lang_schema(data: dict, db: Session) -> dict:
 
     # Title (check portal, nested, and flat, including program_title)
     title = (
-        _str(request_details.get("program_title"))
+        _str(request_details.get("request_title"))
+        or _str(request_details.get("program_title"))
         or _str(request_details.get("program_name"))
+        or _str(prog_req.get("program_name"))
         or _str(data.get("program_name"))
         or _str(data.get("project_program_name"))
         or _str(data.get("program_or_project_name"))
@@ -187,6 +196,8 @@ def _create_from_prog_lang_schema(data: dict, db: Session) -> dict:
 
     amount = _parse_amount(
         request_details.get("requested_amount")
+        or prog_req.get("requested_increase")
+        or prog_req.get("requested_amount")
         or data.get("requested_amount")
         or data.get("funding_amount_requested")
         or data.get("funding_requested")
@@ -201,9 +212,10 @@ def _create_from_prog_lang_schema(data: dict, db: Session) -> dict:
         fy = int(digits[-4:]) if len(digits) >= 4 else 2027
 
     description = (
-        _str(request_details.get("program_description"))
+        _str(request_details.get("request_description"))
+        or _str(request_details.get("program_description"))
         or _str(request_details.get("description"))
-        or _str(request_details.get("request_description"))
+        or _str(request_details.get("problem_issue_statement"))
         or _str(data.get("program_description"))
         or _str(data.get("description"))
         or _str(data.get("summary"))
@@ -212,7 +224,7 @@ def _create_from_prog_lang_schema(data: dict, db: Session) -> dict:
         or ""
     )
 
-    poc_name = _str(poc.get("name")) or _str(metadata.get("contact_name"))
+    poc_name = _str(poc.get("name")) or _str(poc.get("primary_contact")) or _str(metadata.get("contact_name"))
     if not poc_name:
         first = _str(poc.get("first_name"))
         last = _str(poc.get("last_name"))
@@ -263,9 +275,9 @@ def _create_from_prog_lang_schema(data: dict, db: Session) -> dict:
             or data.get("organization")
         ),
         requested_amount=amount,
-        agency=_str(portal.get("agency") or request_details.get("agency") or data.get("agency")),
+        agency=_str(portal.get("agency") or request_details.get("agency") or prog_req.get("agency") or data.get("agency")),
         bureau=_str(portal.get("bureau") or request_details.get("bureau") or data.get("bureau")),
-        account=_str(portal.get("account") or request_details.get("account") or data.get("account")),
+        account=_str(portal.get("account") or request_details.get("account") or prog_req.get("budget_account") or approp_class.get("section") or data.get("account")),
         program_funding=_str(
             request_details.get("program_funding")
             or portal.get("program_funding")
@@ -275,18 +287,20 @@ def _create_from_prog_lang_schema(data: dict, db: Session) -> dict:
         program_name=_str(
             request_details.get("program_title")
             or request_details.get("program_name")
+            or prog_req.get("program_name")
             or data.get("program_name")
             or data.get("program_or_project_name")
             or data.get("program_title")
         ),
         programmatic_justification=_str(
-            request_details.get("program_description")
+            request_details.get("request_description")
+            or request_details.get("program_description")
             or justification.get("goals_outcomes")
             or justification.get("justification")
             or data.get("justification")
             or data.get("program_description")
         ),
-        bill_section=_str(bill.get("section") or request_details.get("bill_section") or data.get("bill_section")),
+        bill_section=_str(bill.get("section") or request_details.get("bill_section") or approp_class.get("section") or data.get("bill_section")),
         proposed_language=proposed_text,
         language_justification=_str(
             data.get("language_justification")
@@ -297,22 +311,23 @@ def _create_from_prog_lang_schema(data: dict, db: Session) -> dict:
         priority_rank=_str(request_details.get("priority") or metadata.get("priority") or data.get("priority_rank")),
         problem_statement=_str(
             justification.get("problem_statement")
+            or request_details.get("problem_issue_statement")
             or data.get("problem_statement")
             or data.get("tx11_impact")
         ),
-        goals_outcomes=_str(justification.get("goals_outcomes") or data.get("goals_outcomes")),
+        goals_outcomes=_str(justification.get("goals_outcomes") or request_details.get("request_goals_expected_outcomes") or data.get("goals_outcomes")),
         other_members=other_members_str,
         prior_year_submission=bool(prior.get("prior_submissions") or prior.get("prior_year_submission") or data.get("prior_year_submission") or data.get("prior_year_requests")),
         prior_year_details=_str(prior.get("prior_submissions") or prior.get("prior_year_details") or data.get("prior_year_details") or data.get("prior_year_requests")),
         # Defense programmatic fields
-        component=_str(data.get("component") or request_details.get("component")),
-        budget_activity=_str(data.get("budget_activity") or request_details.get("budget_activity")),
-        program_element=_str(data.get("program_element") or request_details.get("program_element")),
-        line_number=_str(data.get("line_number") or request_details.get("line_number")),
-        project_program_name=_str(data.get("project_program_name") or request_details.get("project_program_name")),
-        funding_amount_enacted_previous_year=_parse_amount(data.get("funding_amount_enacted_previous_year") or request_details.get("funding_amount_enacted_previous_year")),
-        funding_amount_presidents_budget=_parse_amount(data.get("funding_amount_presidents_budget") or request_details.get("funding_amount_presidents_budget")),
-        location=_str(data.get("location") or request_details.get("location")),
+        component=_str(data.get("component") or request_details.get("component") or prog_req.get("component")),
+        budget_activity=_str(data.get("budget_activity") or request_details.get("budget_activity") or prog_req.get("budget_activity")),
+        program_element=_str(data.get("program_element") or request_details.get("program_element") or prog_req.get("program_element")),
+        line_number=_str(data.get("line_number") or request_details.get("line_number") or prog_req.get("line_number")),
+        project_program_name=_str(data.get("project_program_name") or request_details.get("project_program_name") or approp_class.get("sub_account")),
+        funding_amount_enacted_previous_year=_parse_amount(data.get("funding_amount_enacted_previous_year") or prog_req.get("fy26_enacted")),
+        funding_amount_presidents_budget=_parse_amount(data.get("funding_amount_presidents_budget") or prog_req.get("fy26_presidents_budget") or prog_req.get("fy27_presidents_budget")),
+        location=_str(data.get("location") or request_details.get("location") or strategic.get("geographic_focus")),
     )
     db.add(request)
     db.commit()
