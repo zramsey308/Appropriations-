@@ -987,6 +987,26 @@
         .cpf-item.expanded .cpf-expand-indicator {
             transform: rotate(90deg);
         }
+        .cpf-detail-notes {
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px dashed var(--border);
+        }
+        .cpf-detail-notes h4 {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin: 0 0 4px 0;
+            font-weight: 700;
+        }
+        .cpf-detail-notes p {
+            font-size: 0.82rem;
+            color: var(--text-primary);
+            margin: 0;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
         .deadline-tag {
             display: inline-block;
             font-size: 0.68rem;
@@ -1254,6 +1274,7 @@
                     <div style="display: flex; gap: 8px; align-items: center;">
                         <span id="cpf-count-badge" class="badge badge-cpf" style="font-size: 0.8rem;">0 projects</span>
                         <span id="cpf-slots-badge" class="badge badge-draft" style="font-size: 0.8rem;">15 slots remaining</span>
+                        <button class="btn btn-secondary" onclick="exportCpfList()" title="Export CPF list for printing" style="padding: 0.5rem 0.75rem; font-size: 0.85rem;">Export CPF List</button>
                     </div>
                 </div>
                 <div class="card-body" style="padding: 0;">
@@ -3908,6 +3929,7 @@ Or for language requests include:
                 const publicBenefit = cpf.public_benefit_justification || '';
                 const totalCost = cpf.total_project_cost;
                 const projectAddr = cpf.project_address || '';
+                const staffNotes = r.notes || '';
 
                 return `
                 <div class="cpf-item" draggable="true" data-id="${r.id}" data-idx="${idx}" onclick="toggleCpfDetail(${r.id})">
@@ -3961,9 +3983,82 @@ Or for language requests include:
                             ${publicBenefit ? `<h4>Public Benefit</h4><p>${publicBenefit}</p>` : ''}
                         </div>
                     </div>
+                    ${staffNotes ? `<div class="cpf-detail-notes">
+                        <h4>Staff Notes</h4>
+                        <p>${staffNotes}</p>
+                    </div>` : ''}
                 </div>`;
             }).join('');
             attachDragListeners();
+        }
+
+        function exportCpfList() {
+            if (cpfProjectsData.length === 0) {
+                showToast('No CPF projects to export', 'error');
+                return;
+            }
+            const rows = cpfProjectsData.map((r, idx) => {
+                const cpf = r.cpf_details || {};
+                const stakeholders = cpf.stakeholders_support || '';
+                const stakeholderList = stakeholders ? stakeholders.split(/;\s*/).filter(s => s.trim()) : [];
+                const desc = cpf.project_description || r.description || '';
+                const totalCost = cpf.total_project_cost;
+                const staffNotes = r.notes || '';
+                const entityName = cpf.entity_name || r.requester_organization || '';
+                return `
+                    <tr>
+                        <td style="text-align:center; font-weight:700;">${idx + 1}</td>
+                        <td>
+                            <strong>${escapeHtml(r.title)}</strong>
+                            <br><span style="font-size:0.85em; color:#555;">${escapeHtml(entityName)}</span>
+                        </td>
+                        <td style="white-space:pre-wrap;">${escapeHtml(desc)}</td>
+                        <td style="text-align:right; white-space:nowrap;">${formatCurrency(r.requested_amount)}${totalCost ? '<br><span style="font-size:0.85em; color:#555;">Total: ' + formatCurrency(totalCost) + '</span>' : ''}</td>
+                        <td>${stakeholderList.length > 0 ? stakeholderList.map(s => escapeHtml(s.trim())).join('<br>') : '<em style="color:#999;">None listed</em>'}</td>
+                        <td style="white-space:pre-wrap;">${staffNotes ? escapeHtml(staffNotes) : '<em style="color:#999;">No notes</em>'}</td>
+                    </tr>`;
+            }).join('');
+
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`<!DOCTYPE html>
+<html><head><title>CPF Project List - TX-11 FY27</title>
+<style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 2rem; color: #1a1a2e; }
+    h1 { font-size: 1.4rem; margin-bottom: 0.25rem; }
+    .subtitle { color: #666; font-size: 0.9rem; margin-bottom: 1.5rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    th { background: #1a1a2e; color: white; padding: 8px 10px; text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.03em; }
+    td { padding: 8px 10px; border-bottom: 1px solid #ddd; vertical-align: top; }
+    tr:nth-child(even) td { background: #f8f9fa; }
+    @media print {
+        body { margin: 0.5rem; }
+        table { font-size: 0.8rem; }
+        th { background: #333 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        tr:nth-child(even) td { background: #f0f0f0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+</style></head><body>
+<h1>Community Funded Projects - TX-11 FY27</h1>
+<div class="subtitle">Exported ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} &mdash; ${cpfProjectsData.length} project${cpfProjectsData.length !== 1 ? 's' : ''}</div>
+<table>
+    <thead><tr>
+        <th>#</th>
+        <th>Project / Entity</th>
+        <th>Description</th>
+        <th>Cost</th>
+        <th>Stakeholders</th>
+        <th>Staff Notes</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+</table>
+</body></html>`);
+            printWindow.document.close();
+            printWindow.focus();
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
         }
 
         function toggleCpfDetail(id) {
