@@ -33,6 +33,16 @@ class Request(Base):
     program_funding = Column(String(100), nullable=True)  # "increase", "new", "maintain", etc.
     programmatic_justification = Column(Text, nullable=True)
 
+    # Defense programmatic fields
+    component = Column(String(500), nullable=True)
+    budget_activity = Column(String(500), nullable=True)
+    program_element = Column(String(255), nullable=True)
+    line_number = Column(String(255), nullable=True)
+    project_program_name = Column(String(500), nullable=True)
+    funding_amount_enacted_previous_year = Column(BigInteger, nullable=True)
+    funding_amount_presidents_budget = Column(BigInteger, nullable=True)
+    location = Column(String(500), nullable=True)
+
     # Language fields
     bill_section = Column(String(255), nullable=True)
     proposed_language = Column(Text, nullable=True)
