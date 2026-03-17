@@ -2808,21 +2808,45 @@ Or for language requests include:
             transportation_hud: { bg: 'rgba(255,140,0,0.12)', color: '#e07000' },
         };
 
-        // CPF submission deadlines by subcommittee (6:00 PM ET)
+        // Submission deadlines by subcommittee (6:00 PM ET)
         const CPF_DEADLINES = {
-            agriculture:                          new Date('2026-03-13T18:00:00-05:00'),
-            commerce_justice_science:             new Date('2026-03-13T18:00:00-05:00'),
-            milcon_va:                            new Date('2026-03-13T18:00:00-05:00'),
-            energy_water:                         new Date('2026-03-20T18:00:00-04:00'),
-            homeland_security:                    new Date('2026-03-20T18:00:00-04:00'),
-            interior_environment:                 new Date('2026-03-20T18:00:00-04:00'),
-            labor_hhs_education:                  new Date('2026-03-20T18:00:00-04:00'),
-            transportation_hud:                   new Date('2026-03-20T18:00:00-04:00'),
+            financial_services_general_government: new Date('2026-03-13T18:00:00-05:00'),
+            financial_services:                    new Date('2026-03-13T18:00:00-05:00'),
+            legislative_branch:                    new Date('2026-03-13T18:00:00-05:00'),
+            milcon_va:                             new Date('2026-03-13T18:00:00-05:00'),
+            state_foreign_operations:              new Date('2026-03-13T18:00:00-05:00'),
+            agriculture:                           new Date('2026-03-19T18:00:00-04:00'),
+            commerce_justice_science:              new Date('2026-03-19T18:00:00-04:00'),
+            defense:                               new Date('2026-03-20T18:00:00-04:00'),
+            energy_water:                          new Date('2026-03-20T18:00:00-04:00'),
+            homeland_security:                     new Date('2026-03-20T18:00:00-04:00'),
+            interior_environment:                  new Date('2026-03-20T18:00:00-04:00'),
+            labor_hhs_education:                   new Date('2026-03-27T18:00:00-04:00'),
+            transportation_hud:                    new Date('2026-03-27T18:00:00-04:00'),
+        };
+        const PROG_LANG_DEADLINES = {
+            financial_services_general_government: new Date('2026-03-13T18:00:00-05:00'),
+            financial_services:                    new Date('2026-03-13T18:00:00-05:00'),
+            legislative_branch:                    new Date('2026-03-13T18:00:00-05:00'),
+            milcon_va:                             new Date('2026-03-13T18:00:00-05:00'),
+            state_foreign_operations:              new Date('2026-03-13T18:00:00-05:00'),
+            agriculture:                           new Date('2026-03-13T18:00:00-05:00'),
+            commerce_justice_science:              new Date('2026-03-13T18:00:00-05:00'),
+            defense:                               new Date('2026-03-20T18:00:00-04:00'),
+            energy_water:                          new Date('2026-03-20T18:00:00-04:00'),
+            homeland_security:                     new Date('2026-03-20T18:00:00-04:00'),
+            interior_environment:                  new Date('2026-03-20T18:00:00-04:00'),
+            labor_hhs_education:                   new Date('2026-03-27T18:00:00-04:00'),
+            transportation_hud:                    new Date('2026-03-27T18:00:00-04:00'),
         };
 
         function getCpfDeadlineTag(subcommittee, requestType) {
-            if (requestType && requestType !== 'cpf') return '';
-            const deadline = CPF_DEADLINES[subcommittee];
+            let deadline;
+            if (requestType === 'programmatic' || requestType === 'language') {
+                deadline = PROG_LANG_DEADLINES[subcommittee];
+            } else {
+                deadline = CPF_DEADLINES[subcommittee];
+            }
             if (!deadline) return '';
             const now = new Date();
             const diff = deadline - now;

@@ -752,7 +752,7 @@
                     <!-- CPF Disclosure Section (only shown for CPF) -->
                     <div id="cpf-disclosure" class="disclosure-box">
                         <h2>FY'27 Community Project Funding (CPF) Requests</h2>
-                        <div class="deadline">Submission Deadline: TBD</div>
+                        <div class="deadline">Submission Deadlines vary by subcommittee &mdash; see below for details</div>
 
                         <div class="note">
                             <strong>NOTE:</strong> Due to a limited number of requests allowed by each congressional office, the office of Congressman August Pfluger will only consider proposals that are:
@@ -857,13 +857,16 @@
                                     <option value="commerce_justice_science">Commerce, Justice, Science</option>
                                     <option value="defense">Defense</option>
                                     <option value="energy_water">Energy and Water</option>
-                                    <option value="financial_services">Financial Services</option>
+                                    <option value="financial_services">Financial Services &amp; General Government</option>
                                     <option value="homeland_security">Homeland Security</option>
                                     <option value="interior_environment">Interior and Environment</option>
                                     <option value="labor_hhs_education">Labor, Health and Human Services, Education</option>
+                                    <option value="legislative_branch">Legislative Branch</option>
                                     <option value="milcon_va">Military Construction, Veterans Affairs</option>
+                                    <option value="state_foreign_operations">National Security &amp; Dept. of State</option>
                                     <option value="transportation_hud">Transportation, Housing and Urban Development</option>
                                 </select>
+                                <span id="subcommittee-deadline-hint" class="help-text" style="color: #d97706; font-weight: 600; display: none;"></span>
                             </div>
                             <div class="form-group">
                                 <label>Agency</label>
@@ -1262,13 +1265,13 @@
                                     <option value="commerce_justice_science">Commerce, Justice, Science</option>
                                     <option value="defense">Defense</option>
                                     <option value="energy_water">Energy and Water</option>
-                                    <option value="financial_services">Financial Services</option>
+                                    <option value="financial_services">Financial Services &amp; General Government</option>
                                     <option value="homeland_security">Homeland Security</option>
                                     <option value="interior_environment">Interior and Environment</option>
                                     <option value="labor_hhs_education">Labor, Health and Human Services, Education</option>
                                     <option value="legislative_branch">Legislative Branch</option>
                                     <option value="milcon_va">Military Construction, Veterans Affairs</option>
-                                    <option value="state_foreign_ops">State, Foreign Operations</option>
+                                    <option value="state_foreign_operations">National Security &amp; Dept. of State</option>
                                     <option value="transportation_hud">Transportation, Housing and Urban Development</option>
                                 </select>
                             </div>
@@ -1566,8 +1569,64 @@
             toggleRequiredFields('cpf');
         });
 
+        // Submission deadlines by subcommittee (6:00 PM ET)
+        const SUBMIT_DEADLINES = {
+            cpf: {
+                financial_services: '2026-03-13T18:00:00-05:00',
+                legislative_branch: '2026-03-13T18:00:00-05:00',
+                milcon_va: '2026-03-13T18:00:00-05:00',
+                state_foreign_operations: '2026-03-13T18:00:00-05:00',
+                agriculture: '2026-03-19T18:00:00-04:00',
+                commerce_justice_science: '2026-03-19T18:00:00-04:00',
+                defense: '2026-03-20T18:00:00-04:00',
+                energy_water: '2026-03-20T18:00:00-04:00',
+                homeland_security: '2026-03-20T18:00:00-04:00',
+                interior_environment: '2026-03-20T18:00:00-04:00',
+                labor_hhs_education: '2026-03-27T18:00:00-04:00',
+                transportation_hud: '2026-03-27T18:00:00-04:00',
+            },
+            programmatic: {
+                financial_services: '2026-03-13T18:00:00-05:00',
+                legislative_branch: '2026-03-13T18:00:00-05:00',
+                milcon_va: '2026-03-13T18:00:00-05:00',
+                state_foreign_operations: '2026-03-13T18:00:00-05:00',
+                agriculture: '2026-03-13T18:00:00-05:00',
+                commerce_justice_science: '2026-03-13T18:00:00-05:00',
+                defense: '2026-03-20T18:00:00-04:00',
+                energy_water: '2026-03-20T18:00:00-04:00',
+                homeland_security: '2026-03-20T18:00:00-04:00',
+                interior_environment: '2026-03-20T18:00:00-04:00',
+                labor_hhs_education: '2026-03-27T18:00:00-04:00',
+                transportation_hud: '2026-03-27T18:00:00-04:00',
+            },
+        };
+        SUBMIT_DEADLINES.language = SUBMIT_DEADLINES.programmatic;
+
+        function updateDeadlineHint() {
+            const hint = document.getElementById('subcommittee-deadline-hint');
+            if (!hint) return;
+            const type = document.querySelector('input[name="request_type"]:checked');
+            const sub = document.getElementById('subcommittee').value;
+            const reqType = type ? type.value : 'cpf';
+            const deadlines = SUBMIT_DEADLINES[reqType] || SUBMIT_DEADLINES.cpf;
+            const iso = deadlines[sub];
+            if (!iso) { hint.style.display = 'none'; return; }
+            const d = new Date(iso);
+            const now = new Date();
+            const label = d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+            if (now > d) {
+                hint.textContent = 'Deadline passed: ' + label + ' at 6:00 PM';
+                hint.style.color = '#dc2626';
+            } else {
+                hint.textContent = 'Deadline: ' + label + ' at 6:00 PM';
+                hint.style.color = '#d97706';
+            }
+            hint.style.display = 'inline';
+        }
+
         // Update eligible accounts dropdown when subcommittee changes
         document.getElementById('subcommittee').addEventListener('change', function() {
+            updateDeadlineHint();
             const accountSelect = document.getElementById('eligible_account');
             const selectedSubcommittee = this.value;
 
@@ -1595,6 +1654,7 @@
                 document.querySelectorAll('.type-option').forEach(o => o.classList.remove('selected'));
                 option.classList.add('selected');
                 const type = option.dataset.type;
+                updateDeadlineHint();
 
                 // Get all sections by ID
                 const cpfDisclosure = document.getElementById('cpf-disclosure');
