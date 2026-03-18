@@ -274,7 +274,7 @@ def _create_from_flat_cpf(data: dict, db: Session) -> dict:
         members_str = str(members_raw)
 
     # Subcommittee
-    raw_sub = data.get("subcommittee") or ""
+    raw_sub = data.get("subcommittee") or data.get("bill") or data.get("appropriations_bill") or ""
     subcommittee = map_subcommittee(raw_sub)
     if not subcommittee:
         subcommittee = map_subcommittee(data.get("agency") or "")

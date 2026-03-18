@@ -174,6 +174,12 @@ def _create_from_prog_lang_schema(data: dict, db: Session) -> dict:
             or _str(data.get("agency"))
         )
     if not subcommittee:
+        # Try section/component as agency-like fallback (e.g. "HSI" → homeland_security)
+        subcommittee = map_subcommittee(
+            _str(approp_class.get("section"))
+            or _str(prog_req.get("component"))
+        )
+    if not subcommittee:
         subcommittee = "agriculture"
 
     # Title (check portal, nested, and flat, including program_title)
@@ -224,7 +230,11 @@ def _create_from_prog_lang_schema(data: dict, db: Session) -> dict:
         or ""
     )
 
-    poc_name = _str(poc.get("name")) or _str(poc.get("primary_contact")) or _str(metadata.get("contact_name"))
+    poc_name = (
+        _str(poc.get("name")) or _str(poc.get("primary_contact"))
+        or _str(poc.get("full_name")) or _str(poc.get("contact_name"))
+        or _str(metadata.get("contact_name")) or _str(data.get("contact_name"))
+    )
     if not poc_name:
         first = _str(poc.get("first_name"))
         last = _str(poc.get("last_name"))
