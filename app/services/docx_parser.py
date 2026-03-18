@@ -586,29 +586,69 @@ def map_subcommittee(raw: str) -> Optional[str]:
     if not raw:
         return None
 
-    raw_lower = raw.lower()
+    raw_lower = raw.lower().strip()
+
+    # Exact matches first (agency abbreviations, common shorthand)
+    exact = {
+        "ag": "agriculture",
+        "usda": "agriculture",
+        "cjs": "commerce_justice_science",
+        "doj": "commerce_justice_science",
+        "nasa": "commerce_justice_science",
+        "noaa": "commerce_justice_science",
+        "nsf": "commerce_justice_science",
+        "dod": "defense",
+        "hasc": "defense",
+        "sasc": "defense",
+        "ndaa": "defense",
+        "doe": "energy_water",
+        "nrc": "energy_water",
+        "dhs": "homeland_security",
+        "cbp": "homeland_security",
+        "ice": "homeland_security",
+        "hsi": "homeland_security",
+        "tsa": "homeland_security",
+        "fema": "homeland_security",
+        "uscis": "homeland_security",
+        "secret service": "homeland_security",
+        "doi": "interior_environment",
+        "epa": "interior_environment",
+        "hhs": "labor_hhs_education",
+        "nih": "labor_hhs_education",
+        "cdc": "labor_hhs_education",
+        "cms": "labor_hhs_education",
+        "ed": "labor_hhs_education",
+        "dol": "labor_hhs_education",
+        "va": "milcon_va",
+        "usaid": "state_foreign_operations",
+        "dot": "transportation_hud",
+        "faa": "transportation_hud",
+        "hud": "transportation_hud",
+        "fha": "transportation_hud",
+    }
+    if raw_lower in exact:
+        return exact[raw_lower]
+
+    # Substring matches for bill names and keywords
     mapping = {
         "agriculture": "agriculture",
         "commerce": "commerce_justice_science",
-        "cjs": "commerce_justice_science",
         "justice": "commerce_justice_science",
         "science": "commerce_justice_science",
-        "nasa": "commerce_justice_science",
         "defense": "defense",
         "armed services": "defense",
-        "hasc": "defense",
-        "ndaa": "defense",
         "national defense": "defense",
         "energy": "energy_water",
         "water": "energy_water",
         "financial": "financial_services",
+        "treasury": "financial_services",
         "homeland": "homeland_security",
         "interior": "interior_environment",
         "environment": "interior_environment",
         "labor": "labor_hhs_education",
-        "hhs": "labor_hhs_education",
         "health": "labor_hhs_education",
         "education": "labor_hhs_education",
+        "human services": "labor_hhs_education",
         "legislative": "legislative_branch",
         "milcon": "milcon_va",
         "military construction": "milcon_va",
@@ -616,7 +656,6 @@ def map_subcommittee(raw: str) -> Optional[str]:
         "state": "state_foreign_operations",
         "foreign": "state_foreign_operations",
         "transportation": "transportation_hud",
-        "hud": "transportation_hud",
         "housing": "transportation_hud",
     }
 
